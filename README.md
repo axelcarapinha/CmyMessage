@@ -40,24 +40,28 @@ Had fun knowing more about:
 
 
 ## Plan / Roadmap 
-- Plan the architecture / structure of the code
-- Simple connection
-- Containers (probably with Docker compose)
-- Database
-    - Designing the schema
-    - Making the queries
-    - Connecting it
-- Authentication (probalby with JWT tokens)
-- Security check, like avoiding:
-  - Open ports dangers
-  - SQL injection
-  - Command and code injection
-  - Buffer overflows
-  - ....
-- Pentests to check for vulnerabilities
-- Deployment
-    - Server setup and configuration (probably in an Azure VM)
-    - Documentation of the code
+✅ = implemented
+🛠️ = in process...
+🔁 = NOT implemented
+
+- Plan the architecture / structure of the code 🛠️
+- Simple connection 🛠️
+- Containers (probably with Docker compose) 🔁
+- Database 🔁
+    - Designing the schema 🔁
+    - Making the queries 🔁
+    - Connecting it 🔁
+- Authentication (probalby with JWT tokens) 🔁
+- Security check, like avoiding: 🔁
+  - Open ports dangers 🔁
+  - SQL injection 🔁
+  - Command and code injection 🔁
+  - Buffer overflows 🔁
+  - ... 🔁
+- Pentests to check for vulnerabilities 🔁
+- Deployment 🔁
+    - Server setup and configuration (probably in an Azure VM) 🔁
+    - Documentation of the code 🔁
 
   
   
