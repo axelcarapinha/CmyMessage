@@ -1,5 +1,5 @@
 # CmyMessage
-C chat application done for learning purposes. 
+C chat application done for learning purposes, in order to _complement_ the Computer Networks college class.
 
 <!-- TABLE OF CONTENTS -->
 <details>
