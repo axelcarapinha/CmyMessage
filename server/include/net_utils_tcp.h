@@ -33,7 +33,6 @@ typedef struct
 } uniSocket;
 
 // Utils
-
 uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg);
     int create_descriptor(uniSocket *socket_struct_ptr);
     void initialize(uniSocket *socket_struct_ptr);

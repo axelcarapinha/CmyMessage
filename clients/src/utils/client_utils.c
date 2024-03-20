@@ -16,56 +16,6 @@ void close_socket(uniSocket *socket_struct_ptr)
  *
  * @param a
  */
-void setupServer(int opt, uniSocket *socket_struct_ptr)
-{
-    // Forcefully attaching socket to the port (part 1)
-    if (setsockopt(socket_struct_ptr->sock_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
-    {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
-
-    // Name the socket
-    int bind_value;
-    if (socket_struct_ptr->is_ipv4)
-    {
-        bind_value = bind(socket_struct_ptr->sock_fd, (struct sockaddr *)socket_struct_ptr->address.addr_ipv4, sizeof(*(socket_struct_ptr->address.addr_ipv4)));
-    }
-    else
-    {
-        bind_value = bind(socket_struct_ptr->sock_fd, (struct sockaddr *)socket_struct_ptr->address.addr_ipv6, sizeof(*(socket_struct_ptr->address.addr_ipv6)));
-    }
-    //
-    if (bind_value < 0)
-    {
-        perror("bind failed");
-        free(socket_struct_ptr);
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        puts("Binded.");
-    }
-
-    // Listen to ports
-    if (listen(socket_struct_ptr->sock_fd, MAX_NUM_CONNECTIONS) < 0)
-    {
-        perror("listen");
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        puts("Listening...");
-    }
-
-    puts("Server socket listening...");
-}
-
-/**
- * @brief
- *
- * @param a
- */
 int create_descriptor(uniSocket *socket_struct_ptr)
 {
     int file_descriptor;
@@ -165,13 +115,6 @@ uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg)
     initialize(socket_struct_ptr);
     socket_struct_ptr->sock_fd = create_descriptor(socket_struct_ptr);
 
-    // SERVER specific settings
-    if (socket_struct_ptr->is_server)
-    {
-        int opt = 1;
-        setupServer(opt, socket_struct_ptr);
-    }
-
     return socket_struct_ptr;
 }
 
@@ -179,7 +122,7 @@ uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg)
  * @brief
  *
  * @param a
- */
+*/
 int acceptConnection(int echo_server, struct sockaddr *address, socklen_t *addrlen)
 {
     int client_socket = -1;
@@ -191,4 +134,37 @@ int acceptConnection(int echo_server, struct sockaddr *address, socklen_t *addrl
     }
 
     return client_socket;
+}
+
+
+/**
+ * @brief
+ *
+ * @param a
+*/
+int connect_cli(uniSocket *cli_struct_ptr, int port)
+{
+    // Address settings
+    struct sockaddr_in serv_addr;
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(port);
+    //
+    if (inet_pton(AF_INET, ADDRESS, &serv_addr.sin_addr) <= 0)
+    {
+        perror("Unsupported address.");
+        exit(EXIT_FAILURE);
+    }
+
+    // Connect to the server
+    int cli_socketFD;
+    if ((cli_socketFD = connect(cli_struct_ptr->sock_fd,
+                                (struct sockaddr *)cli_struct_ptr->address.addr_ipv4, cli_struct_ptr->addrlen)) >= 0)
+    {
+        cli_struct_ptr->sock_fd = cli_socketFD;
+    }
+    else
+    {
+        perror("Connecting to the server failed");
+        exit(EXIT_FAILURE);
+    }
 }

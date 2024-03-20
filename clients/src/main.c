@@ -1,184 +1,64 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <netinet/in.h>
-
-#include <string.h>
-#include <stdbool.h>
 #include "client_utils.h"
 
-#define PORT 8088
-#define ADDRESS "127.0.0.1"
-#define BUFFER_SIZE 1024
-
-#define PASSWORD_SIZE 150
-#define MAX_USERNAME_SIZE 150
-
-// RFC 5321 and RFC 5322 (respecting that standards)
-// 64 (local part) + 1 (@) +255 (domain part)
-#define MAX_EMAIL_SIZE 320
-
-#define MAX_INPUT_SIZE 1 // just for a number //TODO overflow cuidado
-
-enum Options
+/**
+ * @brief
+ *
+ * @param a
+ */
+void chat(uniSocket *cli_struct_ptr)
 {
-    REGISTER,
-    LOGIN,
-    LOGOUT
-};
+    puts("Chat started. Print 'exit' to terminate the session.");
 
-// void register()
-// {
-//     char email[MAX_EMAIL_SIZE];
-//     char username[MAX_USERNAME_SIZE];
+    // Prepare the buffer
+    char *buffer = (char *)malloc(BUFFER_SIZE);
 
-//     puts("Ok. Let's create an account...");
-//     printf("Email: ");
-//     fgets(email, MAX_EMAIL_SIZE + 1, stdin);
-//     //TODO check for validity of the input
+    // Prepare the regex expression
+    regex_t regex;
+    if (regcomp(&regex, "([eE][xX][iI][tT])", REG_EXTENDED) != 0) {
+        fprintf(stderr, "Failed to compile regex\n");
+        exit(EXIT_FAILURE);
+    }
+    //TODO consider using fprintf(stderr) instead of perror in more places
+    //TODO of this code
 
-//     printf("Username: ");
-//     fgets(username, MAX_USERNAME_SIZE + 1, stdin);
-//     //TODO check for the validity of the input
-// }
-
-// void login_with_credentials()
-// {
-//     char user_input[];
-//     fgets("");
-// }
-
-// void logout()
-// {
-//     char user_input[]
-//     printf("Are you sure? [y / n] ");
-//     fgets(username, MAX_INPUT_SIZE + 1, stdin);
-// }
-
-void interface()
-{
-    int option;
-    char user_input[1];
-    bool invalid_input = false;
-    do
+    // Read the message
+    ssize_t valread;
+    while ((valread = recv(cli_struct_ptr->sock_fd, buffer, BUFFER_SIZE - 1, 0)) > 0 &&
+           regexec(&regex, buffer, 0, NULL, 0) != 0)
     {
-        puts("--------------------Welcome to CmyMessage!--------------------");
-        puts("(1) Register");
-        puts("(2) Login");
-        puts("(3) Logout");
-        printf("Select the option: ");
+        // Print the received
+        printf("%s\n", buffer);
 
-        fgets(user_input, MAX_INPUT_SIZE + 1, stdin); // include the newline
-        option = atoi(user_input);
+        // Ask for more
+        printf("> ");
+        fgets(buffer, BUFFER_SIZE, stdin);
+        buffer[strlen(buffer)] = '\0'; // precaution
 
-        // Check if the option is valid
-        switch (option)
-        {
-        case REGISTER:
-            // register();
-            break;
-        case LOGIN:
-            // login();
-            break;
-        case LOGOUT:
-            // logout();
-            break;
-        default:
-            perror("Invalid option, please, try again");
-            invalid_input = true;
-            break;
-        }
-    } while (invalid_input);
+        // Send
+        send(cli_struct_ptr->sock_fd, buffer, valread, 0);
+        printf("%s\n", buffer);
 
-    puts("Did it heheh");
+        // TODO se ainda há conteúdo por enviar, fazer mais
+    }
+
+    bzero(buffer, BUFFER_SIZE);
+    free(buffer);
+    close(cli_struct_ptr->sock_fd);
 }
 
 int main(int argc, char *argv[])
 {
-    puts("Hello from main");
-    // interface();
-
-    connect_cli();
-
-    return 0;
-}
-
-void chat(uniSocket *cli_struct_ptr)
-{
-    char buffer[BUFFER_SIZE];
-    ssize_t bytes_received;
-
-    bytes_received = recv(cli_struct_ptr->sock_fd, buffer, BUFFER_SIZE, 0);
-
-    if (bytes_received > 0)
-    {
-        buffer[bytes_received] = '\0';
-    }
-    else if (bytes_received == 0)
-    {
-        puts("Connection terminated by the server.");
-    }
-    else {
-        perror("Failed to receive the data");
-    }
-
-    printf("%s\n", buffer);
-
-    return 0;
-
-    // Read the content
-    // if (fgets(buffer, BUFFER_SIZE, stdin) != NULL)
-    // {
-    //     // Input sanitization (from the client)
-    //     buffer[strcspn(buffer, "\n")] = '\0';
-    //     puts("Text read successfully");
-    // }
-    // else
-    // {
-    //     perror("Reading input failed");
-    //     puts("Please, try again");
-    // }
-    // TODO voltar a conectar após conseguir
-
-    // Write the message
-
-    // Send the message
-
-    // Wait for response from the server
-}
-
-void connect_cli()
-{
     // Socket creation
-    uniSocket *socket_cli = create_socket(false, PORT, true);
+    uniSocket *cli_struct_ptr = create_socket(false, PORT, true);
 
-    // Address settings
-    struct sockaddr_in serv_addr;
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(PORT);
-    //
-    if (inet_pton(AF_INET, ADDRESS, &serv_addr.sin_addr) <= 0)
-    {
-        perror("Unsupported address.");
-        exit(EXIT_FAILURE);
-    }
+    // Client handler
+    // check_cli_access_options(cli_struct_ptr);
 
-    // Connect to the server
-    int status;
-    if ((status = connect(socket_cli->sock_fd,
-                          socket_cli->address.addr_ipv4, socket_cli->addrlen)) >= 0)
-    {
-        chat(socket_cli);
-    }
-    else
-    {
-        perror("Connecting to the server failed");
-        exit(EXIT_FAILURE);
-    }
+    // Start the pretended service
+    chat(cli_struct_ptr);
+
+    // Close the socket
+    close(cli_struct_ptr->sock_fd);
 
     return 0;
 }

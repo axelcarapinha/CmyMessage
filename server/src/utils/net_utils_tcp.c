@@ -120,7 +120,7 @@ void initialize(uniSocket *socket_struct_ptr)
 /**
  * @brief
  *
- * @param a
+ * @param 
  */
 uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg)
 {
