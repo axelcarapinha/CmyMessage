@@ -1,19 +1,23 @@
-default: clients server
+default: s
 	
-clients:
-	cd clients
-	make clean
-	make build
-	make run
-	cd ..
+c:
+	cd clients && make && cd ..
 
-server:
-	cd server
-	make clean
-	make build
-	make run
-	cd ..
+s:
+	cd server && make && cd ..
 
 simple:
 	gcc -g -o main main.c
 	./main
+
+clean:
+	cd clients && make clean && cd ..
+	cd server && make clean && cd ..
+
+save: MESSAGE
+	git add . && git commit $(MESSAGE) git push -u
+
+save: 
+	clean
+	save
+	

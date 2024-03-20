@@ -1,5 +1,5 @@
-#ifndef NET_UTILS_TCP_H
-#define NET_UTILS_TCP_H
+#ifndef CLIENT_UTILS_H
+#define CLIENT_UTILS_H
 
 #include <netinet/in.h>
 #include <stdio.h>

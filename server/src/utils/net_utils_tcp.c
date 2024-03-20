@@ -1,4 +1,5 @@
 #include "net_utils_tcp.h"
+#include <asm-generic/socket.h>
 
 /**
  * @brief
@@ -124,6 +125,9 @@ void initialize(uniSocket *socket_struct_ptr)
 uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg)
 {
     // UniSocket memory allocation
+    // Using the pointer because the malloc function could
+    // rearrange the memory positions,
+    // and we would be accessing unintended data
     uniSocket *socket_struct_ptr = (uniSocket *)malloc(sizeof(uniSocket));
     if (socket_struct_ptr == NULL)
     {

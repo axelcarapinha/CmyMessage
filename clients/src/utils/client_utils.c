@@ -1,4 +1,5 @@
-#include "net_utils_tcp.h"
+#include "client_utils.h"
+#include <asm-generic/socket.h>
 
 /**
  * @brief
