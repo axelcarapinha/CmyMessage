@@ -44,8 +44,9 @@ Had fun knowing more about:
 🛠️ = in process...
 🔁 = NOT implemented
 
-- Plan the architecture / structure of the code 🛠️
-- Simple connection 🛠️
+- Plan the architecture / structure of the code ✅
+- Simple connection ✅
+- Simple chat between two specific clients 🛠️ 
 - Containers (probably with Docker compose) 🔁
 - Database 🔁
     - Designing the schema 🔁
