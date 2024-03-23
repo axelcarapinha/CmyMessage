@@ -44,7 +44,7 @@ void setupServer(int opt, uniSocket *socket_struct_ptr)
     }
     else
     {
-        puts("Binded.");
+        puts(YELLOW "Binded." RESET);
     }
 
     // Listen to ports
@@ -55,10 +55,10 @@ void setupServer(int opt, uniSocket *socket_struct_ptr)
     }
     else
     {
-        puts("Listening...");
+        puts(YELLOW "Listening..." RESET);
     }
 
-    puts("Server socket listening...");
+    puts(YELLOW "Server socket listening..." RESET);
 }
 
 /**
@@ -90,7 +90,7 @@ int create_descriptor(uniSocket *socket_struct_ptr)
     }
     else
     {
-        puts("Stream socket created SUCCESSFULY");
+        puts(YELLOW "Stream socket created SUCCESSFULY" RESET);
     }
 
     return file_descriptor;
@@ -120,7 +120,7 @@ void initialize(uniSocket *socket_struct_ptr)
 /**
  * @brief
  *
- * @param 
+ * @param
  */
 uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg)
 {

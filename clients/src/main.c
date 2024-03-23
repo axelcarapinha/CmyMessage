@@ -9,35 +9,50 @@ void chat(uniSocket *cli_struct_ptr)
 {
     // Prepare the buffer
     char *buffer = (char *)malloc(BUFFER_SIZE);
-    printf("> ");
-    fgets(buffer, BUFFER_SIZE, stdin);
 
-
-    // Prepare the regex expression
-    regex_t regex;
-    if (regcomp(&regex, "([eE][xX][iI][tT])", REG_EXTENDED) != 0) {
+    // Compile regex expression
+    regex_t exit_regex;
+    if (regcomp(&exit_regex, "([eE][xX][iI][tT])", REG_EXTENDED) != 0)
+    {
         fprintf(stderr, "Failed to compile regex\n");
         exit(EXIT_FAILURE);
     }
 
-    // Read the message
-    ssize_t valread;
-    while ((valread = recv(cli_struct_ptr->sock_fd, buffer, BUFFER_SIZE - 1, 0)) > 0 &&
-           regexec(&regex, buffer, 0, NULL, 0) != 0)
-    {
-        // Print the received
-        printf("%s\n", buffer);
+    printf("> ");
+    fgets(buffer, BUFFER_SIZE, stdin);
 
-        // Ask for more
+    // Read the message
+    while (true)
+    {
+        ssize_t valread;
+        valread = recv(cli_struct_ptr->sock_fd, buffer, BUFFER_SIZE, 0);
+        if (valread == 0) {
+            printf("Could NOT read any content from the server");
+        }
+
+        // Print the received
+        printf(BLUE "%s\n" RESET, buffer);
+        memset(buffer, 0, BUFFER_SIZE);
+
+        // Send response
         printf("> ");
         fgets(buffer, BUFFER_SIZE, stdin);
-        buffer[strlen(buffer)] = '\0'; // precaution
+        buffer[strlen(buffer) - 1] = '\0';
+        //
+        if (regexec(&exit_regex, buffer, 0, NULL, 0) == 0) {
+            printf("Exiting chat.\n");
+            break; 
+        }
+        //
+        send(cli_struct_ptr->sock_fd, buffer, strlen(buffer), 0);
+        printf("Sent %d\n", strlen(buffer));
 
-        // Send
-        send(cli_struct_ptr->sock_fd, buffer, valread, 0);
-        printf("%s\n", buffer);
-
+        // if valread
+        // regexec(&regex, buffer, 0, NULL, 0) != 0)
         // TODO se ainda há conteúdo por enviar, fazer mais
+
+        // Fully clean the buffer
+        memset(buffer, 0, BUFFER_SIZE);
     }
 
     bzero(buffer, BUFFER_SIZE);

@@ -18,19 +18,18 @@ void chat()
 
 // TODO use threads
 
-void read_client_responses(int *client_handler)
+void read_client_responses(int client_handler)
 {
-    char *buffer[BUFFER_SIZE];
+    char buffer[BUFFER_SIZE];
     while (true)
     {
-        if (recv(client_handler, buffer, BUFFER_SIZE, 0) > 0)
-        {
-            buffer[strlen(*buffer)] = '\0';
-            printf("%s\n", buffer); // TODO send to another client instead of printing
+        recv(client_handler, buffer, BUFFER_SIZE, 0);
+        // buffer[strlen(buffer) - 1] = '\0';
+        send(client_handler, buffer, strlen(buffer), 0);
+        printf(YELLOW "Sent: %s\n" RESET, buffer); 
 
-            // size_t bytes_sent;
-            // send(client_handler, buffer, BUFFER_SIZE, 0);
-        }
+        // size_t bytes_sent;
+        // send(client_handler, buffer, BUFFER_SIZE, 0);   
     }
 
     //  while (strcmp(fgets(buffer, BUFFER_SIZE, stdin), "finish") != 0)
@@ -40,7 +39,7 @@ void read_client_responses(int *client_handler)
 
 void handle_client_requests(void *client_handler_ptr)
 {
-    int client_handler = *((int *)client_handler);
+    long client_handler = *((long *)client_handler);
     ClientInfo *recipient = (ClientInfo *)malloc(sizeof(ClientInfo));
 
     // TODO Ask for the pretended recipient
@@ -52,7 +51,7 @@ void handle_client_requests(void *client_handler_ptr)
     size_t bytes_sent;
     if ((bytes_sent = send(client_handler, buffer, BUFFER_SIZE, 0)) < message_length)
     {
-        fprintf(stderr, "%d / %d bytes sent", bytes_sent, message_length);
+        fprintf(stderr, "%ld / %ld bytes sent", bytes_sent, message_length);
         perror("Error sending the data");
     }
 
@@ -70,7 +69,7 @@ void listen_incoming_connections(void *server_struct_ptr_arg)
     while (true)
     {
         int client_handler = acceptConnection(server_struct_ptr->sock_fd,
-                                              server_struct_ptr->address.addr_ipv4,
+                                              (struct sockaddr*)server_struct_ptr->address.addr_ipv4,
                                               &(server_struct_ptr->addrlen));
 
         // Allocate memory for the pointer
@@ -83,17 +82,17 @@ void listen_incoming_connections(void *server_struct_ptr_arg)
         *cli_handler_ptr = client_handler;
 
         pthread_t handler_thread;
-        pthread_create(&handler_thread, NULL, handle_client_requests, (void *)cli_handler_ptr);
+        pthread_create(&handler_thread, NULL, 
+            handle_client_requests, (void *)cli_handler_ptr);
     }
 }
 
 void create_listening_thread(uniSocket *server_struct_ptr)
 {
-    pthread_t listener_thread;
-
     // Creating the thread
-    int thread_create_status = pthread_create(&listener_thread, NULL, listen_incoming_connections,
-                                              (void *)server_struct_ptr);
+    pthread_t listener_thread;
+    int thread_create_status = pthread_create(&listener_thread, NULL, 
+        listen_incoming_connections, (void *)server_struct_ptr);
     if (thread_create_status)
     {
         fprintf(stderr, "Value return from the thread creation is %d\n", thread_create_status);
@@ -130,17 +129,16 @@ void start_server(int port)
     char buffer[BUFFER_SIZE];
 
     // Perpetuate thread to actively listen incoming connections
-    // and let it execute
     create_listening_thread(server_struct_ptr);
 
     close_socket(server_struct_ptr);
     shutdown(server_struct_ptr->sock_fd, SHUT_RDWR); // TODO implement in the close server function
-    puts("Closed");
+    puts(YELLOW "Closed" RESET);
 }
 
 int main(int argc, char *argv[])
 {
-    puts("Powering up the server!");
+    puts(YELLOW "Powering up the server!" RESET);
     start_server(PORT);
 
     return 0;
