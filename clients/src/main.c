@@ -7,10 +7,11 @@
  */
 void chat(uniSocket *cli_struct_ptr)
 {
-    puts("Chat started. Print 'exit' to terminate the session.");
-
     // Prepare the buffer
     char *buffer = (char *)malloc(BUFFER_SIZE);
+    printf("> ");
+    fgets(buffer, BUFFER_SIZE, stdin);
+
 
     // Prepare the regex expression
     regex_t regex;
@@ -18,8 +19,6 @@ void chat(uniSocket *cli_struct_ptr)
         fprintf(stderr, "Failed to compile regex\n");
         exit(EXIT_FAILURE);
     }
-    //TODO consider using fprintf(stderr) instead of perror in more places
-    //TODO of this code
 
     // Read the message
     ssize_t valread;

@@ -11,75 +11,137 @@ typedef struct
     char *recipient;
 } ClientInfo;
 
-
-//TODO 
+// TODO
 void chat()
 {
 }
 
+// TODO use threads
 
-//TODO use threads
-void handle_client_requests(int client_handler)
+void read_client_responses(int *client_handler)
 {
-    ClientInfo *recipient = (ClientInfo *)malloc(sizeof(ClientInfo));
-
-    // Ask the user for the target recipient
-    char buffer[BUFFER_SIZE];
-    strcpy(buffer, "Connection established!");
-    strcat(buffer, "\n Recipient: ");
-    size_t message_length = strlen(buffer);
-    //
-    if (send(client_handler, buffer, BUFFER_SIZE, 0) < message_length)
-    {
-        perror("Error sending the data");
-    }
-    else
-    {
-        puts("Sent a new message");
-    }
-
-    // Search for that user
+    char *buffer[BUFFER_SIZE];
     while (true)
     {
         if (recv(client_handler, buffer, BUFFER_SIZE, 0) > 0)
         {
-            buffer[strlen(buffer)] = '\0';
-            printf("%s\n", buffer);
+            buffer[strlen(*buffer)] = '\0';
+            printf("%s\n", buffer); // TODO send to another client instead of printing
+
+            // size_t bytes_sent;
+            // send(client_handler, buffer, BUFFER_SIZE, 0);
         }
     }
+
+    //  while (strcmp(fgets(buffer, BUFFER_SIZE, stdin), "finish") != 0)
+    // {
+    // }
 }
 
-void start_server()
+void handle_client_requests(void *client_handler_ptr)
 {
-    uniSocket *server_struct_ptr = create_socket(true, PORT, true);
+    int client_handler = *((int *)client_handler);
+    ClientInfo *recipient = (ClientInfo *)malloc(sizeof(ClientInfo));
 
+    // TODO Ask for the pretended recipient
     char buffer[BUFFER_SIZE];
-    while (strcmp(fgets(buffer, BUFFER_SIZE, stdin), "finish") != 0)
+    strcpy(buffer, "Connection established! Press 'exit' to terminate the session.");
+    size_t message_length = strlen(buffer);
+    // strcat(buffer, "\n Recipient: ");
+
+    size_t bytes_sent;
+    if ((bytes_sent = send(client_handler, buffer, BUFFER_SIZE, 0)) < message_length)
+    {
+        fprintf(stderr, "%d / %d bytes sent", bytes_sent, message_length);
+        perror("Error sending the data");
+    }
+
+    read_client_responses(client_handler);
+    // TODO implement the interface in this part, not in the client one
+
+    // Free allocated memory
+    free(client_handler_ptr);
+}
+
+void listen_incoming_connections(void *server_struct_ptr_arg)
+{
+    uniSocket *server_struct_ptr = (uniSocket *)server_struct_ptr_arg;
+
+    while (true)
     {
         int client_handler = acceptConnection(server_struct_ptr->sock_fd,
                                               server_struct_ptr->address.addr_ipv4,
                                               &(server_struct_ptr->addrlen));
 
-        if (client_handler >= 0)
+        // Allocate memory for the pointer
+        int *cli_handler_ptr = malloc(sizeof(int));
+        if (cli_handler_ptr == NULL)
         {
-            handle_client_requests(client_handler);
-        }
-        else
-        {
-            perror("Error connecting to the client");
+            perror("Error allocating memory for client handler pointer");
             exit(EXIT_FAILURE);
         }
+        *cli_handler_ptr = client_handler;
+
+        pthread_t handler_thread;
+        pthread_create(&handler_thread, NULL, handle_client_requests, (void *)cli_handler_ptr);
+    }
+}
+
+void create_listening_thread(uniSocket *server_struct_ptr)
+{
+    pthread_t listener_thread;
+
+    // Creating the thread
+    int thread_create_status = pthread_create(&listener_thread, NULL, listen_incoming_connections,
+                                              (void *)server_struct_ptr);
+    if (thread_create_status)
+    {
+        fprintf(stderr, "Value return from the thread creation is %d\n", thread_create_status);
+        exit(EXIT_FAILURE);
     }
 
-    void close_socket(server_struct_ptr);
-    shutdown(server_struct_ptr->sock_fd, SHUT_RDWR); //TODO implement in the close server function
+    // Allocating memory for the exit status
+    void *status = malloc(sizeof(int));
+    if (status == NULL)
+    {
+        fprintf(stderr, "Failed to allocate memory for thread status\n");
+        exit(EXIT_FAILURE);
+    }
+    //
+    int join_status = pthread_join(listener_thread, &status);
+    if (join_status != 0)
+    {
+        fprintf(stderr, "Error joining listener thread: %d\n", join_status);
+        exit(EXIT_FAILURE);
+    }
+
+    // Checking the return status
+    // TODO use this to store error values in the database
+    int status_val = *((int *)status);
+    if (status_val != 0)
+    {
+        fprintf(stderr, "Listener thread returned value %d\n", status_val);
+    }
+}
+
+void start_server(int port)
+{
+    uniSocket *server_struct_ptr = create_socket(true, port, true);
+    char buffer[BUFFER_SIZE];
+
+    // Perpetuate thread to actively listen incoming connections
+    // and let it execute
+    create_listening_thread(server_struct_ptr);
+
+    close_socket(server_struct_ptr);
+    shutdown(server_struct_ptr->sock_fd, SHUT_RDWR); // TODO implement in the close server function
     puts("Closed");
 }
 
-void main()
+int main(int argc, char *argv[])
 {
     puts("Powering up the server!");
-    start_server();
+    start_server(PORT);
 
     return 0;
 }
