@@ -36,7 +36,16 @@ A chat application made with C.
 
 ## What I learned until now!
 Had fun knowing more about:
-* 
+* C programming language
+  * careful memory management
+  * multi-threading
+  * 
+* Information security practices
+  * Input sanitization
+  * Forms of AUTH (and its fragilities)
+  * 
+* Cmake (build system generator)
+* Software architecture
 
 
 ## Plan / Roadmap 
