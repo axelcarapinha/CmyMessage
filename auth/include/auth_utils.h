@@ -17,14 +17,6 @@
 
 #define BUFFER_SIZE 1024
 
-enum ServerConnectionOptions
-{
-    LOGIN,
-    REGISTER,
-    LOGOUT,
-    GUEST
-};
-
 // Utils
 void enter_cli_as_guest();
 void login_client();

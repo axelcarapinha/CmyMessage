@@ -12,8 +12,8 @@
 #include <unistd.h>
 #include <regex.h>
 //
-#define CHAT_PORT 1300 
 #define PORT 8040
+#define CHAT_PORT 1300 
 #define DAY_TIME_PORT 1320
 //
 #define BUFFER_SIZE 1500 // widely used in LANs (size of ethernet packets)
@@ -60,7 +60,7 @@ uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg);
     int create_descriptor(uniSocket *socket_struct_ptr);
     void initialize(uniSocket *socket_struct_ptr);
 int acceptConnection(int echo_server, struct sockaddr *address, socklen_t *addrlen);
-    int connect_cli(uniSocket *cli_struct_ptr, int port);
+void connect_cli(uniSocket *cli_struct_ptr, int port);
 void close_socket(uniSocket *socket_struct_ptr);
 
 #endif

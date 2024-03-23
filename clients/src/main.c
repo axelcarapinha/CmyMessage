@@ -1,13 +1,7 @@
 #include "client_utils.h"
 
-/**
- * @brief
- *
- * @param a
- */
 void chat(uniSocket *cli_struct_ptr)
 {
-    // Prepare the buffer
     char *buffer = (char *)malloc(BUFFER_SIZE);
 
     // Compile regex expression
@@ -18,16 +12,18 @@ void chat(uniSocket *cli_struct_ptr)
         exit(EXIT_FAILURE);
     }
 
-    printf("> ");
-    fgets(buffer, BUFFER_SIZE, stdin);
+    //TODO func to read all content frmo the seber
 
-    // Read the message
+    // Start sending content to the server
+    printf("Starting chat... (press Ctrl-C to exit)\n");
     while (true)
     {
         ssize_t valread;
         valread = recv(cli_struct_ptr->sock_fd, buffer, BUFFER_SIZE, 0);
-        if (valread == 0) {
-            printf("Could NOT read any content from the server");
+        if (valread < 0) {
+            perror("Failed to received data from the server");
+            close_socket(cli_struct_ptr);
+            exit(EXIT_FAILURE);
         }
 
         // Print the received
@@ -45,7 +41,7 @@ void chat(uniSocket *cli_struct_ptr)
         }
         //
         send(cli_struct_ptr->sock_fd, buffer, strlen(buffer), 0);
-        printf("Sent %d\n", strlen(buffer));
+        printf("Sent %ld\n", strlen(buffer));
 
         // if valread
         // regexec(&regex, buffer, 0, NULL, 0) != 0)
@@ -55,6 +51,7 @@ void chat(uniSocket *cli_struct_ptr)
         memset(buffer, 0, BUFFER_SIZE);
     }
 
+    // Terminate gracefully
     bzero(buffer, BUFFER_SIZE);
     free(buffer);
     close(cli_struct_ptr->sock_fd);
@@ -62,17 +59,11 @@ void chat(uniSocket *cli_struct_ptr)
 
 int main(int argc, char *argv[])
 {
-    // Socket creation
     uniSocket *cli_struct_ptr = create_socket(false, PORT, true);
+    connect_cli(cli_struct_ptr, PORT);
 
-    // Client handler
-    // check_cli_access_options(cli_struct_ptr);
-
-    // Start the pretended service
     chat(cli_struct_ptr);
-
-    // Close the socket
-    close(cli_struct_ptr->sock_fd);
+    // close(cli_struct_ptr->sock_fd);
 
     return 0;
 }

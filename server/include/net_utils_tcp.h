@@ -27,6 +27,17 @@
 #define CYAN    "\x1B[36m"
 #define WHITE   "\x1B[37m"
 
+#define SERVER_NAME "CmyMessage" // in case I end up changing the server name with updates
+
+enum ServerConnectionOptions
+{
+    LOGIN,
+    REGISTER,
+    LOGOUT,
+    GUEST,
+    EXIT
+};
+
 // Socket for IPV4 and IPV6 addresses
 typedef struct 
 {
@@ -49,7 +60,7 @@ uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg);
     void setupServer(int opt, uniSocket *socket_struct_ptr);
 
 int acceptConnection(int echo_server, struct sockaddr *address, socklen_t *addrlen);
-void close_socket(uniSocket *socket_struct_ptr);
+void close_server_socket(uniSocket *socket_struct_ptr);
 
 
 #endif

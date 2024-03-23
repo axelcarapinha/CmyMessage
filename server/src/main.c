@@ -11,135 +11,178 @@ typedef struct
     char *recipient;
 } ClientInfo;
 
-// TODO
-void chat()
+void handle_thread_creation_and_exit(pthread_t *thread_id_ptr, int thread_create_status)
 {
-}
-
-// TODO use threads
-
-void read_client_responses(int client_handler)
-{
-    char buffer[BUFFER_SIZE];
-    while (true)
-    {
-        recv(client_handler, buffer, BUFFER_SIZE, 0);
-        // buffer[strlen(buffer) - 1] = '\0';
-        send(client_handler, buffer, strlen(buffer), 0);
-        printf(YELLOW "Sent: %s\n" RESET, buffer); 
-
-        // size_t bytes_sent;
-        // send(client_handler, buffer, BUFFER_SIZE, 0);   
-    }
-
-    //  while (strcmp(fgets(buffer, BUFFER_SIZE, stdin), "finish") != 0)
-    // {
-    // }
-}
-
-void handle_client_requests(void *client_handler_ptr)
-{
-    long client_handler = *((long *)client_handler);
-    ClientInfo *recipient = (ClientInfo *)malloc(sizeof(ClientInfo));
-
-    // TODO Ask for the pretended recipient
-    char buffer[BUFFER_SIZE];
-    strcpy(buffer, "Connection established! Press 'exit' to terminate the session.");
-    size_t message_length = strlen(buffer);
-    // strcat(buffer, "\n Recipient: ");
-
-    size_t bytes_sent;
-    if ((bytes_sent = send(client_handler, buffer, BUFFER_SIZE, 0)) < message_length)
-    {
-        fprintf(stderr, "%ld / %ld bytes sent", bytes_sent, message_length);
-        perror("Error sending the data");
-    }
-
-    read_client_responses(client_handler);
-    // TODO implement the interface in this part, not in the client one
-
-    // Free allocated memory
-    free(client_handler_ptr);
-}
-
-void listen_incoming_connections(void *server_struct_ptr_arg)
-{
-    uniSocket *server_struct_ptr = (uniSocket *)server_struct_ptr_arg;
-
-    while (true)
-    {
-        int client_handler = acceptConnection(server_struct_ptr->sock_fd,
-                                              (struct sockaddr*)server_struct_ptr->address.addr_ipv4,
-                                              &(server_struct_ptr->addrlen));
-
-        // Allocate memory for the pointer
-        int *cli_handler_ptr = malloc(sizeof(int));
-        if (cli_handler_ptr == NULL)
-        {
-            perror("Error allocating memory for client handler pointer");
-            exit(EXIT_FAILURE);
-        }
-        *cli_handler_ptr = client_handler;
-
-        pthread_t handler_thread;
-        pthread_create(&handler_thread, NULL, 
-            handle_client_requests, (void *)cli_handler_ptr);
-    }
-}
-
-void create_listening_thread(uniSocket *server_struct_ptr)
-{
-    // Creating the thread
-    pthread_t listener_thread;
-    int thread_create_status = pthread_create(&listener_thread, NULL, 
-        listen_incoming_connections, (void *)server_struct_ptr);
-    if (thread_create_status)
+    if (thread_create_status != 0)
     {
         fprintf(stderr, "Value return from the thread creation is %d\n", thread_create_status);
-        exit(EXIT_FAILURE);
+        return;
     }
 
-    // Allocating memory for the exit status
-    void *status = malloc(sizeof(int));
-    if (status == NULL)
-    {
-        fprintf(stderr, "Failed to allocate memory for thread status\n");
-        exit(EXIT_FAILURE);
-    }
-    //
-    int join_status = pthread_join(listener_thread, &status);
+    // Checking for THREAD JOINING errors
+    void *status_ptr; // pthread_join already allocates memory for the pointer
+    int join_status = pthread_join(*thread_id_ptr, &status_ptr);
     if (join_status != 0)
     {
         fprintf(stderr, "Error joining listener thread: %d\n", join_status);
+        return;
+    }
+
+    // Checking for EXECUTION errors
+    if (status_ptr != NULL)
+    {
+        int *status_val = (int *)status_ptr;
+        if (*status_val != 0)
+        {
+            fprintf(stderr, "Listener thread returned value %d\n", *status_val);
+        }
+    }
+
+    free(status_ptr);
+}
+
+// TODO for receiving too
+//  void send_lots_of_data_to_client() {
+
+// }
+
+void enter_cli_as_guest()
+{
+    // ClientInfo *recipient = (ClientInfo *)malloc(sizeof(ClientInfo));
+
+    puts("GUEST MODE = ON");
+}
+
+void handle_client_requests(void *client_handler_ptr_arg)
+{
+    long *client_handler_ptr = (long *)client_handler_ptr_arg;
+    char *buffer = (char *)malloc(BUFFER_SIZE);
+
+    // Prepare interface text
+    sprintf(buffer,
+            "Welcome to %s\n!" BLUE "(%d) Login\n"
+            "(%d) Register\n"
+            "(%d) Logout\n"
+            "(%d) Guest\n" RESET
+                RED "(%d) Exit\n" RESET
+                    BLUE "Enter the number of the desired option: " RESET,
+            SERVER_NAME, REGISTER, LOGOUT, GUEST, EXIT);
+
+    // Send to the client
+    if (send(*client_handler_ptr, buffer, strlen(buffer), 0) < 0)
+    {
+        perror("Failed to send the interface");
         exit(EXIT_FAILURE);
     }
 
-    // Checking the return status
-    // TODO use this to store error values in the database
-    int status_val = *((int *)status);
-    if (status_val != 0)
+    // Get the client option
+    int recv_status;
+    if ((recv_status = recv(*client_handler_ptr, buffer, BUFFER_SIZE, 0)) < 0)
     {
-        fprintf(stderr, "Listener thread returned value %d\n", status_val);
+        fprintf(stderr, "recv() method exited with error %ld\n", recv_status);
     }
+    int opt = buffer[0];
+    buffer[1] = '\0';
+    // memset(buffer, 0, BUFFER_SIZE);
+
+    // Redirect to the correct service
+    bool valid_user_input = true;
+    do
+    {
+        switch (opt)
+        {
+        case LOGIN:
+            // login_client();
+            break;
+        case REGISTER:
+            // register_client();
+            break;
+        case LOGOUT:
+            // logout_client();
+            break;
+        case GUEST:
+            // enter_cli_as_guest();
+            break;
+        case EXIT:
+            strcpy(buffer, "Exiting... have a nice day :)");
+            if (send(*client_handler_ptr, buffer, strlen(buffer), 0) < 0)
+            {
+                perror("Failed to send the interface");
+                exit(EXIT_FAILURE);
+            }
+            return;
+        default:
+            strcpy(buffer, "Invalid option. Please, try again.");
+            if (send(*client_handler_ptr, buffer, strlen(buffer), 0) < 0)
+            {
+                perror("Failed to send the interface");
+                exit(EXIT_FAILURE);
+            }
+            break;
+        }
+    } while (valid_user_input == false);
+}
+
+void accept_incoming_connections(void *server_struct_ptr_arg)
+{
+    uniSocket *server_struct_ptr = (uniSocket *)server_struct_ptr_arg;
+    while (true)
+    {
+        long *client_handler_ptr = (long *)malloc(sizeof(long));
+        if (client_handler_ptr == NULL)
+        {
+            perror("Problem allocating memory for the client_handler_ptr");
+            exit(EXIT_FAILURE);
+        }
+
+        *client_handler_ptr = acceptConnection(server_struct_ptr->sock_fd,
+                                               (struct sockaddr *)server_struct_ptr->address.addr_ipv4,
+                                               &(server_struct_ptr->addrlen));
+        if (*client_handler_ptr < 0)
+        {
+            perror("Error accepting connection");
+            free(client_handler_ptr);
+            continue;
+        }
+
+        // Handle requests in a separate thread
+        pthread_t handler_thread;
+        int thread_creation_status = pthread_create(&handler_thread, NULL, (void *(*)(void *))handle_client_requests, (void *)client_handler_ptr);
+        // "void *" generic pointer
+        // "(*)" function pointer
+        // "(void *)" arguments types of the function
+
+        handle_thread_creation_and_exit(&handler_thread, thread_creation_status);
+    }
+}
+
+//* In the end, the MAX_NUMBER_OF_CONNECTIONS handles the amount of threading
+void start_accepting_incoming_connections(uniSocket *server_struct_ptr)
+{
+    pthread_t listening_thread;
+    int thread_creation_status;
+    thread_creation_status = pthread_create(&listening_thread, NULL,
+                                            (void *(*)(void *))accept_incoming_connections, (void *)server_struct_ptr);
+
+    handle_thread_creation_and_exit(&listening_thread, thread_creation_status);
 }
 
 void start_server(int port)
 {
     uniSocket *server_struct_ptr = create_socket(true, port, true);
-    char buffer[BUFFER_SIZE];
-
-    // Perpetuate thread to actively listen incoming connections
-    create_listening_thread(server_struct_ptr);
-
-    close_socket(server_struct_ptr);
-    shutdown(server_struct_ptr->sock_fd, SHUT_RDWR); // TODO implement in the close server function
-    puts(YELLOW "Closed" RESET);
+    start_accepting_incoming_connections(server_struct_ptr);
+    close_server_socket(server_struct_ptr);
 }
 
 int main(int argc, char *argv[])
 {
     puts(YELLOW "Powering up the server!" RESET);
     start_server(PORT);
+
+    // int status;
+    // if ((status = start_server(PORT)) < 0) {
+    //     fprintf(stderr, "Error number %d when starting the server.\n", status);
+    // }
 
     return 0;
 }

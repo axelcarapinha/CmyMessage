@@ -14,8 +14,8 @@ void close_socket(uniSocket *socket_struct_ptr)
 /**
  * @brief
  *
- * @param a
- */
+ * @param 
+*/
 int create_descriptor(uniSocket *socket_struct_ptr)
 {
     int file_descriptor;
@@ -40,7 +40,7 @@ int create_descriptor(uniSocket *socket_struct_ptr)
     }
     else
     {
-        puts("Stream socket created SUCCESSFULY");
+        puts(YELLOW "Stream socket created SUCCESSFULY" RESET);
     }
 
     return file_descriptor;
@@ -122,7 +122,7 @@ uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg)
  * @brief
  *
  * @param a
-*/
+ */
 int acceptConnection(int echo_server, struct sockaddr *address, socklen_t *addrlen)
 {
     int client_socket = -1;
@@ -136,13 +136,12 @@ int acceptConnection(int echo_server, struct sockaddr *address, socklen_t *addrl
     return client_socket;
 }
 
-
 /**
  * @brief
  *
  * @param a
-*/
-int connect_cli(uniSocket *cli_struct_ptr, int port)
+ */
+void connect_cli(uniSocket *cli_struct_ptr, int port)
 {
     // Address settings
     struct sockaddr_in serv_addr;
@@ -155,6 +154,13 @@ int connect_cli(uniSocket *cli_struct_ptr, int port)
         exit(EXIT_FAILURE);
     }
 
+    //TODO consider this piece of code
+    // bcopy(
+    //     (char *)server->h_addr,
+    //     (char *)&servaddr.sin_addr.s_addr,
+    //     server->h_length
+    // );
+
     // Connect to the server
     int cli_socketFD;
     if ((cli_socketFD = connect(cli_struct_ptr->sock_fd,
@@ -164,7 +170,7 @@ int connect_cli(uniSocket *cli_struct_ptr, int port)
     }
     else
     {
-        perror("Connecting to the server failed");
+        perror("Connection to the server failed");
         exit(EXIT_FAILURE);
     }
 }

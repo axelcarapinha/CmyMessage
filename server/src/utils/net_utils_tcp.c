@@ -6,9 +6,11 @@
  *
  * @param a
  */
-void close_socket(uniSocket *socket_struct_ptr)
+void close_server_socket(uniSocket *socket_struct_ptr)
 {
+    shutdown(socket_struct_ptr->sock_fd, SHUT_RDWR);
     close(socket_struct_ptr->sock_fd);
+    puts(YELLOW "Server terminated." RESET);
 }
 
 /**
