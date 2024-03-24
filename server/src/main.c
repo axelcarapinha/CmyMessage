@@ -4,6 +4,11 @@
 #define PORT 8040
 #define MAX_NUM_CLIENTS 30
 
+//TODO services folder
+// void enter_broadcast_session(long *client_handler_ptr, char *buffer) {
+
+
+// }
 
 void handle_thread_creation_and_exit(pthread_t *thread_id_ptr, int thread_create_status)
 {

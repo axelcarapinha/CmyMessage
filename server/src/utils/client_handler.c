@@ -1,4 +1,5 @@
 #include "client_handler_utils.h"
+// #include "services.h"
 
 void login_client(long *client_handler_ptr, char *buffer)
 {
@@ -35,17 +36,23 @@ void enter_cli_as_guest(long *client_handler_ptr, char *buffer)
     send(*client_handler_ptr, buffer, strlen(buffer), 0);
 
     // Assign its ID
+    memset(buffer, 0, BUFFER_SIZE);
     int bytes_received;
-    if (bytes_received = recv(*client_handler_ptr, buffer, BUFFER_SIZE, 0) < 0)
+    if ((bytes_received = recv(*client_handler_ptr, buffer, BUFFER_SIZE, 0)) < 0)
     {
-        fprintf(stderr, "recv() function failed, with exit code %d\n");
+        fprintf(stderr, "recv() function failed, with exit code %d\n", bytes_received);
         exit(EXIT_FAILURE);
     }
-    else if (bytes_received == 0)
+    else if (bytes_received == 0) {
+        fprintf(stderr, "Client terminated the connection.\n");
+        exit(EXIT_SUCCESS);
+    }
 
     buffer[bytes_received] = '\0';
+    strcpy(recipient->name, buffer);
+
+    // send(*client_handler_ptr, buffer, BUFFER_SIZE, 0);
     printf("Name = %s\n", buffer);
-    // strcpy(recipient->name, buffer);
 
     while (true)
     {
