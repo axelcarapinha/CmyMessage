@@ -1,5 +1,8 @@
 {
     "files.associations": {
-        "auth_utils.h": "c"
+        "auth_utils.h": "c",
+        "cstdlib": "c",
+        "internet": "c",
+        "typeinfo": "c"
     }
 }

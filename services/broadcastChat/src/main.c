@@ -1,11 +1,10 @@
 #include "service_utils.h"
-#include "client_handler_service.h"
+#include "broadcast_chat_service.h"
 
 int main(int argc, char *argv[])
 {
     puts(YELLOW "Powering up the service!" RESET);
-    start_service(DEFAULT_PORT, handle_client_requests);
-
+    start_service(DEFAULT_PORT, prepare_to_join_client_to_broadcast_chat);
 
     //TODO handle error cases
     // int status;

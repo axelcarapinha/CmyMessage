@@ -1,29 +1,56 @@
 #include "client_handler_service.h"
 
-void exchange_data_with_other_service_socket(long *client_handler_ptr, char* buffer, uniSocket *serviceSocketStruct) {
+void exchange_data_with_other_service_socket(long *client_handler_ptr, char *buffer, uniSocket *serviceSocketStructPtr)
+{
     memset(buffer, 0, DEFAULT_BUFFER_SIZE);
 
-    size_t bytes_read;
-    while ((bytes_read = recv(serviceSocketStruct->sock_fd, buffer, DEFAULT_BUFFER_SIZE, 0)) > 0) {
+    // TODO
+    printf("VALUE = %d\n", serviceSocketStructPtr->sock_fd);
+    // const char *error_message = "Failed to send data to the service\n";
+    // strcpy(buffer, error_message);
+    // send(*client_handler_ptr, buffer, strlen(error_message), 0);
 
-        // Send and receive to the client
-        send(*client_handler_ptr, buffer, strlen(buffer), 0);
+    size_t bytes_read;
+    while ((bytes_read = recv(serviceSocketStructPtr->sock_fd, buffer, DEFAULT_BUFFER_SIZE, 0)) > 0)
+    {
+        // Send to the client
+        if (bytes_read <= DEFAULT_BUFFER_SIZE)
+        {
+            printf("ANTES = %s\n", buffer);
+            buffer[bytes_read - 1] = '\0';
+            printf("DEPOIS = %s\n", buffer);
+
+            puts("Sanitized");
+        }
+        send(*client_handler_ptr, buffer, bytes_read, 0);
+
+        // Broadcast
         memset(buffer, 0, DEFAULT_BUFFER_SIZE);
         recv(*client_handler_ptr, buffer, DEFAULT_BUFFER_SIZE, 0);
 
         // Send to the service
-        send(serviceSocketStruct->sock_fd, buffer, strlen(buffer), 0);
+        // if ((send(serviceSocketStructPtr->sock_fd, buffer, strlen(buffer), 0)) < 0) {
+        //     // const char *error_message = "Failed to send data to the service";
+        //     // strcpy(buffer, error_message);
+        //     // send(*client_handler_ptr, buffer, strlen(error_message), 0);
+        // }
+
+        memset(buffer, 0, DEFAULT_BUFFER_SIZE);
+
+        break;
     }
 
     // Warn about what happened due to the connection
     memset(buffer, 0, DEFAULT_BUFFER_SIZE);
     //
     const char *message;
-    if (bytes_read < 0) {
-        message = "Service exited due to an error";
+    if (bytes_read < 0)
+    {
+        message = "Service exited due to an error.\n";
     }
-    else {
-        message = "Service finished";
+    else
+    {
+        message = "Service finished.\n";
     }
     //
     strcpy(buffer, message);
@@ -32,15 +59,16 @@ void exchange_data_with_other_service_socket(long *client_handler_ptr, char* buf
     memset(buffer, 0, DEFAULT_BUFFER_SIZE);
 }
 
-void proxy_client_to_desired_service(long *client_handler_ptr, char* buffer, int service_option) {
+void proxy_client_to_desired_service(long *client_handler_ptr, char *buffer, int service_option)
+{
     memset(buffer, 0, DEFAULT_BUFFER_SIZE);
 
     switch (service_option)
     {
     case BROADCAST_SERVICE:
-        uniSocket *serviceSocketStruct = create_socket(false, BROADCAST_CHAT_PORT, true);
-        exchange_data_with_other_service_socket(client_handler_ptr, buffer, serviceSocketStruct);
-        close_server_socket(serviceSocketStruct);
+        uniSocket *serviceSocketStructPtr = create_socket(false, BROADCAST_CHAT_PORT, true);
+        exchange_data_with_other_service_socket(client_handler_ptr, buffer, serviceSocketStructPtr);
+        close_server_socket(serviceSocketStructPtr);
         break;
     default:
         break;
@@ -96,7 +124,7 @@ int get_user_selected_option(long *client_handler_ptr, char *buffer)
     return user_selected_option;
 }
 
-void get_user_option_and_forward_to_desired_service(long *client_handler_ptr, char* buffer)
+void get_user_option_and_forward_to_desired_service(long *client_handler_ptr, char *buffer)
 {
     memset(buffer, 0, DEFAULT_BUFFER_SIZE);
 
@@ -107,8 +135,8 @@ void get_user_option_and_forward_to_desired_service(long *client_handler_ptr, ch
         user_option = get_user_selected_option(client_handler_ptr, buffer);
 
         // Show the client the considered option
-        sprintf(buffer,"Option %d selected.\n", user_option);
-        if (send(*client_handler_ptr, buffer, 1, 0) < 0)
+        sprintf(buffer, "Option %d selected.\n\n", user_option);
+        if ((send(*client_handler_ptr, buffer, strlen(buffer), 0)) < 0)
         {
             perror("Failed to send the user's option");
             exit(EXIT_FAILURE);
@@ -162,7 +190,7 @@ void get_user_option_and_forward_to_desired_service(long *client_handler_ptr, ch
     memset(buffer, 0, DEFAULT_BUFFER_SIZE);
 }
 
-void introduce_options_to_the_client(long *client_handler_ptr, char* buffer)
+void introduce_options_to_the_client(long *client_handler_ptr, char *buffer)
 {
     memset(buffer, 0, DEFAULT_BUFFER_SIZE);
 

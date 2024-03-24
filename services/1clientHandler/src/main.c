@@ -4,6 +4,8 @@
 int main(int argc, char *argv[])
 {
     puts(YELLOW "Powering up the service!" RESET);
+
+    //TODO change the name to start_and_finish_when_needed
     start_service(DEFAULT_PORT, handle_client_requests);
 
 

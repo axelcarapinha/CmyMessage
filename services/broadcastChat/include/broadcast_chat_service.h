@@ -11,6 +11,8 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <ctype.h>
+//
+#include "net_utils_tcp.h"
 
 //TODO use the config file
 // Default values
@@ -22,9 +24,6 @@
 #define SERVER_NAME "CmyMessage" // in case I end up changing the server name with updates
 #define MAX_SIZE_USER_OPTION 1 // a number and the newline character
 
-// Prepare the needed structs data for the service
-typedef void (*ServiceFunctionPtr)(void *);
-//
 typedef struct
 {
     int socket_cli;
@@ -44,8 +43,7 @@ enum ServerConnectionOptions
 };
 
 // Functions
+void prepare_to_join_client_to_broadcast_chat(void *client_handler_ptr);
 void join_client_to_broadcast_chat(long *client_handler_ptr, char *buffer);
-
-
 
 #endif
