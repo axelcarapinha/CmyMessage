@@ -4,12 +4,6 @@
 #define PORT 8040
 #define MAX_NUM_CLIENTS 30
 
-//TODO services folder
-// void enter_broadcast_session(long *client_handler_ptr, char *buffer) {
-
-
-// }
-
 void handle_thread_creation_and_exit(pthread_t *thread_id_ptr, int thread_create_status)
 {
     if (thread_create_status != 0)
@@ -90,10 +84,21 @@ void start_accepting_incoming_connections(uniSocket *server_struct_ptr)
     handle_thread_creation_and_exit(&listening_thread, thread_creation_status);
 }
 
+// void start_broadcast_service_thread(uniSocket *server_struct_ptr)
+// {
+//     pthread_t listening_thread;
+//     int thread_creation_status;
+//     thread_creation_status = pthread_create(&listening_thread, NULL,
+//                                             (void *(*)(void *))accept_incoming_connections, (void *)server_struct_ptr);
+
+//     handle_thread_creation_and_exit(&listening_thread, thread_creation_status);
+// }
+
 void start_server(int port)
 {
     uniSocket *server_struct_ptr = create_socket(true, port, true);
     start_accepting_incoming_connections(server_struct_ptr);
+    // start_broadcast_service_thread(server_struct_ptr);
     close_server_socket(server_struct_ptr);
 }
 

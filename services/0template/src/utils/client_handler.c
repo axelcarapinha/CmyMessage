@@ -43,20 +43,29 @@ void enter_cli_as_guest(long *client_handler_ptr, char *buffer)
         fprintf(stderr, "recv() function failed, with exit code %d\n", bytes_received);
         exit(EXIT_FAILURE);
     }
-    else if (bytes_received == 0) {
+    else if (bytes_received == 0)
+    {
         fprintf(stderr, "Client terminated the connection.\n");
         exit(EXIT_SUCCESS);
     }
 
+    // Assign the username to its struct (temporary memory)
     buffer[bytes_received] = '\0';
     strcpy(recipient->name, buffer);
 
-    // send(*client_handler_ptr, buffer, BUFFER_SIZE, 0);
-    printf("Name = %s\n", buffer);
-
+    char *message = "Welcome to the broadcast channel, ";
+    strcat(message, buffer);
+    send(*client_handler_ptr, message, strlen(message), 0);
     while (true)
     {
+        // Ask for input
+        memset(buffer, 0, BUFFER_SIZE);
+        strcpy(buffer, YELLOW "> " RESET);
+        send(*client_handler_ptr, buffer, strlen(buffer), 0);
     }
+
+    // Free allocated memory
+    free(recipient);
 }
 
 // Enjoy the broadcast session
@@ -115,6 +124,7 @@ int get_user_selected_option(long *client_handler_ptr)
     return user_selected_option;
 }
 
+// TODO consider request parameters or the requested endpoint
 void get_user_option_and_forward_to_desired_service(long *client_handler_ptr)
 {
     char *buffer = (char *)calloc(BUFFER_SIZE, sizeof(char));
