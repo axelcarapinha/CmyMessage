@@ -19,6 +19,7 @@ PROPERTIES
 target_include_directories(${CMAKE_PROJECT_NAME}
     PUBLIC
     "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/utils"
 )
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")

@@ -10,6 +10,7 @@
 #include <time.h>
 #include <stdbool.h>
 #include <pthread.h>
+#include <ctype.h>
 //
 #define ECHO_PORT 1300 
 #define DAY_TIME_PORT 1320
@@ -28,15 +29,7 @@
 #define WHITE   "\x1B[37m"
 
 #define SERVER_NAME "CmyMessage" // in case I end up changing the server name with updates
-
-enum ServerConnectionOptions
-{
-    LOGIN,
-    REGISTER,
-    LOGOUT,
-    GUEST,
-    EXIT
-};
+#define MAX_SIZE_USER_OPTION 1 // a number and the newline character
 
 // Socket for IPV4 and IPV6 addresses
 typedef struct 

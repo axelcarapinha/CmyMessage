@@ -1,15 +1,9 @@
 #include "net_utils_tcp.h"
+#include "client_handler_utils.h"
 
 #define PORT 8040
 #define MAX_NUM_CLIENTS 30
 
-typedef struct
-{
-    int socket_cli;
-    struct sockaddr_in client_addr;
-    char *name;
-    char *recipient;
-} ClientInfo;
 
 void handle_thread_creation_and_exit(pthread_t *thread_id_ptr, int thread_create_status)
 {
@@ -46,83 +40,7 @@ void handle_thread_creation_and_exit(pthread_t *thread_id_ptr, int thread_create
 
 // }
 
-void enter_cli_as_guest()
-{
-    // ClientInfo *recipient = (ClientInfo *)malloc(sizeof(ClientInfo));
-
-    puts("GUEST MODE = ON");
-}
-
-void handle_client_requests(void *client_handler_ptr_arg)
-{
-    long *client_handler_ptr = (long *)client_handler_ptr_arg;
-    char *buffer = (char *)malloc(BUFFER_SIZE);
-
-    // Prepare interface text
-    sprintf(buffer,
-            "Welcome to %s\n!" BLUE "(%d) Login\n"
-            "(%d) Register\n"
-            "(%d) Logout\n"
-            "(%d) Guest\n" RESET
-                RED "(%d) Exit\n" RESET
-                    BLUE "Enter the number of the desired option: " RESET,
-            SERVER_NAME, REGISTER, LOGOUT, GUEST, EXIT);
-
-    // Send to the client
-    if (send(*client_handler_ptr, buffer, strlen(buffer), 0) < 0)
-    {
-        perror("Failed to send the interface");
-        exit(EXIT_FAILURE);
-    }
-
-    // Get the client option
-    int recv_status;
-    if ((recv_status = recv(*client_handler_ptr, buffer, BUFFER_SIZE, 0)) < 0)
-    {
-        fprintf(stderr, "recv() method exited with error %ld\n", recv_status);
-    }
-    int opt = buffer[0];
-    buffer[1] = '\0';
-    // memset(buffer, 0, BUFFER_SIZE);
-
-    // Redirect to the correct service
-    bool valid_user_input = true;
-    do
-    {
-        switch (opt)
-        {
-        case LOGIN:
-            // login_client();
-            break;
-        case REGISTER:
-            // register_client();
-            break;
-        case LOGOUT:
-            // logout_client();
-            break;
-        case GUEST:
-            // enter_cli_as_guest();
-            break;
-        case EXIT:
-            strcpy(buffer, "Exiting... have a nice day :)");
-            if (send(*client_handler_ptr, buffer, strlen(buffer), 0) < 0)
-            {
-                perror("Failed to send the interface");
-                exit(EXIT_FAILURE);
-            }
-            return;
-        default:
-            strcpy(buffer, "Invalid option. Please, try again.");
-            if (send(*client_handler_ptr, buffer, strlen(buffer), 0) < 0)
-            {
-                perror("Failed to send the interface");
-                exit(EXIT_FAILURE);
-            }
-            break;
-        }
-    } while (valid_user_input == false);
-}
-
+// TODO close the sockets from the clients at the end
 void accept_incoming_connections(void *server_struct_ptr_arg)
 {
     uniSocket *server_struct_ptr = (uniSocket *)server_struct_ptr_arg;
