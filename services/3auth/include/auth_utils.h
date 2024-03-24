@@ -18,10 +18,16 @@
 #define BUFFER_SIZE 1024
 
 // Utils
-void enter_cli_as_guest();
-void login_client();
-void logout_client();
-void register_client();
-void check_cli_access_options();
+// void enter_cli_as_guest();
+// void login_client();
+// void logout_client();
+// void register_client();
+// void check_cli_access_options();
+
+// Authentication (will be in its own file)
+void login_client(long *client_handler_ptr_arg, char *buffer);
+void register_client(long *client_handler_ptr_arg, char *buffer);
+void logout_client(long *client_handler_ptr_arg, char *buffer);
+void enter_cli_as_guest(long *client_handler_ptr_arg, char *buffer);
 
 #endif

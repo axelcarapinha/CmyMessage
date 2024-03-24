@@ -12,6 +12,31 @@ int main(int argc, char *argv[])
 }
 
 
+void login_client(long *client_handler_ptr, char *buffer)
+{
+    memset(buffer, 0, BUFFER_SIZE);
+    strcpy(buffer, "Username: ");
+    send(*client_handler_ptr, buffer, BUFFER_SIZE, 0);
+
+    // send('\n')
+}
+
+void register_client(long *client_handler_ptr, char *buffer)
+{
+    memset(buffer, 0, BUFFER_SIZE);
+    strcpy(buffer, "Pretended Username: ");
+    send(*client_handler_ptr, buffer, BUFFER_SIZE, 0);
+}
+
+void logout_client(long *client_handler_ptr, char *buffer)
+{
+    // ClientInfo *recipient = (ClientInfo *)malloc(sizeof(ClientInfo));
+
+    memset(buffer, 0, BUFFER_SIZE);
+    strcpy(buffer, "You logged out. Have a nice day :)\n");
+    send(*client_handler_ptr, buffer, BUFFER_SIZE, 0);
+}
+
 
 
 

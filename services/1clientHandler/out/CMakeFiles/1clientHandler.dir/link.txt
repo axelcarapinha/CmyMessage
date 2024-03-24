@@ -1,0 +1,1 @@
+/usr/bin/cc  -pthread CMakeFiles/1clientHandler.dir/src/client_handler_service.c.o CMakeFiles/1clientHandler.dir/src/main.c.o CMakeFiles/1clientHandler.dir/src/utils/net_utils_tcp.c.o CMakeFiles/1clientHandler.dir/src/utils/service_utils.c.o -o 1clientHandler/1clientHandler 

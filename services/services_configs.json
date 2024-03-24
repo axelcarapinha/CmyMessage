@@ -1,0 +1,44 @@
+{
+    "services": [
+      {
+        "name": "1clientHandler",
+        "port": 8040,
+        "protocol": "HTTP",
+        "enabled": true,
+        "hosts": ["example.com", "www.example.com"],
+        "ssl": false,
+        "routes": [
+          {
+            "path": "/",
+            "destination": "localhost:3000"
+          },
+          {
+            "path": "/api",
+            "destination": "localhost:4000"
+          }
+        ]
+      },
+      {
+        "name": "database",
+        "port": 5432,
+        "protocol": "TCP",
+        "enabled": true,
+        "ssl": true,
+        "credentials": {
+          "username": "db_user",
+          "password": "db_password",
+          "database": "my_database"
+        }
+      },
+      {
+        "name": "cache",
+        "port": 6379,
+        "protocol": "TCP",
+        "enabled": true,
+        "credentials": {
+          "password": "cache_password"
+        }
+      }
+    ]
+  }
+  

@@ -1,0 +1,3 @@
+/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/1clientHandler/out/CMakeFiles/1clientHandler.dir
+/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/1clientHandler/out/CMakeFiles/edit_cache.dir
+/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/1clientHandler/out/CMakeFiles/rebuild_cache.dir

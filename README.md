@@ -38,6 +38,7 @@ A chat application made with C.
 Had fun knowing more about:
 * C programming language
   * careful memory management
+    * good practices
   * multi-threading
   * 
 * Information security practices
@@ -45,7 +46,7 @@ Had fun knowing more about:
   * Forms of AUTH (and its fragilities)
   * 
 * Cmake (build system generator)
-* Software architecture
+* Software architecture 
 
 
 ## Plan / Roadmap 

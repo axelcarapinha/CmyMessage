@@ -1,17 +1,15 @@
 #include "net_utils_tcp.h"
-#include "client_handler_service.h"
 #include <asm-generic/socket.h>
 
 /**
  * @brief
  *
  * @param a
-*/
+ */
 void close_server_socket(uniSocket *socket_struct_ptr)
 {
     shutdown(socket_struct_ptr->sock_fd, SHUT_RDWR);
     close(socket_struct_ptr->sock_fd);
-    free(socket_struct_ptr);
     puts(YELLOW "Server terminated." RESET);
 }
 
@@ -19,7 +17,7 @@ void close_server_socket(uniSocket *socket_struct_ptr)
  * @brief
  *
  * @param a
-*/
+ */
 void setupServer(int opt, uniSocket *socket_struct_ptr)
 {
     // Forcefully attaching socket to the port (part 1)
@@ -52,7 +50,7 @@ void setupServer(int opt, uniSocket *socket_struct_ptr)
     }
 
     // Listen to ports
-    if (listen(socket_struct_ptr->sock_fd, DEFAULT_MAX_NUM_CLIENTS) < 0)
+    if (listen(socket_struct_ptr->sock_fd, MAX_NUM_CONNECTIONS) < 0)
     {
         perror("listen");
         exit(EXIT_FAILURE);
