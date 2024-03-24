@@ -1,5 +1,56 @@
 #include "client_handler_service.h"
 
+void exchange_data_with_other_service_socket(long *client_handler_ptr, char* buffer, uniSocket *serviceSocketStruct) {
+    memset(buffer, 0, DEFAULT_BUFFER_SIZE);
+
+    size_t bytes_read;
+    while ((bytes_read = recv(serviceSocketStruct->sock_fd, buffer, DEFAULT_BUFFER_SIZE, 0)) > 0) {
+
+        // Send and receive to the client
+        send(*client_handler_ptr, buffer, strlen(buffer), 0);
+        memset(buffer, 0, DEFAULT_BUFFER_SIZE);
+        recv(*client_handler_ptr, buffer, DEFAULT_BUFFER_SIZE, 0);
+
+        // Send to the service
+        send(serviceSocketStruct->sock_fd, buffer, strlen(buffer), 0);
+    }
+
+    // Warn about what happened due to the connection
+    memset(buffer, 0, DEFAULT_BUFFER_SIZE);
+    //
+    const char *message;
+    if (bytes_read < 0) {
+        message = "Service exited due to an error";
+    }
+    else {
+        message = "Service finished";
+    }
+    //
+    strcpy(buffer, message);
+    send(*client_handler_ptr, buffer, strlen(message), 0);
+
+    memset(buffer, 0, DEFAULT_BUFFER_SIZE);
+}
+
+void proxy_client_to_desired_service(long *client_handler_ptr, char* buffer, int service_option) {
+    memset(buffer, 0, DEFAULT_BUFFER_SIZE);
+
+    switch (service_option)
+    {
+    case BROADCAST_SERVICE:
+        uniSocket *serviceSocketStruct = create_socket(false, BROADCAST_CHAT_PORT, true);
+        exchange_data_with_other_service_socket(client_handler_ptr, buffer, serviceSocketStruct);
+        close_server_socket(serviceSocketStruct);
+        break;
+    default:
+        break;
+    }
+
+    // Redirect to the options again
+    memset(buffer, 0, DEFAULT_BUFFER_SIZE);
+    get_user_selected_option(client_handler_ptr, buffer);
+}
+
 int get_user_selected_option(long *client_handler_ptr, char *buffer)
 {
     memset(buffer, 0, DEFAULT_BUFFER_SIZE);
@@ -79,6 +130,7 @@ void get_user_option_and_forward_to_desired_service(long *client_handler_ptr, ch
             valid_user_input = true;
             break;
         case GUEST:
+            proxy_client_to_desired_service(client_handler_ptr, buffer, BROADCAST_SERVICE);
             // enter_cli_as_guest(client_handler_ptr, buffer);
             valid_user_input = true;
             break;

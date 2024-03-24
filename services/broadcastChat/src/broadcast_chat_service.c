@@ -1,4 +1,6 @@
-void enter_cli_as_guest(long *client_handler_ptr, char *buffer)
+#include "broadcast_chat_service.h"
+
+void join_client_to_broadcast_chat(long *client_handler_ptr, char *buffer)
 {
     ClientInfo *recipient = (ClientInfo *)malloc(sizeof(ClientInfo));
     memset(buffer, 0, BUFFER_SIZE);
