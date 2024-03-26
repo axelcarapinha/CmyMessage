@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <ctype.h>
+#include <arpa/inet.h>
 
 // Colors
 #define RESET "\x1B[0m"
@@ -22,10 +23,22 @@
 #define CYAN "\x1B[36m"
 #define WHITE "\x1B[37m"
 
-
 //TODO do in another way
 // Ensure compatibility with the service header file
 typedef void (*ServiceFunctionPtr)(void *);
+
+typedef struct
+{
+    long client_handler_FD;
+    //
+    struct sockaddr_in *client_addr_ptr;
+    socklen_t *client_addr_len_ptr;
+    char *addr_info;
+    //
+    char *name;
+    char *recipient;
+    char *buffer;
+} ClientInfo;
 
 // Socket for IPV4 and IPV6 addresses
 typedef struct 
@@ -48,7 +61,7 @@ uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg);
     int create_descriptor(uniSocket *socket_struct_ptr);
     void initialize(uniSocket *socket_struct_ptr);
     void setupServer(int opt, uniSocket *socket_struct_ptr);
-int acceptConnection(int echo_server, struct sockaddr *address, socklen_t *addrlen);
+ClientInfo * acceptConnection(int echo_server, struct sockaddr *cli_address, socklen_t *cli_addrlen);
 void close_server_socket(uniSocket *socket_struct_ptr);
 
 #endif

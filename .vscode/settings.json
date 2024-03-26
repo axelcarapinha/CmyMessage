@@ -3,6 +3,7 @@
         "auth_utils.h": "c",
         "cstdlib": "c",
         "internet": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "net_utils_tcp.h": "c"
     }
 }

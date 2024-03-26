@@ -1,22 +1,27 @@
 #include "broadcast_chat_service.h"
 
-void join_client_to_broadcast_chat(long client_handler_FD, char *buffer, ClientInfo *client_struct_ptr) {
+void join_client_to_broadcast_chat(long client_handler_FD, char *buffer, ClientInfo *client_struct_ptr)
+{
     memset(buffer, 0, DEFAULT_BUFFER_SIZE);
 
-    while (true) {
+    while (true)
+    {
         size_t bytes_received;
-        if ((bytes_received = recv(client_handler_FD, buffer, DEFAULT_BUFFER_SIZE, 0)) > 0) {
+        if ((bytes_received = recv(client_handler_FD, buffer, DEFAULT_BUFFER_SIZE, 0)) > 0)
+        {
             send(client_handler_FD, buffer, DEFAULT_BUFFER_SIZE, 0);
             memset(buffer, 0, DEFAULT_BUFFER_SIZE);
         }
-        else if (bytes_received == 0) {
+        else if (bytes_received == 0)
+        {
             printf("The client '%s' terminated the connection\n", client_struct_ptr->name);
             break;
         }
-        else {
+        else
+        {
             fprintf(stderr, "Failed to receive content from the client\n");
             break;
-        }        
+        }
     }
 
     memset(buffer, 0, DEFAULT_BUFFER_SIZE);
@@ -48,51 +53,50 @@ void prepare_to_join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
     }
 
     // Assign the username to its struct (temporary memory)
-    if (bytes_received <= DEFAULT_BUFFER_SIZE) {
+    if (bytes_received <= DEFAULT_BUFFER_SIZE)
+    {
         buffer_cli[bytes_received - 1] = '\0';
     }
     strcpy(name_cli, buffer_cli);
 
     // Send a customised welcome message
-    char message [DEFAULT_BUFFER_SIZE];
+    char message[DEFAULT_BUFFER_SIZE];
     strcpy(message, "Welcome to the broadcast channel, ");
     strcat(message, name_cli);
     strcat(message, "!\n");
     send(client_handler_FD, message, strlen(message), 0);
-    
+
     // Join the client to the chat
     join_client_to_broadcast_chat(client_handler_FD, buffer_cli, client_struct_ptr);
 }
 
-void prepare_client_structs_for_data_and_start_joining(void *client_handler_ptr_arg) {
+void prepare_client_structs_for_data_and_start_joining(void *client_struct_ptr_arg)
+{
 
     // Prepary the structs for its basic information
-    ClientInfo *client_struct_ptr = (ClientInfo *)malloc(sizeof(ClientInfo));
-    if (client_struct_ptr == NULL) {
-        fprintf(stderr, "Error alocating memory for the client_struct_ptr struct pointer");
+    ClientInfo *client_struct_ptr = (ClientInfo *)client_struct_ptr_arg;
+    if (client_struct_ptr == NULL)
+    {
+        fprintf(stderr, "Received a pointer with baddly allocated memory");
         exit(EXIT_FAILURE);
     }
     client_struct_ptr->name = (char *)calloc(DEFAULT_BUFFER_SIZE, sizeof(char));
-    if (client_struct_ptr->name == NULL) {
+    if (client_struct_ptr->name == NULL)
+    {
         fprintf(stderr, "Error alocating memory for the client_struct_ptr struct pointer");
         exit(EXIT_FAILURE);
     }
     client_struct_ptr->buffer = (char *)calloc(DEFAULT_BUFFER_SIZE, sizeof(char));
-    if (client_struct_ptr->buffer == NULL) {
+    if (client_struct_ptr->buffer == NULL)
+    {
         fprintf(stderr, "Error alocating memory for the buffer pointer");
         exit(EXIT_FAILURE);
     }
     memset(client_struct_ptr->buffer, 0, DEFAULT_BUFFER_SIZE);
     //
-    client_struct_ptr->client_handler_FD = *((long *)client_handler_ptr_arg);
+    // inet_ntop(AF_INET, &client_struct_ptr->client_addr_ptr->sin_addr, client_struct_ptr->addr_info, MAX_SIZE_ADDR_INFO);
+    // printf("%s\n", client_struct_ptr->addr_info);
 
-    // Broadcast the client with a separate thread
-    // pthread_t broadcaster_thread;
-    // int thread_creation_status = pthread_create(&broadcaster_thread, NULL,
-    //                                                 (void *(*)(void *))prepare_to_join_client_to_broadcast_chat,
-    //                                                 (void *)client_struct_ptr);
-    // //
-    // handle_thread_creation_and_exit(&broadcaster_thread, thread_creation_status);
     prepare_to_join_client_to_broadcast_chat(client_struct_ptr);
 
     // Free the allocated memory
@@ -102,11 +106,12 @@ void prepare_client_structs_for_data_and_start_joining(void *client_handler_ptr_
     free(client_struct_ptr);
 }
 
-void start_broadcasting_client_on_separate_thread(void *client_handler_ptr_arg) {
+void start_broadcasting_client_on_separate_thread(void *client_struct_ptr)
+{
     pthread_t cli_data_thread;
     int thread_creation_status = pthread_create(&cli_data_thread, NULL,
-          (void *(*)(void *))prepare_client_structs_for_data_and_start_joining, 
-        client_handler_ptr_arg);
+                                                (void *(*)(void *))prepare_client_structs_for_data_and_start_joining,
+                                                (void *)client_struct_ptr);
     //
-    handle_thread_creation_and_exit(&cli_data_thread ,thread_creation_status);
+    handle_thread_creation_and_exit(&cli_data_thread, thread_creation_status);
 }

@@ -40,7 +40,9 @@ Had fun knowing more about:
   * careful memory management
     * good practices
   * multi-threading
-  * 
+    * race conditions
+    * semaphors
+    *  
 * Information security practices
   * Input sanitization
   * Forms of AUTH (and its fragilities)

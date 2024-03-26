@@ -11,28 +11,24 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <ctype.h>
+#include <semaphore.h>
 //
 #include "net_utils_tcp.h"
 #include "service_utils.h"
+//TODO include just the necessary headers
 
-//TODO use the config file
-// Default values
+
+// TODO use the config file
+//  Default values
 #define DEFAULT_PORT 8041
 #define DEFAULT_BUFFER_SIZE 1500 // widely used in LANs (size of ethernet packets)
 #define DEFAULT_MAX_NUM_CLIENTS 30
+#define MAX_NUM_CLIENTS 2
 
 // Other values
 #define SERVER_NAME "CmyMessage" // in case I end up changing the server name with updates
-#define MAX_SIZE_USER_OPTION 1 // a number and the newline character
-
-typedef struct
-{
-    long client_handler_FD;
-    struct sockaddr_in client_addr;
-    char *name;
-    char *recipient;
-    char *buffer;
-} ClientInfo;
+#define MAX_SIZE_USER_OPTION 1   // a number and the newline character
+#define MAX_SIZE_ADDR_INFO 200
 
 enum ServerConnectionOptions
 {

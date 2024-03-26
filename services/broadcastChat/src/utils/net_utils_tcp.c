@@ -1,12 +1,11 @@
-#include "net_utils_tcp.h"
-#include "broadcast_chat_service.h"
 #include <asm-generic/socket.h>
+#include "broadcast_chat_service.h"
 
 /**
  * @brief
  *
  * @param a
-*/
+ */
 void close_server_socket(uniSocket *socket_struct_ptr)
 {
     shutdown(socket_struct_ptr->sock_fd, SHUT_RDWR);
@@ -19,7 +18,7 @@ void close_server_socket(uniSocket *socket_struct_ptr)
  * @brief
  *
  * @param a
-*/
+ */
 void setupServer(int opt, uniSocket *socket_struct_ptr)
 {
     // Forcefully attaching socket to the port (part 1)
@@ -187,15 +186,42 @@ uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg)
  *
  * @param a
  */
-int acceptConnection(int echo_server, struct sockaddr *address, socklen_t *addrlen)
+//TODO change the name of this function to handle the memoru management
+ClientInfo *acceptConnection(int echo_server, struct sockaddr *cli_address, socklen_t *cli_addrlen)
 {
-    int client_socket = -1;
-
-    if ((client_socket = accept(echo_server, (struct sockaddr *)address, addrlen)) < 0)
+    // Allocate memory for the client information
+    ClientInfo *client_struct_ptr = (ClientInfo *)malloc(sizeof(ClientInfo));
+    if (client_struct_ptr == NULL)
     {
-        perror("accept");
-        exit(EXIT_FAILURE);
+        printf("Problem allocating memory for the client struct\n");
+        return NULL;
+    }
+    //
+    client_struct_ptr->client_addr_ptr = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
+    if (client_struct_ptr->client_addr_ptr == NULL) {
+        printf("Problem allocating memory for the client's address struct\n");
+        free(client_struct_ptr);
+        return NULL;
+    }
+    //
+    client_struct_ptr->client_addr_len_ptr = (socklen_t *)malloc(sizeof(socklen_t));
+    if (client_struct_ptr->client_addr_len_ptr == NULL)
+    {
+        printf("Problem allocating memory for the client's address length\n");
+        free(client_struct_ptr);
+        return NULL;
     }
 
-    return client_socket;
+    // Accept the connection
+    int client_handler_socket = -1;
+
+    if ((client_handler_socket = accept(echo_server, (struct sockaddr *)cli_address, cli_addrlen)) < 0)
+    {
+        perror("Problem accepting client's connection");
+        exit(EXIT_FAILURE);
+    }
+    //
+    client_struct_ptr->client_handler_FD = client_handler_socket;
+
+    return client_struct_ptr;
 }
