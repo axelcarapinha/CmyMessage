@@ -61,7 +61,7 @@ uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg);
     int create_descriptor(uniSocket *socket_struct_ptr);
     void initialize(uniSocket *socket_struct_ptr);
     void setupServer(int opt, uniSocket *socket_struct_ptr);
-ClientInfo * acceptConnection(int echo_server, struct sockaddr *cli_address, socklen_t *cli_addrlen);
+ClientInfo * acceptConnection(int echo_server);
 void close_server_socket(uniSocket *socket_struct_ptr);
 
 #endif

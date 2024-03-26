@@ -187,7 +187,7 @@ uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg)
  * @param a
  */
 //TODO change the name of this function to handle the memoru management
-ClientInfo *acceptConnection(int echo_server, struct sockaddr *cli_address, socklen_t *cli_addrlen)
+ClientInfo *acceptConnection(int echo_server)
 {
     // Allocate memory for the client information
     ClientInfo *client_struct_ptr = (ClientInfo *)malloc(sizeof(ClientInfo));
@@ -215,9 +215,13 @@ ClientInfo *acceptConnection(int echo_server, struct sockaddr *cli_address, sock
     // Accept the connection
     int client_handler_socket = -1;
 
-    if ((client_handler_socket = accept(echo_server, (struct sockaddr *)cli_address, cli_addrlen)) < 0)
+    if ((client_handler_socket = accept(echo_server, 
+        (struct sockaddr *)client_struct_ptr->client_addr_ptr, client_struct_ptr->client_addr_len_ptr)) < 0)
     {
         perror("Problem accepting client's connection");
+        free(client_struct_ptr);
+        free(client_struct_ptr->client_addr_ptr);
+        free(client_struct_ptr->client_addr_len_ptr);
         exit(EXIT_FAILURE);
     }
     //

@@ -80,6 +80,7 @@ void prepare_client_structs_for_data_and_start_joining(void *client_struct_ptr_a
         fprintf(stderr, "Received a pointer with baddly allocated memory");
         exit(EXIT_FAILURE);
     }
+    //
     client_struct_ptr->name = (char *)calloc(DEFAULT_BUFFER_SIZE, sizeof(char));
     if (client_struct_ptr->name == NULL)
     {
@@ -92,10 +93,20 @@ void prepare_client_structs_for_data_and_start_joining(void *client_struct_ptr_a
         fprintf(stderr, "Error alocating memory for the buffer pointer");
         exit(EXIT_FAILURE);
     }
-    memset(client_struct_ptr->buffer, 0, DEFAULT_BUFFER_SIZE);
+    
+    // Get the client's IP address (for a unique identification)
+    char ip_buffer[INET_ADDRSTRLEN];
+    if (inet_ntop(AF_INET, &(client_struct_ptr->client_addr_ptr->sin_addr), ip_buffer, INET_ADDRSTRLEN) == NULL)
+    {
+        perror("Error converting IP address");
+        close(client_struct_ptr->client_handler_FD);
+        free(client_struct_ptr->client_addr_ptr);
+        free(client_struct_ptr->client_addr_len_ptr);
+        free(client_struct_ptr);
+        exit(EXIT_FAILURE);
+    }
     //
-    // inet_ntop(AF_INET, &client_struct_ptr->client_addr_ptr->sin_addr, client_struct_ptr->addr_info, MAX_SIZE_ADDR_INFO);
-    // printf("%s\n", client_struct_ptr->addr_info);
+    client_struct_ptr->addr_info = ip_buffer;
 
     prepare_to_join_client_to_broadcast_chat(client_struct_ptr);
 
@@ -113,5 +124,5 @@ void start_broadcasting_client_on_separate_thread(void *client_struct_ptr)
                                                 (void *(*)(void *))prepare_client_structs_for_data_and_start_joining,
                                                 (void *)client_struct_ptr);
     //
-    handle_thread_creation_and_exit(&cli_data_thread, thread_creation_status);
+    handle_thread_creation_and_exit(thread_creation_status);
 }

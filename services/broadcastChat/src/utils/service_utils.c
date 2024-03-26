@@ -47,12 +47,15 @@ void join_thread_and_handle_errors(pthread_t *thread_id_ptr)
  *
  * @param a
  */
-void handle_thread_creation_and_exit(pthread_t *thread_id_ptr, int thread_create_status)
+void handle_thread_creation_and_exit(int thread_create_status)
 {
     if (thread_create_status != 0)
     {
         fprintf(stderr, "Value return from the thread creation is %d\n", thread_create_status);
-        return;
+        exit(EXIT_FAILURE);
+    }
+    else {
+        printf("Thread created successfully\n");
     }
 }
 
@@ -66,16 +69,11 @@ void accept_incoming_connections(void *server_struct_ptr_arg)
     uniSocket *server_struct_ptr = (uniSocket *)server_struct_ptr_arg;
     while (true)
     {
-        ClientInfo *client_struct_ptr = acceptConnection(server_struct_ptr->sock_fd,
-                                               (struct sockaddr *)client_struct_ptr->client_addr_ptr,
-                                               client_struct_ptr->client_addr_len_ptr);
+        ClientInfo *client_struct_ptr = acceptConnection(server_struct_ptr->sock_fd);
         if (client_struct_ptr == NULL) {
             printf("Error allocating memory for the client info struct");
             continue;
         }
-
-        // const char *message = "Here buddy";
-        // send(client_struct_ptr->client_handler_FD, message, strlen(message), 0);
 
         // Handle requests in a separate thread
         pthread_t handler_thread;
@@ -83,7 +81,7 @@ void accept_incoming_connections(void *server_struct_ptr_arg)
                                                     (void *(*)(void *))server_struct_ptr->service_function_ptr,
                                                     (void *)client_struct_ptr);
         //
-        handle_thread_creation_and_exit(&handler_thread, thread_creation_status);
+        handle_thread_creation_and_exit(thread_creation_status);
     }
 
     // TODO
@@ -103,12 +101,11 @@ void start_accepting_incoming_connections(uniSocket *server_struct_ptr)
     thread_creation_status = pthread_create(&listening_thread, NULL,
                                             (void *(*)(void *))accept_incoming_connections, (void *)server_struct_ptr);
 
-    handle_thread_creation_and_exit(&listening_thread, thread_creation_status);
+    handle_thread_creation_and_exit(thread_creation_status);
     //
-    if (thread_creation_status == 0) {
-        printf("Listening thread started and joined successfully\n");
-        join_thread_and_handle_errors(&listening_thread);
-    }
+    join_thread_and_handle_errors(&listening_thread);
+    printf("Listening thread started and joined successfully\n");
+    
 
     // TODO use the thread creation in my favour to return an exit status
 }
