@@ -11,7 +11,6 @@ void close_service(uniSocket *server_struct_ptr)
     puts("Service closed.");
 }
 
-
 /**
  * @brief
  *
