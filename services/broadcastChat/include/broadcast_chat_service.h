@@ -13,6 +13,7 @@
 #include <ctype.h>
 //
 #include "net_utils_tcp.h"
+#include "service_utils.h"
 
 //TODO use the config file
 // Default values
@@ -26,10 +27,11 @@
 
 typedef struct
 {
-    int socket_cli;
+    long client_handler_FD;
     struct sockaddr_in client_addr;
     char *name;
     char *recipient;
+    char *buffer;
 } ClientInfo;
 
 enum ServerConnectionOptions
@@ -43,7 +45,9 @@ enum ServerConnectionOptions
 };
 
 // Functions
-void prepare_to_join_client_to_broadcast_chat(void *client_handler_ptr);
-void join_client_to_broadcast_chat(long *client_handler_ptr, char *buffer);
+void start_broadcasting_client_on_separate_thread(void *client_handler_ptr_arg);
+    void prepare_client_structs_for_data_and_start_joining(void *client_handler_ptr_arg);
+        void prepare_to_join_client_to_broadcast_chat(void *client_struct_ptr_arg);
+        void join_client_to_broadcast_chat(long client_handler_FD, char *buffer, ClientInfo *client_struct_ptr);
 
 #endif
