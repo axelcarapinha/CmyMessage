@@ -22,10 +22,9 @@ void join_client_to_broadcast_chat(long client_handler_FD, char *buffer, ClientI
     memset(buffer, 0, DEFAULT_BUFFER_SIZE);
 }
 
-void prepare_to_join_client_to_broadcast_chat(void *client_struct_ptr_arg)
+void prepare_to_join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
 {
     // Prepare the pointers for the necessary data (for a cleaner code)
-    ClientInfo *client_struct_ptr = (ClientInfo *)client_struct_ptr_arg;
     char *name_cli = client_struct_ptr->name;
     char *buffer_cli = client_struct_ptr->buffer;
     long client_handler_FD = client_struct_ptr->client_handler_FD;
@@ -66,6 +65,7 @@ void prepare_to_join_client_to_broadcast_chat(void *client_struct_ptr_arg)
 }
 
 void prepare_client_structs_for_data_and_start_joining(void *client_handler_ptr_arg) {
+
     // Prepary the structs for its basic information
     ClientInfo *client_struct_ptr = (ClientInfo *)malloc(sizeof(ClientInfo));
     if (client_struct_ptr == NULL) {
@@ -87,12 +87,13 @@ void prepare_client_structs_for_data_and_start_joining(void *client_handler_ptr_
     client_struct_ptr->client_handler_FD = *((long *)client_handler_ptr_arg);
 
     // Broadcast the client with a separate thread
-    pthread_t broadcaster_thread;
-    int thread_creation_status = pthread_create(&broadcaster_thread, NULL,
-                                                    (void *(*)(void *))prepare_to_join_client_to_broadcast_chat,
-                                                    (void *)client_struct_ptr);
-    //
-    handle_thread_creation_and_exit(&broadcaster_thread, thread_creation_status);
+    // pthread_t broadcaster_thread;
+    // int thread_creation_status = pthread_create(&broadcaster_thread, NULL,
+    //                                                 (void *(*)(void *))prepare_to_join_client_to_broadcast_chat,
+    //                                                 (void *)client_struct_ptr);
+    // //
+    // handle_thread_creation_and_exit(&broadcaster_thread, thread_creation_status);
+    prepare_to_join_client_to_broadcast_chat(client_struct_ptr);
 
     // Free the allocated memory
     free(client_struct_ptr->name);

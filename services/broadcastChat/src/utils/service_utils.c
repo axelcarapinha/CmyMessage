@@ -12,7 +12,6 @@ void close_service(uniSocket *server_struct_ptr)
 }
 
 
-
 /**
  * @brief
  *
@@ -89,8 +88,13 @@ void accept_incoming_connections(void *server_struct_ptr_arg)
         int thread_creation_status = pthread_create(&handler_thread, NULL,
                                                     (void *(*)(void *))server_struct_ptr->service_function_ptr,
                                                     (void *)client_handler_ptr);
-
+        //
         handle_thread_creation_and_exit(&handler_thread, thread_creation_status);
+        //TODO
+        // if (thread_creation_status == 0) {
+        //     printf("Listening thread started and joined successfully\n");
+        //     join_thread_and_handle_errors(&handler_thread);
+        // }
     }
 
     // TODO
@@ -113,13 +117,11 @@ void start_accepting_incoming_connections(uniSocket *server_struct_ptr)
     handle_thread_creation_and_exit(&listening_thread, thread_creation_status);
     //
     if (thread_creation_status == 0) {
-        printf("Second one\n");
+        printf("Listening thread started and joined successfully\n");
         join_thread_and_handle_errors(&listening_thread);
     }
 
-
-    // TODO use the thread creation in my favour
-    // TODO to return an exit status
+    // TODO use the thread creation in my favour to return an exit status
 }
 
 /**
@@ -132,18 +134,20 @@ void start_service(int port, ServiceFunctionPtr service_function_ptr)
     uniSocket *server_struct_ptr = create_socket(true, port, true);
     server_struct_ptr->service_function_ptr = service_function_ptr;
 
-    // Run the server in the background
-    pthread_t starter_thread;
-    int thread_creation_status;
-    thread_creation_status = pthread_create(&starter_thread, NULL,
-                                            (void *(*)(void *))start_accepting_incoming_connections, (void *)server_struct_ptr);
+    start_accepting_incoming_connections(server_struct_ptr);
+
+    // // Run the server in the background
+    // pthread_t starter_thread;
+    // int thread_creation_status;
+    // thread_creation_status = pthread_create(&starter_thread, NULL,
+    //                                         (void *(*)(void *))start_accepting_incoming_connections, (void *)server_struct_ptr);
     //
-    handle_thread_creation_and_exit(&starter_thread, thread_creation_status);
-    //
-    if (thread_creation_status == 0) {
-        printf("First one\n");
-        join_thread_and_handle_errors(&starter_thread);
-    }
+    // handle_thread_creation_and_exit(&starter_thread, thread_creation_status);
+    // //
+    // if (thread_creation_status == 0) {
+    //     printf("First one\n");
+    //     join_thread_and_handle_errors(&starter_thread);
+    // }
 
     // TODO return an exit status
     close_service(server_struct_ptr);
