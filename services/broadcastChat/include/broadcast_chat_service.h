@@ -41,7 +41,7 @@ enum ServerConnectionOptions
 };
 
 // Functions
-void start_broadcasting_client_on_separate_thread(ClientInfo *client_struct_ptr);
+void prepare_client_for_broadcast_and_start(ClientInfo *client_struct_ptr_arg);
     void prepare_client_structs_for_data(ClientInfo *client_struct_ptr);
     void prepare_to_join_client_to_broadcast_chat(ClientInfo *client_struct_ptr);
         void join_client_to_broadcast_chat(ClientInfo *client_struct_ptr);

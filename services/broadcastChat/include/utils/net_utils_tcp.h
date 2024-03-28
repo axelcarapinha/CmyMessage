@@ -63,6 +63,7 @@ typedef struct
     ServiceFunctionPtr service_function_ptr;
 
     pthread_t *thread_pool;
+    pthread_mutex_t *thread_mutex_queue_ptr;
 } uniSocket;
 
 // Functions

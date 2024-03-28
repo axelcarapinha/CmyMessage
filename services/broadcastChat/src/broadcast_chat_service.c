@@ -1,12 +1,12 @@
 #include "broadcast_chat_service.h"
 
-void free_client_allocated_mem(ClientInfo *client_struct_ptr) {
+void free_client_allocated_mem(ClientInfo *client_struct_ptr)
+{
     free(client_struct_ptr->name);
     memset(client_struct_ptr->buffer, 0, DEFAULT_BUFFER_SIZE);
     free(client_struct_ptr->buffer);
 
-    // Client's memory is fred by the sender 
-    // such as it is allocated
+   // The client's memory IS freed by the sender, as it IS allocated
 }
 
 void join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
@@ -84,10 +84,10 @@ void prepare_to_join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
 void prepare_client_structs_for_data(ClientInfo *client_struct_ptr)
 {
 
-    // Prepary the structs for its basic information
+    // Prepare the structs for its basic information
     if (client_struct_ptr == NULL)
     {
-        fprintf(stderr, "Received a pointer with baddly allocated memory");
+        fprintf(stderr, "Received a pointer pointing to improperly allocated memory.");
         exit(EXIT_FAILURE);
     }
     //
@@ -103,7 +103,7 @@ void prepare_client_structs_for_data(ClientInfo *client_struct_ptr)
         fprintf(stderr, "Error alocating memory for the buffer pointer");
         exit(EXIT_FAILURE);
     }
-    
+
     // Get the client's IP address (for a unique identification)
     char ip_buffer[INET_ADDRSTRLEN];
     if (inet_ntop(AF_INET, &(client_struct_ptr->client_addr_ptr->sin_addr), ip_buffer, INET_ADDRSTRLEN) == NULL)
@@ -119,21 +119,10 @@ void prepare_client_structs_for_data(ClientInfo *client_struct_ptr)
     client_struct_ptr->addr_info = ip_buffer;
 }
 
-void start_broadcasting_client(void *client_struct_ptr_arg) {
-    ClientInfo *client_struct_ptr = (ClientInfo *)client_struct_ptr_arg;
-
+void prepare_client_for_broadcast_and_start(ClientInfo *client_struct_ptr)
+{
     prepare_client_structs_for_data(client_struct_ptr);
     prepare_to_join_client_to_broadcast_chat(client_struct_ptr);
     join_client_to_broadcast_chat(client_struct_ptr);
     free_client_allocated_mem(client_struct_ptr);
-}
-
-
-void start_broadcasting_client_on_separate_thread(ClientInfo *client_struct_ptr)
-{
-    pthread_t broadcaster_thread;
-    int thread_creation_status = pthread_create(&broadcaster_thread, NULL,
-        (void *(*)(void *))start_broadcasting_client, (void *)client_struct_ptr);
-
-    handle_thread_creation_and_exit(thread_creation_status);
 }

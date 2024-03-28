@@ -60,28 +60,39 @@ void handle_thread_creation_and_exit(int thread_create_status)
     }
 }
 
-
 /**
  * @brief
  *
  * @param a
  */
-void search_for_thread_work(void *server_struct_ptr_arg)
+void* search_for_thread_work(void *server_struct_ptr_arg)
 {
     uniSocket *server_struct_ptr = (uniSocket *)server_struct_ptr_arg;
+    pthread_mutex_t *queue_mutex_ptr = server_struct_ptr->thread_mutex_queue_ptr;
 
     // Keep waiting for a client to handle
     while (true)
     {
-        if (!isEmptyQueue()) {
+        if (!isEmptyQueue())
+        {
+            pthread_mutex_lock(queue_mutex_ptr);
             ClientInfo *client_struct_ptr = dequeue();
+            pthread_mutex_unlock(queue_mutex_ptr);
 
             // Forward the client to the service function
             void (*functionPtr)(ClientInfo *) = client_struct_ptr->service_function_ptr;
+
+            //TODO retirar isto
+            const char *message = "hello from the thread\n";
+            send(client_struct_ptr->client_handler_FD, message, strlen(message), 0);
+
             (*functionPtr)(client_struct_ptr);
 
             // Deallocation of the client's memory struct
             free(client_struct_ptr);
+        }
+        else {
+           sleep(3); //TODO retirar isto
         }
     }
 }
@@ -94,6 +105,7 @@ void search_for_thread_work(void *server_struct_ptr_arg)
 void accept_incoming_connections(void *server_struct_ptr_arg)
 {
     uniSocket *server_struct_ptr = (uniSocket *)server_struct_ptr_arg;
+    pthread_mutex_t *queue_mutex_ptr = server_struct_ptr->thread_mutex_queue_ptr;
 
     while (true)
     {
@@ -104,16 +116,14 @@ void accept_incoming_connections(void *server_struct_ptr_arg)
             continue;
         }
 
-        //TODO was testing this part. The message is not received. 
-        //TODO also, need to implement mutexes
-        const char *message = "Hey, I am here";
-        send(client_struct_ptr->client_handler_FD, message, strlen(message), 0);
-
         // Assign the service to the client
         client_struct_ptr->service_function_ptr = server_struct_ptr->service_function_ptr;
 
+        // TODO handle messages to the client while the queue is not available (and 
         // Assign the client to an available thread
+        pthread_mutex_lock(queue_mutex_ptr);
         enqueue(client_struct_ptr);
+        pthread_mutex_unlock(queue_mutex_ptr);
     }
 
     // TODO
@@ -127,17 +137,23 @@ void accept_incoming_connections(void *server_struct_ptr_arg)
  */
 void start_accepting_incoming_connections(uniSocket *server_struct_ptr)
 {
-    // Prepare the thread pool array
+    // Prepare the thread pool
     pthread_t thread_pool[SIZE_THREAD_POOL];
-    //
     server_struct_ptr->thread_pool = thread_pool;
+
+    // Create the lock for the client's queue
+    pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
+    server_struct_ptr->thread_mutex_queue_ptr = &queue_mutex;
+
     //
     for (int i = 0; i < SIZE_THREAD_POOL; i++)
     {
         int thread_creation_status;
         thread_creation_status = pthread_create(&thread_pool[i], NULL, (void *(*)(void *))search_for_thread_work, (void *)server_struct_ptr);
         handle_thread_creation_and_exit(thread_creation_status);
-        join_thread_and_handle_errors(&thread_pool[i]);
+
+        //TODO aqui alterei
+        // join_thread_and_handle_errors(&thread_pool[i]);
     }
 
     // Start listening for connections on a separate thread

@@ -22,6 +22,12 @@ target_include_directories(${CMAKE_PROJECT_NAME}
     "${CMAKE_CURRENT_SOURCE_DIR}/include/utils"
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
+# set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall")
+add_compile_options(
+    -Wall
+    -pthread
+)
+
 
 target_link_libraries(${CMAKE_PROJECT_NAME})

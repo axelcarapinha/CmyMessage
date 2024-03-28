@@ -4,7 +4,7 @@
 int main(int argc, char *argv[])
 {
     puts(YELLOW "Powering up the service!" RESET);
-    start_service(DEFAULT_PORT, start_broadcasting_client_on_separate_thread);
+    start_service(DEFAULT_PORT, prepare_client_for_broadcast_and_start);
 
     //TODO handle error cases (provavelmente criar uma thread)
     // int status;

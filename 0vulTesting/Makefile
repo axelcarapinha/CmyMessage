@@ -1,4 +1,4 @@
-FILENAME = "scanf"
+FILENAME = "queue"
 
 default: compile run
 
