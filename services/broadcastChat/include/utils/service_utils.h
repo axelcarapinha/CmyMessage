@@ -13,6 +13,7 @@
 #include <ctype.h>
 //
 #include "net_utils_tcp.h"
+#include "queue.h"
 
 // Functions
 void start_service(int port, ServiceFunctionPtr service_function);

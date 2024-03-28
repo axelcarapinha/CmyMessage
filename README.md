@@ -41,8 +41,11 @@ Had fun knowing more about:
     * good practices
   * multi-threading
     * race conditions
+    * thread pools with condition variables
+    * I/O assync operations
+    * 
+    * mutex locks
     * semaphors
-    *  
 * Information security practices
   * Input sanitization
   * Forms of AUTH (and its fragilities)
@@ -59,7 +62,9 @@ Had fun knowing more about:
 - Plan the architecture / structure of the code ✅
 - Simple connection ✅
 - Simple chat between two specific clients 🛠️ 
+  - Supporting concurrency 🛠️
 - Containers (probably with Docker compose) 🔁
+  - Docker Swarm (ease the scalability)
 - Database 🔁
     - Designing the schema 🔁
     - Making the queries 🔁

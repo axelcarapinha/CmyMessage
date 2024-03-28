@@ -7,7 +7,9 @@ file(GLOB_RECURSE NEW_GLOB LIST_DIRECTORIES false "/home/asusftr/Desktop/CHEST/(
 set(OLD_GLOB
   "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/broadcast_chat_service.c"
   "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/main.c"
+  "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/linkedlist.c"
   "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/net_utils_tcp.c"
+  "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/queue.c"
   "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/service_utils.c"
   )
 if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")

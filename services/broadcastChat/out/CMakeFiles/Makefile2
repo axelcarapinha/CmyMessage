@@ -81,12 +81,12 @@ clean: CMakeFiles/broadcastChat.dir/clean
 CMakeFiles/broadcastChat.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=1,2,3,4,5 "Built target broadcastChat"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=1,2,3,4,5,6,7 "Built target broadcastChat"
 .PHONY : CMakeFiles/broadcastChat.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/broadcastChat.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" 5
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" 7
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/broadcastChat.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" 0
 .PHONY : CMakeFiles/broadcastChat.dir/rule

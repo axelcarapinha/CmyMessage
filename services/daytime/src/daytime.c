@@ -23,3 +23,21 @@ void daytime_service(int talking_socket)
     bzero(buffer, BUFFER_SIZE);
     close(talking_socket);
 }
+
+
+
+//   // Prepare for the assync I/O operations
+//     fd_set current_sockets, ready_sockets; //TODO add to the server
+//     FD_ZERO(&current_sockets);
+//     FD_SET(server_struct_ptr->sock_fd, &current_sockets);
+
+
+
+
+//    // Monitor the sockets (file descriptors)
+//         ready_sockets = current_sockets;
+//         if (select(FD_SETSIZE, &ready_sockets, NULL, NULL, NULL) < 0)
+//         {
+//             fprintf(stderr, "Problem polling");
+//             exit(EXIT_FAILURE);
+//         }

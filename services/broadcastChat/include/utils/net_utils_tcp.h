@@ -23,11 +23,16 @@
 #define CYAN "\x1B[36m"
 #define WHITE "\x1B[37m"
 
-//TODO do in another way
-// Ensure compatibility with the service header file
-typedef void (*ServiceFunctionPtr)(void *);
+#define SIZE_THREAD_POOL 3
 
-typedef struct
+//  Ensure compatibility with the service header file
+typedef struct ClientInfo ClientInfo;
+
+// Service function pointer
+typedef void (*ServiceFunctionPtr)(ClientInfo *);
+
+// Declared here to avoid circular dependency
+struct ClientInfo
 {
     long client_handler_FD;
     //
@@ -38,10 +43,12 @@ typedef struct
     char *name;
     char *recipient;
     char *buffer;
-} ClientInfo;
+
+    ServiceFunctionPtr service_function_ptr;
+};
 
 // Socket for IPV4 and IPV6 addresses
-typedef struct 
+typedef struct
 {
     int sock_fd;
     union
@@ -54,14 +61,16 @@ typedef struct
     bool is_server;
     bool is_ipv4;
     ServiceFunctionPtr service_function_ptr;
+
+    pthread_t *thread_pool;
 } uniSocket;
 
 // Functions
 uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg);
-    int create_descriptor(uniSocket *socket_struct_ptr);
-    void initialize(uniSocket *socket_struct_ptr);
-    void setupServer(int opt, uniSocket *socket_struct_ptr);
-ClientInfo * acceptConnection(int echo_server);
+int create_descriptor(uniSocket *socket_struct_ptr);
+void initialize(uniSocket *socket_struct_ptr);
+void setupServer(int opt, uniSocket *socket_struct_ptr);
+ClientInfo *acceptConnection(int echo_server);
 void close_server_socket(uniSocket *socket_struct_ptr);
 
 #endif

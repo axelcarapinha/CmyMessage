@@ -178,6 +178,30 @@ src/main.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/main.c.s
 .PHONY : src/main.c.s
 
+src/utils/linkedlist.o: src/utils/linkedlist.c.o
+.PHONY : src/utils/linkedlist.o
+
+# target to build an object file
+src/utils/linkedlist.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o
+.PHONY : src/utils/linkedlist.c.o
+
+src/utils/linkedlist.i: src/utils/linkedlist.c.i
+.PHONY : src/utils/linkedlist.i
+
+# target to preprocess a source file
+src/utils/linkedlist.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.i
+.PHONY : src/utils/linkedlist.c.i
+
+src/utils/linkedlist.s: src/utils/linkedlist.c.s
+.PHONY : src/utils/linkedlist.s
+
+# target to generate assembly for a file
+src/utils/linkedlist.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.s
+.PHONY : src/utils/linkedlist.c.s
+
 src/utils/net_utils_tcp.o: src/utils/net_utils_tcp.c.o
 .PHONY : src/utils/net_utils_tcp.o
 
@@ -201,6 +225,30 @@ src/utils/net_utils_tcp.s: src/utils/net_utils_tcp.c.s
 src/utils/net_utils_tcp.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.s
 .PHONY : src/utils/net_utils_tcp.c.s
+
+src/utils/queue.o: src/utils/queue.c.o
+.PHONY : src/utils/queue.o
+
+# target to build an object file
+src/utils/queue.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/utils/queue.c.o
+.PHONY : src/utils/queue.c.o
+
+src/utils/queue.i: src/utils/queue.c.i
+.PHONY : src/utils/queue.i
+
+# target to preprocess a source file
+src/utils/queue.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/utils/queue.c.i
+.PHONY : src/utils/queue.c.i
+
+src/utils/queue.s: src/utils/queue.c.s
+.PHONY : src/utils/queue.s
+
+# target to generate assembly for a file
+src/utils/queue.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/utils/queue.c.s
+.PHONY : src/utils/queue.c.s
 
 src/utils/service_utils.o: src/utils/service_utils.c.o
 .PHONY : src/utils/service_utils.o
@@ -241,9 +289,15 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/utils/linkedlist.o"
+	@echo "... src/utils/linkedlist.i"
+	@echo "... src/utils/linkedlist.s"
 	@echo "... src/utils/net_utils_tcp.o"
 	@echo "... src/utils/net_utils_tcp.i"
 	@echo "... src/utils/net_utils_tcp.s"
+	@echo "... src/utils/queue.o"
+	@echo "... src/utils/queue.i"
+	@echo "... src/utils/queue.s"
 	@echo "... src/utils/service_utils.o"
 	@echo "... src/utils/service_utils.i"
 	@echo "... src/utils/service_utils.s"
