@@ -4,6 +4,7 @@
         "cstdlib": "c",
         "internet": "c",
         "typeinfo": "c",
-        "net_utils_tcp.h": "c"
+        "net_utils_tcp.h": "c",
+        "queue.h": "c"
     }
 }

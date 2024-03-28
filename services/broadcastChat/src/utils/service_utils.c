@@ -65,34 +65,40 @@ void handle_thread_creation_and_exit(int thread_create_status)
  *
  * @param a
  */
-void* search_for_thread_work(void *server_struct_ptr_arg)
+void *search_for_thread_work(void *server_struct_ptr_arg)
 {
     uniSocket *server_struct_ptr = (uniSocket *)server_struct_ptr_arg;
     pthread_mutex_t *queue_mutex_ptr = server_struct_ptr->thread_mutex_queue_ptr;
+    pthread_cond_t *condition_var_ptr = server_struct_ptr->thread_condition_var_ptr;
 
     // Keep waiting for a client to handle
     while (true)
     {
         if (!isEmptyQueue())
         {
+
+            // Safely search for incoming client requests
             pthread_mutex_lock(queue_mutex_ptr);
-            ClientInfo *client_struct_ptr = dequeue();
+            ClientInfo *client_struct_ptr;
+            if ((client_struct_ptr = dequeue()) == NULL)
+            {
+                pthread_cond_wait(condition_var_ptr, queue_mutex_ptr);
+
+                // Avoid potential deadlock
+                client_struct_ptr = dequeue();
+            }
             pthread_mutex_unlock(queue_mutex_ptr);
 
-            // Forward the client to the service function
-            void (*functionPtr)(ClientInfo *) = client_struct_ptr->service_function_ptr;
+            // Handle client request
+            if (client_struct_ptr != NULL)
+            {
+                // Forward the client to the service function
+                void (*functionPtr)(ClientInfo *) = client_struct_ptr->service_function_ptr;
+                (*functionPtr)(client_struct_ptr);
 
-            //TODO retirar isto
-            const char *message = "hello from the thread\n";
-            send(client_struct_ptr->client_handler_FD, message, strlen(message), 0);
-
-            (*functionPtr)(client_struct_ptr);
-
-            // Deallocation of the client's memory struct
-            free(client_struct_ptr);
-        }
-        else {
-           sleep(3); //TODO retirar isto
+                // Deallocation of the client's memory struct
+                free(client_struct_ptr);
+            }
         }
     }
 }
@@ -106,6 +112,7 @@ void accept_incoming_connections(void *server_struct_ptr_arg)
 {
     uniSocket *server_struct_ptr = (uniSocket *)server_struct_ptr_arg;
     pthread_mutex_t *queue_mutex_ptr = server_struct_ptr->thread_mutex_queue_ptr;
+    pthread_cond_t *condition_var_ptr = server_struct_ptr->thread_condition_var_ptr;
 
     while (true)
     {
@@ -119,10 +126,11 @@ void accept_incoming_connections(void *server_struct_ptr_arg)
         // Assign the service to the client
         client_struct_ptr->service_function_ptr = server_struct_ptr->service_function_ptr;
 
-        // TODO handle messages to the client while the queue is not available (and 
+        // TODO handle messages to the client while the queue is not available (and
         // Assign the client to an available thread
         pthread_mutex_lock(queue_mutex_ptr);
         enqueue(client_struct_ptr);
+        pthread_cond_signal(condition_var_ptr);
         pthread_mutex_unlock(queue_mutex_ptr);
     }
 
@@ -145,6 +153,10 @@ void start_accepting_incoming_connections(uniSocket *server_struct_ptr)
     pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
     server_struct_ptr->thread_mutex_queue_ptr = &queue_mutex;
 
+    // Create the conditional variable for the threads
+    pthread_cond_t condition_var = PTHREAD_COND_INITIALIZER;
+    server_struct_ptr->thread_condition_var_ptr = &condition_var;
+
     //
     for (int i = 0; i < SIZE_THREAD_POOL; i++)
     {
@@ -152,8 +164,8 @@ void start_accepting_incoming_connections(uniSocket *server_struct_ptr)
         thread_creation_status = pthread_create(&thread_pool[i], NULL, (void *(*)(void *))search_for_thread_work, (void *)server_struct_ptr);
         handle_thread_creation_and_exit(thread_creation_status);
 
-        //TODO aqui alterei
-        // join_thread_and_handle_errors(&thread_pool[i]);
+        // TODO aqui alterei
+        //  join_thread_and_handle_errors(&thread_pool[i]);
     }
 
     // Start listening for connections on a separate thread

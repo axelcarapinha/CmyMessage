@@ -61,9 +61,12 @@ typedef struct
     bool is_server;
     bool is_ipv4;
     ServiceFunctionPtr service_function_ptr;
-
+    
+    // Thread related variables
     pthread_t *thread_pool;
     pthread_mutex_t *thread_mutex_queue_ptr;
+    pthread_cond_t *thread_condition_var_ptr;
+
 } uniSocket;
 
 // Functions

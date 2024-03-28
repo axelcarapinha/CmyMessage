@@ -3,6 +3,8 @@
 
 #include "net_utils_tcp.h"
 
+#define MAX_QUEUE_SIZE (SIZE_THREAD_POOL * 3)
+
 struct node
 {
     struct node *next;
@@ -12,7 +14,7 @@ typedef struct node node_t;
 
 // Functions
 ClientInfo* dequeue();
-void enqueue(ClientInfo *client_struct_ptr);
+int enqueue(ClientInfo *client_struct_ptr);
 bool isEmptyQueue();
 
 
