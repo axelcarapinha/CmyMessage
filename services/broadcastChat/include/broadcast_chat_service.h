@@ -26,8 +26,8 @@
 #define MAX_NUM_CLIENTS 2
 
 // Other values
-#define SERVER_NAME "CmyMessage" // in case I end up changing the server name with updates
-#define MAX_SIZE_USER_OPTION 1   // a number and the newline character
+#define SERVICE_NAME "BROADCAST CHAT" 
+#define MAX_SIZE_USER_OPTION 1 // a single number (for the option)
 #define MAX_SIZE_ADDR_INFO 200
 
 enum ServerConnectionOptions

@@ -2,9 +2,14 @@
 #include <sys/select.h>
 
 /**
- * @brief
+ * @brief Closes the service, shutting down the associated socket.
  *
- * @param a
+ * Shuts down read and write operations on the service socket,
+ * closes the socket itself with a wrapper function
+ * and frees the memory related to it.
+ *
+ * @param server_struct_ptr Pointer to the server structure containing
+ *                         information about the service and its resources.
  */
 void close_service(uniSocket *server_struct_ptr)
 {
@@ -19,7 +24,6 @@ void close_service(uniSocket *server_struct_ptr)
  */
 void join_thread_and_handle_errors(pthread_t *thread_id_ptr)
 {
-    // Checking for THREAD JOINING errors
     void *status_ptr; // pthread_join already allocates memory for the pointer
     int join_status = pthread_join(*thread_id_ptr, &status_ptr);
     if (join_status != 0)
@@ -27,8 +31,7 @@ void join_thread_and_handle_errors(pthread_t *thread_id_ptr)
         fprintf(stderr, "Error joining listener thread: %d\n", join_status);
         return;
     }
-
-    // Checking for EXECUTION errors
+    //
     if (status_ptr != NULL)
     {
         int *status_val = (int *)status_ptr;
@@ -37,9 +40,6 @@ void join_thread_and_handle_errors(pthread_t *thread_id_ptr)
             fprintf(stderr, "Listener thread returned value %d\n", *status_val);
         }
     }
-
-    // Avoid leakage of memory allocated by the pthread_join function
-    free(status_ptr);
 }
 
 /**
@@ -163,9 +163,6 @@ void start_accepting_incoming_connections(uniSocket *server_struct_ptr)
         int thread_creation_status;
         thread_creation_status = pthread_create(&thread_pool[i], NULL, (void *(*)(void *))search_for_thread_work, (void *)server_struct_ptr);
         handle_thread_creation_and_exit(thread_creation_status);
-
-        // TODO aqui alterei
-        //  join_thread_and_handle_errors(&thread_pool[i]);
     }
 
     // Start listening for connections on a separate thread
@@ -183,11 +180,11 @@ void start_accepting_incoming_connections(uniSocket *server_struct_ptr)
  */
 void start_service(int port, ServiceFunctionPtr service_function_ptr)
 {
-    uniSocket *server_struct_ptr = create_socket(true, port, true);
+    uniSocket *server_struct_ptr;
+     = create_socket(true, port, true);
     server_struct_ptr->service_function_ptr = service_function_ptr;
 
     start_accepting_incoming_connections(server_struct_ptr);
 
-    // TODO return an exit status
     close_service(server_struct_ptr);
 }

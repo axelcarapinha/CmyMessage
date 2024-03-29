@@ -3,14 +3,10 @@
 
 int main(int argc, char *argv[])
 {
-    puts(YELLOW "Powering up the service!" RESET);
+    printf(YELLOW "Powering up the service %s!\n" RESET, SERVICE_NAME);
     start_service(DEFAULT_PORT, prepare_client_for_broadcast_and_start);
-
-    //TODO handle error cases (provavelmente criar uma thread)
-    // int status;
-    // if ((status = start_service(PORT)) < 0) {
-    //     fprintf(stderr, "Error number %d when starting the server.\n", status);
-    // }
+    
+    // Connect to the database
 
     return 0;
 }

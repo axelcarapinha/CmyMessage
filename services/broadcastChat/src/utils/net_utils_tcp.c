@@ -2,122 +2,87 @@
 #include "broadcast_chat_service.h"
 
 /**
- * @brief
+ * @brief Gracefully close the service socket
  *
- * @param a
-*/
-void close_server_socket(uniSocket *socket_struct_ptr)
+ * @param p_socket_t
+ */
+void close_service_socket(UniSocket_t *p_socket_t)
 {
-    shutdown(socket_struct_ptr->sock_fd, SHUT_RDWR);
-    close(socket_struct_ptr->sock_fd);
-    free(socket_struct_ptr);
+    shutdown(p_socket_t->sock_fd, SHUT_RDWR);
+    close(p_socket_t->sock_fd);
+    free(p_socket_t);
     puts(YELLOW "Server terminated." RESET);
 }
 
+
+
+/**
+ * @brief Gracefully close the service socket
+ *
+ * @param p_socket_t
+ */
+void free_unisocket_struct_mem(UniSocket_t *p_socket_t)
+{
+    if (p_socket_t == NULL)
+        return;
+
+    // Address
+    if (p_socket_t->is_ipv4)
+    {
+        if (p_socket_t->address.p_addr_ipv4 != NULL)
+        {
+            free(p_socket_t->address.p_addr_ipv4);
+        }
+    }
+    else
+    {
+        if (p_socket_t->address.p_addr_ipv6 != NULL)
+        {
+            free(p_socket_t->address.p_addr_ipv6);
+        }
+    }
+
+    // Thread related
+    if (p_socket_t->p_thread_pool != NULL)
+    {
+        free(p_socket_t->p_thread_pool);
+    }
+    if (p_socket_t->p_mutex_queue == NULL)
+    {
+        free(p_socket_t->p_mutex_queue);
+    }
+    if (p_socket_t->p_condition_var == NULL)
+    {
+        free(p_socket_t->p_condition_var);
+    }
+
+    // Struct pointer itself
+    free(p_socket_t);
+}
+
 /**
  * @brief
  *
  * @param a
  */
-void setupServer(int opt, uniSocket *socket_struct_ptr)
+ClientInfo *acceptConnection(int service_FD)
 {
-    // Forcefully attaching socket to the port (part 1)
-    if (setsockopt(socket_struct_ptr->sock_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
-    {
-        perror("setsockopt");
-        exit(EXIT_FAILURE);
-    }
+    ClientInfo *p_client_t = allocate_client_info_struct();
+    struct sockaddr *address = p_client_t->p_ipv4_addr;
+    socklen_t addr_len = *(p_client_t->p_addr_len);
 
-    // Name the socket
-    int bind_value;
-    if (socket_struct_ptr->is_ipv4)
+    int client_handler_FD;
+    if ((client_handler_FD = accept(service_FD, address, addr_len)) < 0)
     {
-        bind_value = bind(socket_struct_ptr->sock_fd, (struct sockaddr *)socket_struct_ptr->address.addr_ipv4, sizeof(*(socket_struct_ptr->address.addr_ipv4)));
-    }
-    else
-    {
-        bind_value = bind(socket_struct_ptr->sock_fd, (struct sockaddr *)socket_struct_ptr->address.addr_ipv6, sizeof(*(socket_struct_ptr->address.addr_ipv6)));
+        free_client_mem(p_client_t);
+        perror("Problem accepting client's connection");
+        int error_val = client_handler_FD;
+        return error_val;
     }
     //
-    if (bind_value < 0)
-    {
-        perror("bind failed");
-        free(socket_struct_ptr);
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        puts(YELLOW "Binded." RESET);
-    }
+    p_client_t->client_handler_FD = client_handler_socket;
 
-    // Listen to ports
-    if (listen(socket_struct_ptr->sock_fd, DEFAULT_MAX_NUM_CLIENTS) < 0)
-    {
-        perror("listen");
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        puts(YELLOW "Listening..." RESET);
-    }
-
-    puts(YELLOW "Server socket listening..." RESET);
-}
-
-/**
- * @brief
- *
- * @param a
- */
-int create_descriptor(uniSocket *socket_struct_ptr)
-{
-    int file_descriptor;
-    if (socket_struct_ptr->is_ipv4)
-    {
-        file_descriptor = socket(
-            socket_struct_ptr->address.addr_ipv4->sin_family,
-            SOCK_STREAM, 0);
-    }
-    else
-    {
-        file_descriptor = socket(
-            socket_struct_ptr->address.addr_ipv6->sin6_family,
-            SOCK_STREAM, 0);
-    }
-
-    // Verification
-    if ((file_descriptor) < 0)
-    {
-        perror("Socket creation FAILED");
-        exit(EXIT_FAILURE);
-    }
-    else
-    {
-        puts(YELLOW "Stream socket created SUCCESSFULY" RESET);
-    }
-
-    return file_descriptor;
-}
-
-/**
- * @brief
- *
- * @param a
- */
-void initialize(uniSocket *socket_struct_ptr)
-{
-    if (socket_struct_ptr->is_ipv4)
-    {
-        socket_struct_ptr->address.addr_ipv4->sin_family = AF_INET;
-        socket_struct_ptr->address.addr_ipv4->sin_addr.s_addr = INADDR_ANY;
-        socket_struct_ptr->address.addr_ipv4->sin_port = htons(socket_struct_ptr->port);
-    }
-    else
-    {
-        socket_struct_ptr->address.addr_ipv6->sin6_family = AF_INET6;
-        socket_struct_ptr->address.addr_ipv6->sin6_addr = in6addr_any;
-        socket_struct_ptr->address.addr_ipv6->sin6_port = htons(socket_struct_ptr->port);
-    }
+    return p_client_t;
 }
 
 /**
@@ -125,60 +90,46 @@ void initialize(uniSocket *socket_struct_ptr)
  *
  * @param
  */
-uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg)
+int setup_service_socket_t(int opt, UniSocket_t *p_socket_t)
 {
-    // UniSocket memory allocation
-    // Using the pointer because the malloc function could
-    // rearrange the memory positions,
-    // and we would be accessing unintended data
-    uniSocket *socket_struct_ptr = (uniSocket *)malloc(sizeof(uniSocket));
-    if (socket_struct_ptr == NULL)
+    // Forcefully attaching socket to the port
+    if (setsockopt(p_socket_t->sock_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
     {
-        perror("Memory allocation failed");
-        exit(EXIT_FAILURE);
+        close_service_socket(p_socket_t);
+        perror("Setting up the service options");
+        return -1;
     }
 
-    // Address memory allocation
-    socket_struct_ptr->is_ipv4 = is_ipv4_arg;
-    if (is_ipv4_arg)
-    {
-        socket_struct_ptr->address.addr_ipv4 = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
-        if (socket_struct_ptr->address.addr_ipv4 == NULL)
-        {
-            perror("Allocating memory for the ipv4 socket address");
-            free(socket_struct_ptr);
-            exit(EXIT_FAILURE);
-        }
-        //
-        socket_struct_ptr->addrlen = sizeof(*(socket_struct_ptr->address.addr_ipv4));
+    // Name the socket
+    int bind_status;
+    //
+    struct sockaddr *address;
+    socklen_t addr_len;
+    if (p_socket_t->is_ipv4) {
+        address = (struct sockaddr *)p_socket_t->addr_u.p_ipv4;
+        addr_len = sizeof(*p_socket_t->addr_u.p_ipv4);
     }
-    else
-    {
-        socket_struct_ptr->address.addr_ipv6 = (struct sockaddr_in6 *)malloc(sizeof(struct sockaddr_in6));
-        if (socket_struct_ptr->address.addr_ipv6 == NULL)
-        {
-            perror("Allocating memory for the ipv6 socket address");
-            free(socket_struct_ptr);
-            exit(EXIT_FAILURE);
-        }
-        //
-        socket_struct_ptr->addrlen = sizeof(*(socket_struct_ptr->address.addr_ipv6));
+    else {
+        address = (struct sockaddr *)p_socket_t->addr_u.p_ipv6;
+        addr_len = sizeof(*p_socket_t->addr_u.p_ipv6);
+    }
+    //
+    if (bind_status = bind(p_socket_t->sock_fd, address, addr_len) < 0) {
+        free_unisocket_mem(p_socket_t);
+        perror("Service socket binding");
+        return bind_status;
     }
 
-    // Other general settings
-    socket_struct_ptr->port = port;
-    socket_struct_ptr->is_server = is_server_arg;
-    initialize(socket_struct_ptr);
-    socket_struct_ptr->sock_fd = create_descriptor(socket_struct_ptr);
-
-    // SERVER specific settings
-    if (socket_struct_ptr->is_server)
+    // Listen to ports
+    int listen_status;
+    if (listen_status = listen(p_socket_t->sock_fd, DEFAULT_MAX_NUM_CLIENTS) < 0)
     {
-        int opt = 1;
-        setupServer(opt, socket_struct_ptr);
+        free_unisocket_mem(p_socket_t);
+        perror("Service socket, problem on listening");
+        return listen_status;
     }
 
-    return socket_struct_ptr;
+    printf(YELLOW "Service socket listening...\n" RESET);
 }
 
 /**
@@ -186,46 +137,167 @@ uniSocket *create_socket(bool is_server_arg, int port, bool is_ipv4_arg)
  *
  * @param a
  */
-//TODO change the name of this function to handle the memoru management
-ClientInfo *acceptConnection(int echo_server)
+int assign_descriptor_to_stream_socket_t(UniSocket_t *p_socket_t)
 {
-    // Allocate memory for the client information
-    ClientInfo *client_struct_ptr = (ClientInfo *)malloc(sizeof(ClientInfo));
-    if (client_struct_ptr == NULL)
+    const int ADDR_FAMILY = (p_socket_t->is_ipv4) ? AF_INET : AF_INET6;
+
+    int socket_descriptor;
+    if ((socket_descriptor = socket(ADDR_FAMILY, SOCK_STREAM, 0)) < 0)
     {
-        printf("Problem allocating memory for the client struct\n");
+        perror("invalid socket_descriptor");
+        int error_value = socket_descriptor;
+        return error_value;
+    }
+
+    // Assign the file descriptor
+    p_socket_t->sock_fd = socket_descriptor;
+    printf(YELLOW "Stream socket created SUCCESSFULY\n" RESET );
+}
+
+/**
+ * @brief
+ *
+ * @param a
+ */
+int initialize_socket(UniSocket_t *p_socket_t)
+{
+    if (p_socket_t->is_ipv4)
+    {
+        // If the system or network configs does NOT support dual-stack sockets,
+        // this approach, while NOT recommended, allows the server to accept only IPv4 connections.
+        // Noteworthy, if the server has IPv4 and IPv6 sockets,
+        // please, consider changing opt to 1, for a more controlled flow of the connections
+        p_socket_t->addr_u.p_ipv4->sin_family = AF_INET;
+        p_socket_t->addr_u.p_ipv4->sin_addr.s_addr = INADDR_ANY;
+        p_socket_t->addr_u.p_ipv4->sin_port = htons(p_socket_t->port);
+    }
+    else
+    {
+        // Dual-stack socket
+        int opt = 0; // Option value to turn off IPV6_V6ONLY
+        if (setsockopt(p_socket_t->sock_fd, IPPROTO_IPV6, IPV6_V6ONLY, &opt, sizeof(opt)) < 0)
+        {
+            perror("setsockopt IPV6_V6ONLY");
+            return -1;
+        }
+        p_socket_t->addr_u.p_ipv6->sin6_family = AF_INET6;
+        p_socket_t->addr_u.p_ipv6->sin6_addr = in6addr_any;
+        p_socket_t->addr_u.p_ipv6->sin6_port = htons(p_socket_t->port);
+    }
+}
+
+/**
+ * @brief
+ *
+ * @param a
+ */
+ClientInfo *allocate_client_info_struct()
+{
+    ClientInfo *p_client_t = (ClientInfo *)malloc(sizeof(ClientInfo));
+    if (p_client_t == NULL)
+    {
+        perror("Allocating memory for the client struct");
         return NULL;
     }
     //
-    client_struct_ptr->client_addr_ptr = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
-    if (client_struct_ptr->client_addr_ptr == NULL) {
-        printf("Problem allocating memory for the client's address struct\n");
-        free(client_struct_ptr);
+    p_client_t->client_addr_ptr = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
+    if (p_client_t->client_addr_ptr == NULL)
+    {
+        free(p_client_t);
+        perror("Allocating memory for the client address on the struct");
         return NULL;
     }
     //
-    client_struct_ptr->client_addr_len_ptr = (socklen_t *)malloc(sizeof(socklen_t));
-    if (client_struct_ptr->client_addr_len_ptr == NULL)
+    p_client_t->client_addr_len_ptr = (socklen_t *)malloc(sizeof(socklen_t));
+    if (p_client_t->client_addr_len_ptr == NULL)
     {
-        printf("Problem allocating memory for the client's address length\n");
-        free(client_struct_ptr);
+        free(p_client_t->client_addr_ptr);
+        free(p_client_t);
+        perror("Allocating memory for the client's address length");
         return NULL;
     }
 
-    // Accept the connection
-    int client_handler_socket = -1;
+    return p_client_t;
+}
 
-    if ((client_handler_socket = accept(echo_server, 
-        (struct sockaddr *)client_struct_ptr->client_addr_ptr, client_struct_ptr->client_addr_len_ptr)) < 0)
+UniSocket_t *allocate_socket_struct()
+{
+    UniSocket_t *p_socket_t = (UniSocket_t *)malloc(sizeof(UniSocket_t));
+
+    if (p_socket_t == NULL)
     {
-        perror("Problem accepting client's connection");
-        free(client_struct_ptr);
-        free(client_struct_ptr->client_addr_ptr);
-        free(client_struct_ptr->client_addr_len_ptr);
-        exit(EXIT_FAILURE);
+        perror("Socket memory allocation failed");
+        return NULL;
+    }
+
+    // Address
+    p_socket_t->addr_u.p_ipv6 = (struct sockaddr_in6 *)malloc(sizeof(struct sockaddr_in6));
+    if (p_socket_t->addr_u.p_ipv6 == NULL)
+    {
+        free_unisocket_mem(p_socket_t);
+        perror("Socket address creation failed");
+        return NULL;
     }
     //
-    client_struct_ptr->client_handler_FD = client_handler_socket;
+    p_socket_t->p_addr_len = (struct socklen_t *)malloc(sizeof(socklen_t));
+    if (p_socket_t->p_addr_len == NULL)
+    {
+        free_unisocket_mem(p_socket_t);
+        perror("Socket address creation failed");
+        return NULL;
+    }
 
-    return client_struct_ptr;
+    // Service pointer
+    p_socket_t->p_service_func = (ServiceFunctionPtr *)malloc(sizeof(ServiceFunctionPtr));
+    if (p_socket_t->p_service_func == NULL)
+    {
+        free_unisocket_mem(p_socket_t);
+        perror("Socket service function allocation failed");
+        return NULL;
+    }
+
+    return p_socket_t;
+}
+
+/**
+ * @brief
+ *
+ * @param
+ */
+UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg)
+{
+    UniSocket_t *p_socket_t;
+    if (p_socket_t = allocate_socket_struct() == NULL) {
+        perror("Socket struct memory allocation");
+        return NULL;
+    }
+
+    // GENERAL settings
+    p_socket_t->is_server = is_server_arg;
+    p_socket_t->port = port;
+    p_socket_t->is_ipv4 = is_ipv4_arg;
+    //
+    int init_status;
+    if (init_status = initialize_socket(p_socket_t) < 0) {
+        return init_status;
+    }
+    //
+    int assign_status;
+    if (assign_status = assign_descriptor_to_stream_socket_t(p_socket_t) < 0) {
+        perror("Assigning descriptor to the socket");
+        return assign_status;
+    }
+
+    // SERVER specific settings
+    if (p_socket_t->is_server)
+    {
+        int option = 1;
+        int setup_status;
+        if (setup_status = setup_service_socket_t(option, p_socket_t) < 0) {
+            perror("Failed to set up the server socket");
+            return setup_status;
+        }
+    }
+
+    return p_socket_t;
 }

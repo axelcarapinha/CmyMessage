@@ -46,10 +46,12 @@ Had fun knowing more about:
     * 
     * mutex locks
     * semaphors
+* Networking
+  * IPv4 mapped-addresses, dual stack network
 * Information security practices
   * Input sanitization
   * Forms of AUTH (and its fragilities)
-  * 
+  * Shadow networks
 * Cmake (build system generator)
 * Software architecture 
 
@@ -62,7 +64,7 @@ Had fun knowing more about:
 - Plan the architecture / structure of the code ✅
 - Simple connection ✅
 - Simple chat between two specific clients 🛠️ 
-  - Supporting concurrency 🛠️
+  - Supporting concurrency ✅
 - Containers (probably with Docker compose) 🔁
   - Docker Swarm (ease the scalability)
 - Database 🔁

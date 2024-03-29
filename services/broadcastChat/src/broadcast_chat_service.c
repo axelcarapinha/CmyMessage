@@ -12,19 +12,19 @@ void free_client_allocated_mem(ClientInfo *client_struct_ptr)
 void join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
 {
     // Get the client needed memory variables
-    char *name_cli = client_struct_ptr->name;
-    char *buffer_cli = client_struct_ptr->buffer;
-    long client_handler_FD = client_struct_ptr->client_handler_FD;
+    char *p_name_cli = client_struct_ptr->name;
+    char *p_buffer_cli = client_struct_ptr->buffer;
+    long client_FD = client_struct_ptr->client_FD;
 
-    memset(buffer_cli, 0, DEFAULT_BUFFER_SIZE);
+    memset(p_buffer_cli, 0, DEFAULT_BUFFER_SIZE);
 
     while (true)
     {
         size_t bytes_received;
-        if ((bytes_received = recv(client_handler_FD, buffer_cli, DEFAULT_BUFFER_SIZE, 0)) > 0)
+        if ((bytes_received = recv(client_FD, p_buffer_cli, DEFAULT_BUFFER_SIZE, 0)) > 0)
         {
-            send(client_handler_FD, buffer_cli, DEFAULT_BUFFER_SIZE, 0);
-            memset(buffer_cli, 0, DEFAULT_BUFFER_SIZE);
+            send(client_FD, p_buffer_cli, DEFAULT_BUFFER_SIZE, 0);
+            memset(p_buffer_cli, 0, DEFAULT_BUFFER_SIZE);
         }
         else if (bytes_received == 0)
         {
@@ -38,24 +38,24 @@ void join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
         }
     }
 
-    memset(buffer_cli, 0, DEFAULT_BUFFER_SIZE);
+    memset(p_buffer_cli, 0, DEFAULT_BUFFER_SIZE);
 }
 
 void prepare_to_join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
 {
     // Prepare the pointers for the necessary data (for a cleaner code)
-    char *name_cli = client_struct_ptr->name;
-    char *buffer_cli = client_struct_ptr->buffer;
-    long client_handler_FD = client_struct_ptr->client_handler_FD;
+    char *p_name_cli = client_struct_ptr->name;
+    char *p_buffer_cli = client_struct_ptr->buffer;
+    long client_FD = client_struct_ptr->client_FD;
 
     // Ask for a simple ID
-    strcpy(buffer_cli, "\nOur newest guest! How we can call you: ");
-    send(client_handler_FD, buffer_cli, strlen(buffer_cli), 0);
+    strcpy(p_buffer_cli, "\nOur newest guest! How we can call you: ");
+    send(client_FD, p_buffer_cli, strlen(p_buffer_cli), 0);
 
     // Assign its ID
-    memset(buffer_cli, 0, DEFAULT_BUFFER_SIZE);
+    memset(p_buffer_cli, 0, DEFAULT_BUFFER_SIZE);
     int bytes_received;
-    if ((bytes_received = recv(client_handler_FD, buffer_cli, DEFAULT_BUFFER_SIZE, 0)) < 0)
+    if ((bytes_received = recv(client_FD, p_buffer_cli, DEFAULT_BUFFER_SIZE, 0)) < 0)
     {
         fprintf(stderr, "recv() function failed, with exit code %d\n", bytes_received);
         exit(EXIT_FAILURE);
@@ -69,16 +69,16 @@ void prepare_to_join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
     // Assign the username to its struct (temporary memory)
     if (bytes_received <= DEFAULT_BUFFER_SIZE)
     {
-        buffer_cli[bytes_received - 1] = '\0';
+        p_buffer_cli[bytes_received - 1] = '\0';
     }
-    strcpy(name_cli, buffer_cli);
+    strcpy(p_name_cli, p_buffer_cli);
 
     // Send a customised welcome message
     char message[DEFAULT_BUFFER_SIZE];
     strcpy(message, "Welcome to the broadcast channel, ");
-    strcat(message, name_cli);
+    strcat(message, p_name_cli);
     strcat(message, "!\n");
-    send(client_handler_FD, message, strlen(message), 0);
+    send(client_FD, message, strlen(message), 0);
 }
 
 void prepare_client_structs_for_data(ClientInfo *client_struct_ptr)
@@ -109,7 +109,7 @@ void prepare_client_structs_for_data(ClientInfo *client_struct_ptr)
     if (inet_ntop(AF_INET, &(client_struct_ptr->client_addr_ptr->sin_addr), ip_buffer, INET_ADDRSTRLEN) == NULL)
     {
         perror("Error converting IP address");
-        close(client_struct_ptr->client_handler_FD);
+        close(client_struct_ptr->client_FD);
         free(client_struct_ptr->client_addr_ptr);
         free(client_struct_ptr->client_addr_len_ptr);
         free(client_struct_ptr);
