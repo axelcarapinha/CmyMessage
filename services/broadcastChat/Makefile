@@ -11,3 +11,9 @@ build:
 run:
 	cd out/broadcastChat && ./broadcastChat && cd ..
 
+test:
+	bash many_clients.sh
+
+
+	
+

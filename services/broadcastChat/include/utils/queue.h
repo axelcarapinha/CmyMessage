@@ -8,7 +8,7 @@
 struct node
 {
     struct node *next;
-    ClientInfo_t *client_struct_ptr;
+    ClientInfo_t *p_client_t;
 };
 typedef struct node node_t;
 

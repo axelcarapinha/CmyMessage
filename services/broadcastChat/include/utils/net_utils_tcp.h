@@ -31,7 +31,7 @@
 #define SIZE_THREAD_POOL 3
 
 typedef struct ClientInfo_t ClientInfo_t; // declared here to avoid circular dependency
-typedef void (*ServiceFunctionPtr)(ClientInfo_t *);
+typedef int (*ServiceFunctionPtr)(ClientInfo_t *);
 
 struct ClientInfo_t
 {

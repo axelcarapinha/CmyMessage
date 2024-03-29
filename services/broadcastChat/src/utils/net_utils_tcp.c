@@ -92,11 +92,18 @@ void free_client_memory(ClientInfo_t *p_client_t)
  */
 void ensure_client_disconnection_and_remove_data(ClientInfo_t *p_client_t) // In case the service did NOT
 {
+    printf("Cleaning ALL the of %s's connection data.\n\n", p_client_t->name);
+
     close(p_client_t->sock_FD);
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    memset(p_client_t->name, 0, strlen(p_client_t->name));
-    memset(p_client_t->addr_info, 0, strlen(p_client_t->addr_info));
-    memset(p_client_t->recipient, 0, strlen(p_client_t->recipient));
+    //
+    if (p_client_t->buffer != NULL) 
+        memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    if (p_client_t->name != NULL)
+        memset(p_client_t->name, 0, strlen(p_client_t->name));
+    if (p_client_t->addr_info != NULL)
+        memset(p_client_t->addr_info, 0, strlen(p_client_t->addr_info));
+    if (p_client_t->recipient != NULL)
+        memset(p_client_t->recipient, 0, strlen(p_client_t->recipient));
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -125,7 +132,7 @@ ClientInfo_t *allocate_client_info_struct()
         return NULL;
     }
     //
-    p_client_t->p_addr = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
+    p_client_t->p_addr = (struct sockaddr *)malloc(sizeof(struct sockaddr));
     if (p_client_t->p_addr == NULL)
     {
         free_client_memory(p_client_t);
@@ -169,9 +176,9 @@ ClientInfo_t *accept_connection(int service_FD)
 
     // Accept incoming connection
     int client_FD;
-    if ((client_FD = accept(service_FD, p_cli_addr, addr_len)) < 0)
+    if ((client_FD = accept(service_FD, p_cli_addr, &addr_len)) < 0)
     {
-        free_client_mem(p_client_t);
+        free_client_memory(p_client_t);
         perror("Error accepting client's connection");
         return NULL;
     }
@@ -366,7 +373,7 @@ UniSocket_t *allocate_socket_struct()
     }
 
     // Service pointer
-    p_socket_t->p_service_func = (ServiceFunctionPtr *)malloc(sizeof(ServiceFunctionPtr));
+    p_socket_t->p_service_func = (ServiceFunctionPtr)malloc(sizeof(ServiceFunctionPtr));
     if (p_socket_t->p_service_func == NULL)
     {
         free_unisocket_memory(p_socket_t);

@@ -5,6 +5,8 @@
         "internet": "c",
         "typeinfo": "c",
         "net_utils_tcp.h": "c",
-        "queue.h": "c"
+        "queue.h": "c",
+        "service_utils.h": "c",
+        "broadcast_chat_service.h": "c"
     }
 }

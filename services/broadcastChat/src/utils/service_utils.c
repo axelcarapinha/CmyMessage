@@ -20,7 +20,7 @@ void close_service(UniSocket_t *p_server_t)
     pthread_mutex_unlock(&g_mutex_server);
 
     close_server_socket(p_server_t);
-    puts("Service closed.");
+    printf("Service closed.\n");
 }
 //TODO consider using a cleanup handler for the threads 
 //TODO to dispose already connected clients
@@ -97,10 +97,10 @@ void *search_for_thread_work(void *p_server_t_arg)
             if (p_client_t != NULL)
             {
                 // Forward the client to the desired service function
-                void (*functionPtr)(ClientInfo_t *) = p_client_t->p_service_func;
+                int (*functionPtr)(ClientInfo_t *) = p_client_t->p_service_func;
                 (*functionPtr)(p_client_t);
 
-                free_client_memory(p_client_t);
+                free_client_memory(p_client_t); // in case the service did NOT
             }
         }
 
@@ -109,6 +109,7 @@ void *search_for_thread_work(void *p_server_t_arg)
         pthread_mutex_lock(p_mutex_quit_signal);
         quit_signal_val = *p_quit_signal;
         pthread_mutex_unlock(p_mutex_quit_signal);
+
 
     } while (!quit_signal_val);
 }
@@ -120,7 +121,7 @@ void *search_for_thread_work(void *p_server_t_arg)
  *
  * @param a
  */
-void accept_incoming_connections(void *p_server_t_arg)
+void * accept_incoming_connections(void *p_server_t_arg)
 {
     UniSocket_t *p_server_t = (UniSocket_t *)p_server_t_arg;
 
@@ -160,16 +161,22 @@ void accept_incoming_connections(void *p_server_t_arg)
         quit_signal_val = *p_quit_signal;
         pthread_mutex_unlock(p_mutex_quit_signal);
 
-    } while (!quit_signal_val); //
+    } while (!quit_signal_val);
 
     // Gracefully detach clients from the connection
     pthread_mutex_lock(p_queue_mutex);
-    const service_quit_message = "The service closed. Try again later. Sorry for any caused inconvenient.";
+    const char *service_quit_message = "The service closed. Try again later. Sorry for any caused inconvenient.";
     while (!isEmptyQueue())
     {
         p_client_t = dequeue();
-        send(p_client_t->sock_FD, service_quit_message, strlen(service_quit_message), 0);
-        free_client_memory(p_client_t);
+        if (p_client_t != NULL) {
+            send(p_client_t->sock_FD, service_quit_message, strlen(service_quit_message), 0);
+            free_client_memory(p_client_t);
+        }
+        else {  
+            perror("Error when dequeuing the client, found a null value when alerting the clients of closing the server");
+        }
+
     }
     pthread_mutex_unlock(p_queue_mutex);
 }
@@ -204,7 +211,7 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
     for (int i = 0; i < SIZE_THREAD_POOL; i++)
     {
         int creation_status;
-        creation_status = pthread_create(p_thread_pool[i], NULL, (void *(*)(void *))search_for_thread_work, (void *)p_server_t);
+        creation_status = pthread_create(&p_thread_pool[i], NULL, (void *(*)(void *))search_for_thread_work, (void *)p_server_t);
         if (creation_status < 0)
         {
             perror("Error creating one of the pool threads of the server");
@@ -236,16 +243,20 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
  *
  * @param a
  */
-int start_service(int port, ServiceFunctionPtr p_server_t)
+int start_service(int port, ServiceFunctionPtr p_service_func_arg)
 {
+    // Create the server socket
     UniSocket_t *p_server_t;
-    if ((p_server_t = create_socket(true, port, true) == NULL))
+    if (((p_server_t = create_socket_struct(true, port, true)) == NULL))
     {
         perror("Error getting the socket struct pointer");
-        return NULL;
+        return -1;
     }
 
-    // TODO error values to return
+    // Assign the service function
+    p_server_t->p_service_func = p_service_func_arg;
+
+    // Start the server
     int error_status;
     if ((error_status = start_accepting_incoming_connections(p_server_t)) < 0) {
         perror("Error acepting incoming connections");
