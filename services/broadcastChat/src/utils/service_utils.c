@@ -1,19 +1,15 @@
 #include "service_utils.h"
 #include <sys/select.h>
 
+
 /**
- * @brief Closes the service, shutting down the associated socket.
+ * @brief
  *
- * Shuts down read and write operations on the service socket,
- * closes the socket itself with a wrapper function
- * and frees the memory related to it.
- *
- * @param server_struct_ptr Pointer to the server structure containing
- *                         information about the service and its resources.
+ * @param a
  */
-void close_service(uniSocket *server_struct_ptr)
+void close_service(UniSocket_t *p_server_t)
 {
-    close_server_socket(server_struct_ptr);
+    close_server_socket(p_server_t);
     puts("Service closed.");
 }
 
@@ -65,11 +61,11 @@ void handle_thread_creation_and_exit(int thread_create_status)
  *
  * @param a
  */
-void *search_for_thread_work(void *server_struct_ptr_arg)
+void *search_for_thread_work(void *p_server_t_arg)
 {
-    uniSocket *server_struct_ptr = (uniSocket *)server_struct_ptr_arg;
-    pthread_mutex_t *queue_mutex_ptr = server_struct_ptr->thread_mutex_queue_ptr;
-    pthread_cond_t *condition_var_ptr = server_struct_ptr->thread_condition_var_ptr;
+    UniSocket_t *p_server_t = (UniSocket_t *)p_server_t_arg;
+    pthread_mutex_t *queue_mutex_ptr = p_server_t->p_mutex_queue;
+    pthread_cond_t *condition_var_ptr = p_server_t->p_condition_var;
 
     // Keep waiting for a client to handle
     while (true)
@@ -79,7 +75,7 @@ void *search_for_thread_work(void *server_struct_ptr_arg)
 
             // Safely search for incoming client requests
             pthread_mutex_lock(queue_mutex_ptr);
-            ClientInfo *client_struct_ptr;
+            ClientInfo_t *client_struct_ptr;
             if ((client_struct_ptr = dequeue()) == NULL)
             {
                 pthread_cond_wait(condition_var_ptr, queue_mutex_ptr);
@@ -93,7 +89,7 @@ void *search_for_thread_work(void *server_struct_ptr_arg)
             if (client_struct_ptr != NULL)
             {
                 // Forward the client to the service function
-                void (*functionPtr)(ClientInfo *) = client_struct_ptr->service_function_ptr;
+                void (*functionPtr)(ClientInfo_t *) = p_client_t->p_service_func;
                 (*functionPtr)(client_struct_ptr);
 
                 // Deallocation of the client's memory struct
@@ -108,15 +104,15 @@ void *search_for_thread_work(void *server_struct_ptr_arg)
  *
  * @param a
  */
-void accept_incoming_connections(void *server_struct_ptr_arg)
+void accept_incoming_connections(void *p_server_t_arg)
 {
-    uniSocket *server_struct_ptr = (uniSocket *)server_struct_ptr_arg;
-    pthread_mutex_t *queue_mutex_ptr = server_struct_ptr->thread_mutex_queue_ptr;
-    pthread_cond_t *condition_var_ptr = server_struct_ptr->thread_condition_var_ptr;
+    UniSocket_t *p_server_t = (UniSocket_t *)p_server_t_arg;
+    pthread_mutex_t *queue_mutex_ptr = p_server_t->p_mutex_queue;
+    pthread_cond_t *condition_var_ptr = p_server_t->p_condition_var;
 
     while (true)
     {
-        ClientInfo *client_struct_ptr = acceptConnection(server_struct_ptr->sock_fd);
+        ClientInfo_t *client_struct_ptr = acceptConnection(p_server_t->sock_fd);
         if (client_struct_ptr == NULL)
         {
             printf("Error allocating memory for the client info struct");
@@ -124,7 +120,7 @@ void accept_incoming_connections(void *server_struct_ptr_arg)
         }
 
         // Assign the service to the client
-        client_struct_ptr->service_function_ptr = server_struct_ptr->service_function_ptr;
+        client_struct_ptr->p_server_t = p_server_t->p_server_t;
 
         // TODO handle messages to the client while the queue is not available (and
         // Assign the client to an available thread
@@ -143,31 +139,31 @@ void accept_incoming_connections(void *server_struct_ptr_arg)
  *
  * @param a
  */
-void start_accepting_incoming_connections(uniSocket *server_struct_ptr)
+void start_accepting_incoming_connections(UniSocket_t *p_server_t)
 {
     // Prepare the thread pool
     pthread_t thread_pool[SIZE_THREAD_POOL];
-    server_struct_ptr->thread_pool = thread_pool;
+    p_server_t->thread_pool = thread_pool;
 
     // Create the lock for the client's queue
     pthread_mutex_t queue_mutex = PTHREAD_MUTEX_INITIALIZER;
-    server_struct_ptr->thread_mutex_queue_ptr = &queue_mutex;
+    p_server_t->p_mutex_queue = &queue_mutex;
 
     // Create the conditional variable for the threads
     pthread_cond_t condition_var = PTHREAD_COND_INITIALIZER;
-    server_struct_ptr->thread_condition_var_ptr = &condition_var;
+    p_server_t->p_condition_var = &condition_var;
 
     //
     for (int i = 0; i < SIZE_THREAD_POOL; i++)
     {
         int thread_creation_status;
-        thread_creation_status = pthread_create(&thread_pool[i], NULL, (void *(*)(void *))search_for_thread_work, (void *)server_struct_ptr);
+        thread_creation_status = pthread_create(&thread_pool[i], NULL, (void *(*)(void *))search_for_thread_work, (void *)p_server_t);
         handle_thread_creation_and_exit(thread_creation_status);
     }
 
     // Start listening for connections on a separate thread
     pthread_t listening_thread;
-    int thread_creation_status = pthread_create(&listening_thread, NULL, (void *(*)(void *))accept_incoming_connections, (void *)server_struct_ptr);
+    int thread_creation_status = pthread_create(&listening_thread, NULL, (void *(*)(void *))accept_incoming_connections, (void *)p_server_t);
     //
     handle_thread_creation_and_exit(thread_creation_status);
     join_thread_and_handle_errors(&listening_thread);
@@ -178,13 +174,13 @@ void start_accepting_incoming_connections(uniSocket *server_struct_ptr)
  *
  * @param a
  */
-void start_service(int port, ServiceFunctionPtr service_function_ptr)
+void start_service(int port, ServiceFunctionPtr p_server_t)
 {
-    uniSocket *server_struct_ptr;
+    UniSocket_t *p_server_t;
      = create_socket(true, port, true);
-    server_struct_ptr->service_function_ptr = service_function_ptr;
+    p_server_t->p_server_t = p_server_t;
 
-    start_accepting_incoming_connections(server_struct_ptr);
+    start_accepting_incoming_connections(p_server_t);
 
-    close_service(server_struct_ptr);
+    close_service(p_server_t);
 }

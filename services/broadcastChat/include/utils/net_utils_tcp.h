@@ -14,7 +14,7 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
-// Colors
+// Colors for stdout text
 #define RESET "\x1B[0m"
 #define RED "\x1B[31m"
 #define GREEN "\x1B[32m"
@@ -24,33 +24,31 @@
 #define CYAN "\x1B[36m"
 #define WHITE "\x1B[37m"
 
-#define SIZE_p_THREAD_POOL 3
+// Settings
+#define SIZE_THREAD_POOL 3
 
-//  Ensure compatibility with the service header file
-typedef struct ClientInfo ClientInfo;
+typedef struct ClientInfo_t ClientInfo_t; // declared here to avoid circular dependency
+typedef void (*ServiceFunctionPtr)(ClientInfo_t *);
 
-// Service function pointer
-typedef void (*ServiceFunctionPtr)(ClientInfo *);
-
-// Declared here to avoid circular dependency
-struct ClientInfo
+struct ClientInfo_t
 {
-    long client_handler_FD;
-    //
-    struct sockaddr_in *p_ipv4_addr;
+    // Specifically ALLOCATED in the usages
+    struct sockaddr *p_addr;
     socklen_t *p_addr_len;
-    char *addr_info;
-    //
-    char *name;
-    char *recipient;
     char *buffer;
 
+    // Within the struct
+    long sock_FD;
+    char *addr_info;
+    char *name;
+    char *recipient;
     ServiceFunctionPtr p_service_func;
 };
 
-// Socket for IPV4 and IPV6 addresses for an easier code refactoring
-// in case of needed support in older systems
-// due to incompatibilities with IPV6_V6ONLY
+// If the system or network configs does NOT support dual-stack sockets,
+// this approach, while NOT recommended, allows the server to accept only IPv4 connections.
+// Noteworthy, if the server has IPv4 and IPv6 sockets,
+// please, consider changing opt to 1, for a more controlled flow of the connections
 typedef struct
 {
     int sock_fd;
@@ -61,8 +59,8 @@ typedef struct
         struct sockaddr_in *p_ipv4;
         struct sockaddr_in6 *p_ipv6;
     } addr_u;
-    socklen_t *p_addr_len; 
-    uint16_t port;         
+    socklen_t *p_addr_len;
+    uint16_t port;
 
     ServiceFunctionPtr p_service_func;
 
@@ -74,11 +72,6 @@ typedef struct
 } UniSocket_t;
 
 // Functions
-UniSocket_t *create_socket(bool is_server_arg, int port, bool is_ipv4_arg);
-int create_descriptor(UniSocket_t *p_socket_t);
-void initialize(UniSocket_t *p_socket_t);
-void setupServer(int opt, UniSocket_t *p_socket_t);
-ClientInfo *acceptConnection(int echo_server);
-void close_server_socket(UniSocket_t *p_socket_t);
+UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg);
 
 #endif
