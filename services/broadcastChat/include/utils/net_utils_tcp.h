@@ -13,6 +13,9 @@
 #include <ctype.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <signal.h>
+//TODO verify unnecessary imports here
+
 
 // Colors for stdout text
 #define RESET "\x1B[0m"
@@ -51,7 +54,7 @@ struct ClientInfo_t
 // please, consider changing opt to 1, for a more controlled flow of the connections
 typedef struct
 {
-    int sock_fd;
+    int sock_FD;
     bool is_server;
     bool is_ipv4;
     union
@@ -63,15 +66,39 @@ typedef struct
     uint16_t port;
 
     ServiceFunctionPtr p_service_func;
+    volatile sig_atomic_t *p_quit_signal;
 
     // Thread related variables
     pthread_t *p_thread_pool;
     pthread_mutex_t *p_mutex_queue;
+    pthread_mutex_t *p_mutex_quit_signal;
     pthread_cond_t *p_condition_var;
 
 } UniSocket_t;
 
-// Functions
+// Function prototypes
 UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg);
+    UniSocket_t *allocate_socket_struct();
+    int initialize_socket(UniSocket_t *p_socket_t);
+        int assign_descriptor_to_stream_socket_t(UniSocket_t *p_socket_t);
+        int setup_service_socket_t(int opt, UniSocket_t *p_socket_t);
+    void free_unisocket_memory(UniSocket_t *p_socket_t);
+void close_server_socket(UniSocket_t *p_socket_t);
+//
+ClientInfo_t *accept_connection(int service_FD);
+    ClientInfo_t *allocate_client_info_struct();
+    void ensure_client_disconnection_and_remove_data(ClientInfo_t *p_client_t);
+    void free_client_memory(ClientInfo_t *p_client_t);
+
+
+
+    
+
+
+
+
+
+
+
 
 #endif

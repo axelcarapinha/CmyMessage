@@ -1,34 +1,31 @@
 #include "broadcast_chat_service.h"
 
-void free_client_allocated_mem(ClientInfo *client_struct_ptr)
-{
-    free(client_struct_ptr->name);
-    memset(client_struct_ptr->buffer, 0, DEFAULT_BUFFER_SIZE);
-    free(client_struct_ptr->buffer);
-
-   // The client's memory IS freed by the sender, as it IS allocated
-}
-
-void join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief
+ *
+ * @param a
+ */
+int broadcast_client(ClientInfo_t *p_client_t)
 {
     // Get the client needed memory variables
-    char *p_name_cli = client_struct_ptr->name;
-    char *p_buffer_cli = client_struct_ptr->buffer;
-    long client_FD = client_struct_ptr->client_FD;
+    char *p_name_cli = p_client_t->name;
+    char *p_buffer_cli = p_client_t->buffer;
+    long client_FD = p_client_t->sock_FD;
 
-    memset(p_buffer_cli, 0, DEFAULT_BUFFER_SIZE);
+    memset(p_buffer_cli, 0, BUFFER_SIZE);
 
     while (true)
     {
         size_t bytes_received;
-        if ((bytes_received = recv(client_FD, p_buffer_cli, DEFAULT_BUFFER_SIZE, 0)) > 0)
+        if ((bytes_received = recv(client_FD, p_buffer_cli, BUFFER_SIZE, 0)) > 0)
         {
-            send(client_FD, p_buffer_cli, DEFAULT_BUFFER_SIZE, 0);
-            memset(p_buffer_cli, 0, DEFAULT_BUFFER_SIZE);
+            send(client_FD, p_buffer_cli, BUFFER_SIZE, 0);
+            memset(p_buffer_cli, 0, BUFFER_SIZE);
         }
         else if (bytes_received == 0)
         {
-            printf("The client '%s' terminated the connection\n", client_struct_ptr->name);
+            printf("The client '%s' terminated the connection\n", p_client_t->name);
             break;
         }
         else
@@ -38,24 +35,33 @@ void join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
         }
     }
 
-    memset(p_buffer_cli, 0, DEFAULT_BUFFER_SIZE);
+    memset(p_buffer_cli, 0, BUFFER_SIZE);
+
+    return 0;
 }
 
-void prepare_to_join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
+//----------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief
+ *
+ * @param a
+ */
+int prepare_to_broadcast_chat(ClientInfo_t *p_client_t)
 {
     // Prepare the pointers for the necessary data (for a cleaner code)
-    char *p_name_cli = client_struct_ptr->name;
-    char *p_buffer_cli = client_struct_ptr->buffer;
-    long client_FD = client_struct_ptr->client_FD;
+    char *p_name_cli = p_client_t->name;
+    char *p_buffer_cli = p_client_t->buffer;
+    long client_FD = p_client_t->sock_FD;
 
     // Ask for a simple ID
     strcpy(p_buffer_cli, "\nOur newest guest! How we can call you: ");
     send(client_FD, p_buffer_cli, strlen(p_buffer_cli), 0);
 
     // Assign its ID
-    memset(p_buffer_cli, 0, DEFAULT_BUFFER_SIZE);
+    memset(p_buffer_cli, 0, BUFFER_SIZE);
     int bytes_received;
-    if ((bytes_received = recv(client_FD, p_buffer_cli, DEFAULT_BUFFER_SIZE, 0)) < 0)
+    if ((bytes_received = recv(client_FD, p_buffer_cli, BUFFER_SIZE, 0)) < 0)
     {
         fprintf(stderr, "recv() function failed, with exit code %d\n", bytes_received);
         exit(EXIT_FAILURE);
@@ -67,62 +73,94 @@ void prepare_to_join_client_to_broadcast_chat(ClientInfo *client_struct_ptr)
     }
 
     // Assign the username to its struct (temporary memory)
-    if (bytes_received <= DEFAULT_BUFFER_SIZE)
+    if (bytes_received <= BUFFER_SIZE)
     {
         p_buffer_cli[bytes_received - 1] = '\0';
     }
     strcpy(p_name_cli, p_buffer_cli);
 
     // Send a customised welcome message
-    char message[DEFAULT_BUFFER_SIZE];
+    char message[BUFFER_SIZE];
     strcpy(message, "Welcome to the broadcast channel, ");
     strcat(message, p_name_cli);
     strcat(message, "!\n");
     send(client_FD, message, strlen(message), 0);
+
+    return 0;
 }
 
-void prepare_client_structs_for_data(ClientInfo *client_struct_ptr)
-{
+//----------------------------------------------------------------------------------------------------------
 
-    // Prepare the structs for its basic information
-    if (client_struct_ptr == NULL)
+/**
+ * @brief
+ *
+ * @param a
+ */
+void * prepare_client_structs_for_data(ClientInfo_t *p_client_t)
+{
+    if (p_client_t == NULL)
     {
-        fprintf(stderr, "Received a pointer pointing to improperly allocated memory.");
-        exit(EXIT_FAILURE);
+        perror("Received a pointer pointing to improperly allocated memory");
+        return -1;
     }
     //
-    client_struct_ptr->name = (char *)calloc(DEFAULT_BUFFER_SIZE, sizeof(char));
-    if (client_struct_ptr->name == NULL)
+    p_client_t->name = (char *)calloc(BUFFER_SIZE, sizeof(char));
+    if (p_client_t->name == NULL)
     {
-        fprintf(stderr, "Error alocating memory for the client_struct_ptr struct pointer");
-        exit(EXIT_FAILURE);
+        perror("Error alocating memory for the p_client_t struct pointer");
+        free_client_memory(p_client_t);
+        return NULL;
     }
-    client_struct_ptr->buffer = (char *)calloc(DEFAULT_BUFFER_SIZE, sizeof(char));
-    if (client_struct_ptr->buffer == NULL)
+    p_client_t->buffer = (char *)calloc(BUFFER_SIZE, sizeof(char));
+    if (p_client_t->buffer == NULL)
     {
-        fprintf(stderr, "Error alocating memory for the buffer pointer");
-        exit(EXIT_FAILURE);
+        perror("Error alocating memory for the buffer pointer");
+        free_client_memory(p_client_t);
+        return NULL;
     }
 
     // Get the client's IP address (for a unique identification)
     char ip_buffer[INET_ADDRSTRLEN];
-    if (inet_ntop(AF_INET, &(client_struct_ptr->client_addr_ptr->sin_addr), ip_buffer, INET_ADDRSTRLEN) == NULL)
+    if (inet_ntop(AF_INET, &(p_client_t->p_addr->s_addr), ip_buffer, INET_ADDRSTRLEN) == NULL) //TODO handle this error
     {
         perror("Error converting IP address");
-        close(client_struct_ptr->client_FD);
-        free(client_struct_ptr->client_addr_ptr);
-        free(client_struct_ptr->client_addr_len_ptr);
-        free(client_struct_ptr);
-        exit(EXIT_FAILURE);
+        free_client_memory(p_client_t);
+        exit(EXIT_FAILURE); //TODO consider changing this
     }
     //
-    client_struct_ptr->addr_info = ip_buffer;
+    p_client_t->addr_info = ip_buffer;
+
+    return 0;
 }
 
-void prepare_client_for_broadcast_and_start(ClientInfo *client_struct_ptr)
+//----------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief
+ *
+ * @param a
+ */
+int prepare_client_for_broadcast_and_start(ClientInfo_t *p_client_t)
 {
-    prepare_client_structs_for_data(client_struct_ptr);
-    prepare_to_join_client_to_broadcast_chat(client_struct_ptr);
-    join_client_to_broadcast_chat(client_struct_ptr);
-    free_client_allocated_mem(client_struct_ptr);
+    int exit_status;
+    //
+    if ((exit_status = prepare_client_structs_for_data(p_client_t)) < 0) {
+        perror("Error preparing client structs for the data");
+        free_client_memory(p_client_t);
+        return exit_status;
+    }
+    //
+    if ((exit_status = prepare_to_broadcast_chat(p_client_t)) < 0) {
+        perror("Error preparing client to be broadcasted");
+        free_client_memory(p_client_t);
+        return exit_status;
+    }
+    //
+    if ((exit_status = broadcast_client(p_client_t)) < 0) {
+        perror("Error when broadcasting the client");
+        free_client_memory(p_client_t);
+        return exit_status;
+    }
+    
+    free_client_memory(p_client_t);
 }

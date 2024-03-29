@@ -21,7 +21,7 @@
 // TODO use the config file
 //  Default values
 #define DEFAULT_PORT 8041
-#define DEFAULT_BUFFER_SIZE 1500 // widely used in LANs (size of ethernet packets)
+#define BUFFER_SIZE 1500 // widely used in LANs (size of ethernet packets)
 #define DEFAULT_MAX_NUM_CLIENTS 30
 #define MAX_NUM_CLIENTS 2
 
@@ -40,12 +40,10 @@ enum ServerConnectionOptions
     INVALID_OPTION
 };
 
-// Functions
-void prepare_client_for_broadcast_and_start(ClientInfo *client_struct_ptr_arg);
-    void prepare_client_structs_for_data(ClientInfo *client_struct_ptr);
-    void prepare_to_join_client_to_broadcast_chat(ClientInfo *client_struct_ptr);
-        void join_client_to_broadcast_chat(ClientInfo *client_struct_ptr);
-    void free_client_allocated_mem(ClientInfo *client_struct_ptr);
-
-
+// Function prototypes
+int prepare_client_for_broadcast_and_start(ClientInfo_t *p_client_t);
+    int prepare_client_structs_for_data(ClientInfo_t *p_client_t);
+    int prepare_to_broadcast_chat(ClientInfo_t *p_client_t);
+        int broadcast_client(ClientInfo_t *p_client_t);
+        
 #endif

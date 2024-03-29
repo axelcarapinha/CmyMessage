@@ -8,13 +8,13 @@
 struct node
 {
     struct node *next;
-    ClientInfo *client_struct_ptr;
+    ClientInfo_t *client_struct_ptr;
 };
 typedef struct node node_t;
 
 // Functions
-ClientInfo* dequeue();
-int enqueue(ClientInfo *client_struct_ptr);
+ClientInfo_t* dequeue();
+int enqueue(ClientInfo_t *client_struct_ptr);
 bool isEmptyQueue();
 
 
