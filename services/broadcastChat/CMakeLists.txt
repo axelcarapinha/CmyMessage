@@ -27,7 +27,19 @@ target_include_directories(${CMAKE_PROJECT_NAME}
 add_compile_options(
     -Wall
     -pthread
+    -g
 )
 
+# dd debug flags
+target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC -g)
+
+# Set debug build type
+set(CMAKE_BUILD_TYPE Debug)
+
+# Uncomment if needed for pthread and Wall options
+# target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC -pthread -Wall)
+#
+# Uncomment if needed for pthread options
+# target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC pthread)
 
 target_link_libraries(${CMAKE_PROJECT_NAME})

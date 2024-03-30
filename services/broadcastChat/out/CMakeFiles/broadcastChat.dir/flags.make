@@ -6,5 +6,5 @@ C_DEFINES =
 
 C_INCLUDES = -I"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include" -I"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils"
 
-C_FLAGS = 
+C_FLAGS = -g -g
 

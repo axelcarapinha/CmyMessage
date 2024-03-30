@@ -1,37 +1,37 @@
 [
 {
   "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out",
-  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\"  -o CMakeFiles/broadcastChat.dir/src/broadcast_chat_service.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/broadcast_chat_service.c\"",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\" -g -g -o CMakeFiles/broadcastChat.dir/src/broadcast_chat_service.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/broadcast_chat_service.c\"",
   "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/broadcast_chat_service.c"
 },
 {
   "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out",
-  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\"  -o CMakeFiles/broadcastChat.dir/src/main.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/main.c\"",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\" -g -g -o CMakeFiles/broadcastChat.dir/src/main.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/main.c\"",
   "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/main.c"
 },
 {
   "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out",
-  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\"  -o CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/hash_table.c\"",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\" -g -g -o CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/hash_table.c\"",
   "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/hash_table.c"
 },
 {
   "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out",
-  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\"  -o CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/linkedlist.c\"",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\" -g -g -o CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/linkedlist.c\"",
   "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/linkedlist.c"
 },
 {
   "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out",
-  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\"  -o CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/net_utils_tcp.c\"",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\" -g -g -o CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/net_utils_tcp.c\"",
   "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/net_utils_tcp.c"
 },
 {
   "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out",
-  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\"  -o CMakeFiles/broadcastChat.dir/src/utils/queue.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/queue.c\"",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\" -g -g -o CMakeFiles/broadcastChat.dir/src/utils/queue.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/queue.c\"",
   "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/queue.c"
 },
 {
   "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out",
-  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\"  -o CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/service_utils.c\"",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/include/utils\" -g -g -o CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/service_utils.c\"",
   "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/service_utils.c"
 }
 ]

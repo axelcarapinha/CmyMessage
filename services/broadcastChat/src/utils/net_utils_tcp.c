@@ -1,84 +1,120 @@
 #include <asm-generic/socket.h>
 #include "broadcast_chat_service.h"
 
+//----------------------------------------------------------------------------------------------------------
 /**
- * @brief Gracefully closes the service socket
+ * @brief 
  *
- * This function shuts down and closes the socket file descriptor, deallocates memory associated with the socket structure,
- * and prints a message indicating that the server has been closed.
  *
- * @param p_socket_t Pointer to the UniSocket_t struct representing the socket (client or service)
+ * @param 
+ */
+void close_socket_with_ptr_if_open(int *p_socket_descriptor) {
+    if (*p_socket_descriptor != -1) {
+        int closing_status;
+        if ((closing_status = close(*p_socket_descriptor)) < 0) {
+            perror("Error closing socket");
+        }
+        //
+        *p_socket_descriptor = -1; // Ensure that the socket is closed only once
+    }
+}
+
+
+//----------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief 
+ *
+
+ *
+ * @param 
  */
 void close_server_socket(UniSocket_t *p_socket_t)
 {
     shutdown(p_socket_t->sock_FD, SHUT_RDWR);
-    close(p_socket_t->sock_FD);
-    free_unisocket_memory(p_socket_t);
+    close_socket_with_ptr_if_open(&p_socket_t->sock_FD);
+    free_unisocket_memory_with_ptr_to_ptr(&p_socket_t);
     puts(YELLOW "Server closed." RESET);
 }
 
 //----------------------------------------------------------------------------------------------------------
-
 /**
- * @brief Deallocate all memory related to a SOCKET structure
+ * @brief 
  *
- * This function deallocates all memory associated with a socket structure, including address-related memory
- * and the structure itself. It checks for NULL pointers to avoid dereferencing invalid memory.
+
  *
- * @param p_socket_t Pointer to the UniSocket_t struct representing the socket (client or service)
+ * @param 
  */
-void free_unisocket_memory(UniSocket_t *p_socket_t)
+void free_unisocket_memory_with_ptr_to_ptr(UniSocket_t **p_p_socket_t)
 {
     // No memory deallocation is needed
-    if (p_socket_t == NULL)
+    if (*p_p_socket_t == NULL)
         return;
 
     // Address related memory
-    if (p_socket_t->is_ipv4)
+    if ((*p_p_socket_t)->is_ipv4)
     {
-        if (p_socket_t->addr_u.p_ipv4 != NULL)
-            free(p_socket_t->addr_u.p_ipv4);
+        if ((*p_p_socket_t)->addr_u.p_ipv4 != NULL)
+        {
+            free((*p_p_socket_t)->addr_u.p_ipv4);
+            (*p_p_socket_t)->addr_u.p_ipv4 = NULL;
+        }
     }
-    else if (p_socket_t->addr_u.p_ipv6 != NULL)
+    else if ((*p_p_socket_t)->addr_u.p_ipv6 != NULL)
     {
-        free(p_socket_t->addr_u.p_ipv6);
+        free((*p_p_socket_t)->addr_u.p_ipv6);
+        (*p_p_socket_t)->addr_u.p_ipv6 = NULL;
     }
 
     // Struct pointer itself
-    free(p_socket_t);
+    free(*p_p_socket_t);
+    *p_p_socket_t = NULL;
 }
 
 //----------------------------------------------------------------------------------------------------------
-
 /**
- * @brief Deallocate all memory related to a CLIENT structure
+ * @brief 
  *
- * This function deallocates all memory associated with a socket structure, including address-related memory
- * and the structure itself. It checks for NULL pointers to avoid dereferencing invalid memory.
  *
- * @param p_client_t Pointer to the ClientInfo_t struct
+ * @param 
  */
-void free_client_memory(ClientInfo_t *p_client_t)
+void free_client_memory_with_ptr_to_ptr(ClientInfo_t **p_p_client_t)
 {
-    ensure_client_disconnection_and_remove_data(p_client_t);
-
-    // No memory deallocation is needed
-    if (p_client_t == NULL)
+    // Check if the client struct was already deallocated from the heap
+    if (p_p_client_t == NULL || *p_p_client_t == NULL)
+    {
         return;
+    }
+
+    ensure_client_disconnection_and_remove_data(*p_p_client_t);
 
     // Address related memory
-    if (p_client_t->p_addr != NULL)
-        free(p_client_t->p_addr);
-    if (p_client_t->p_addr_len != NULL)
-        free(p_client_t->p_addr_len);
+    if ((*p_p_client_t)->p_addr != NULL)
+    {
+        free((*p_p_client_t)->p_addr);
+        (*p_p_client_t)->p_addr = NULL;
+    }
+    if ((*p_p_client_t)->p_addr_len != NULL)
+    {
+        free((*p_p_client_t)->p_addr_len);
+        (*p_p_client_t)->p_addr_len = NULL;
+    }
 
-    // Other memoy deallocations
-    if (p_client_t->buffer != NULL)
-        free(p_client_t->buffer);
+    // Socket buffer deallocation
+    if ((*p_p_client_t)->buffer != NULL)
+    {
+        free((*p_p_client_t)->buffer);
+        (*p_p_client_t)->buffer = NULL;
+    }
 
-    // Struct pointer itself
-    free(p_client_t);
+    //TODO UNDERSTAND why it works with this order
+    // Free the struct pointer itself
+    if (*p_p_client_t != NULL) {
+        *p_p_client_t = NULL;
+        free(*p_p_client_t); 
+    }
 }
+
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -93,16 +129,33 @@ void ensure_client_disconnection_and_remove_data(ClientInfo_t *p_client_t) // In
 {
     printf("Cleaning ALL the of %s's connection data.\n\n", p_client_t->name);
 
-    close(p_client_t->sock_FD);
+    close_socket_with_ptr_if_open(&p_client_t->sock_FD);
     //
-    if (p_client_t->buffer)
+    if (p_client_t->buffer != NULL)
+    {
         memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    if (p_client_t->name)
-        memset(p_client_t->name, 0, strlen(p_client_t->name));
-    if (p_client_t->addr_info)
-        memset(p_client_t->addr_info, 0, strlen(p_client_t->addr_info));
-    if (p_client_t->recipient)
-        memset(p_client_t->recipient, 0, strlen(p_client_t->recipient));
+    }
+    if (p_client_t->name != NULL)
+    {
+        size_t name_len = strlen(p_client_t->name);
+        if (name_len > 0) {
+            memset(p_client_t->name, 0, name_len);
+        }
+    }
+    if (p_client_t->addr_info != NULL)
+    {
+        size_t addr_info_len = strlen(p_client_t->addr_info);
+        if (addr_info_len > 0) {
+            memset(p_client_t->addr_info, 0, addr_info_len);
+        }
+    }
+    if (p_client_t->recipient != NULL)
+    {
+        size_t recipient_name_len = strlen(p_client_t->recipient);
+        if (recipient_name_len > 0) {
+            memset(p_client_t->recipient, 0, recipient_name_len);
+        }
+    }
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -134,7 +187,7 @@ ClientInfo_t *allocate_client_info_struct()
     p_client_t->p_addr = (struct sockaddr *)malloc(sizeof(struct sockaddr));
     if (p_client_t->p_addr == NULL)
     {
-        free_client_memory(p_client_t);
+        free_client_memory_with_ptr_to_ptr(&p_client_t);
         perror("Error allocating memory for the client address on the struct");
         return NULL;
     }
@@ -142,7 +195,7 @@ ClientInfo_t *allocate_client_info_struct()
     p_client_t->p_addr_len = (socklen_t *)malloc(sizeof(socklen_t));
     if (p_client_t->p_addr_len == NULL)
     {
-        free_client_memory(p_client_t);
+        free_client_memory_with_ptr_to_ptr(&p_client_t);
         perror("Error allocating memory for the client's address length");
         return NULL;
     }
@@ -177,7 +230,7 @@ ClientInfo_t *accept_connection(int service_FD)
     int client_FD;
     if ((client_FD = accept(service_FD, p_cli_addr, &addr_len)) < 0)
     {
-        free_client_memory(p_client_t);
+        free_client_memory_with_ptr_to_ptr(&p_client_t);
         perror("Error accepting client's connection");
         return NULL;
     }
@@ -232,7 +285,8 @@ int setup_service_socket_t(int opt, UniSocket_t *p_socket_t)
     //
     if ((bind_status = bind(p_socket_t->sock_FD, address, addr_len)) < 0)
     {
-        free_unisocket_memory(p_socket_t);
+
+        free_unisocket_memory_with_ptr_to_ptr(&p_socket_t);
         perror("Error binding the socket");
         return bind_status;
     }
@@ -241,7 +295,7 @@ int setup_service_socket_t(int opt, UniSocket_t *p_socket_t)
     int listen_status;
     if ((listen_status = listen(p_socket_t->sock_FD, DEFAULT_MAX_NUM_CLIENTS)) < 0)
     {
-        free_unisocket_memory(p_socket_t);
+        free_unisocket_memory_with_ptr_to_ptr(&p_socket_t);
         perror("Error putting socket on listening state");
         return listen_status;
     }
@@ -358,7 +412,7 @@ UniSocket_t *allocate_socket_struct()
     p_socket_t->addr_u.p_ipv6 = (struct sockaddr_in6 *)malloc(sizeof(struct sockaddr_in6));
     if (p_socket_t->addr_u.p_ipv6 == NULL)
     {
-        free_unisocket_memory(p_socket_t);
+        free_unisocket_memory_with_ptr_to_ptr(&p_socket_t);
         perror("Error allocating memory for the address variable");
         return NULL;
     }
@@ -366,7 +420,7 @@ UniSocket_t *allocate_socket_struct()
     p_socket_t->p_addr_len = (socklen_t *)malloc(sizeof(socklen_t));
     if (p_socket_t->p_addr_len == NULL)
     {
-        free_unisocket_memory(p_socket_t);
+        free_unisocket_memory_with_ptr_to_ptr(&p_socket_t);
         perror("Error allocating memory for the address lenght variable");
         return NULL;
     }
@@ -375,7 +429,7 @@ UniSocket_t *allocate_socket_struct()
     p_socket_t->p_service_func = (ServiceFunctionPtr)malloc(sizeof(ServiceFunctionPtr));
     if (p_socket_t->p_service_func == NULL)
     {
-        free_unisocket_memory(p_socket_t);
+        free_unisocket_memory_with_ptr_to_ptr(&p_socket_t);
         perror("Error allocating memory for the service function");
         return NULL;
     }
@@ -416,14 +470,14 @@ UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg
     if (initialize_socket(p_socket_t) < 0)
     {
         perror("Error initializing the socket");
-        free_unisocket_memory(p_socket_t);
+        free_unisocket_memory_with_ptr_to_ptr(&p_socket_t);
         return NULL;
     }
     //
     if (assign_descriptor_to_stream_socket_t(p_socket_t) < 0)
     {
         perror("Error assigning descriptor to the socket");
-        free_unisocket_memory(p_socket_t);
+        free_unisocket_memory_with_ptr_to_ptr(&p_socket_t);
         return NULL;
     }
 
@@ -434,7 +488,7 @@ UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg
         if (setup_service_socket_t(option, p_socket_t) < 0)
         {
             perror("Error setting up the server socket");
-            free_unisocket_memory(p_socket_t);
+            free_unisocket_memory_with_ptr_to_ptr(&p_socket_t);
             return NULL;
         }
     }

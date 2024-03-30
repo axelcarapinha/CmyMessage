@@ -6,12 +6,11 @@
 static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
 
 //----------------------------------------------------------------------------------------------------------
-
 /**
  * @brief Closes the service
  *
  * This function closes the service by signaling all threads to finish
- * and then closing the server socket. 
+ * and then closing the server socket.
  * In more detail: it sets the quit signal to indicate
  * that the server is closing, releases resources associated with the server socket,
  * and prints a message indicating that the service has been closed.
@@ -20,7 +19,6 @@ static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
  *
  * @return None
  */
-
 void close_service(UniSocket_t *p_server_t)
 {
     // Signal all the threads to finish
@@ -31,11 +29,10 @@ void close_service(UniSocket_t *p_server_t)
     close_server_socket(p_server_t);
     printf("Service closed.\n");
 }
-//TODO consider using a cleanup handler for the threads 
-//TODO to dispose already connected clients
+// TODO consider using a cleanup handler for the threads
+// TODO to dispose already connected clients
 
 //----------------------------------------------------------------------------------------------------------
-
 /**
  * @brief Joins a thread and handles errors
  *
@@ -49,7 +46,6 @@ void close_service(UniSocket_t *p_server_t)
  *
  * @return 0 on success, or a negative value indicating an error
  */
-
 int join_thread_and_handle_errors(pthread_t *p_thread_ID)
 {
     void *p_thread_return_val;
@@ -77,7 +73,6 @@ int join_thread_and_handle_errors(pthread_t *p_thread_ID)
 }
 
 //----------------------------------------------------------------------------------------------------------
-
 /**
  * @brief Searches for thread work
  *
@@ -93,19 +88,17 @@ int join_thread_and_handle_errors(pthread_t *p_thread_ID)
  *
  * @return None
  */
-
 void *search_for_thread_work(void *p_server_t_arg)
 {
     UniSocket_t *p_server_t = (UniSocket_t *)p_server_t_arg;
 
     // Get the needed values from the (shared by threads) server struct
     pthread_mutex_lock(&g_mutex_server);
-    //
-    pthread_mutex_t *p_queue_mutex  = p_server_t->p_mutex_queue;
+    pthread_mutex_t *p_queue_mutex = p_server_t->p_mutex_queue;
     pthread_cond_t *p_condition_var = p_server_t->p_condition_var;
+    //
     pthread_mutex_t *p_mutex_quit_signal = p_server_t->p_mutex_quit_signal;
     volatile sig_atomic_t *p_quit_signal = p_server_t->p_quit_signal;
-    //
     pthread_mutex_unlock(&g_mutex_server);
 
     int quit_signal_val;
@@ -126,25 +119,21 @@ void *search_for_thread_work(void *p_server_t_arg)
             // HANDLE client request
             if (p_client_t != NULL)
             {
-                //TODO retirar
-                const char *msg = "ANother part of the code\n";
-                send(p_client_t->sock_FD, msg, strlen(msg), 0);
-
                 // Forward the client to the desired service function
                 int (*functionPtr)(ClientInfo_t *) = p_client_t->p_service_func;
                 (*functionPtr)(p_client_t);
 
-                free_client_memory(p_client_t); // in case the service did NOT
+                free_client_memory_with_ptr_to_ptr(&p_client_t); // in case the service did NOT
             }
         }
 
-        // Check if the service was requested to close by some thread
+        // Check if the service was requested to close by other thread
         pthread_mutex_lock(p_mutex_quit_signal);
         quit_signal_val = *p_quit_signal;
         pthread_mutex_unlock(p_mutex_quit_signal);
+
     } while (!quit_signal_val);
 }
-
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -162,18 +151,21 @@ void *search_for_thread_work(void *p_server_t_arg)
  * @return None
  */
 
-void gracefully_reject_pending_clients(ClientInfo_t *p_client_t, pthread_mutex_t *p_queue_mutex) {
+void gracefully_reject_pending_clients(ClientInfo_t *p_client_t, pthread_mutex_t *p_queue_mutex)
+{
     pthread_mutex_lock(p_queue_mutex);
 
     const char *service_quit_message = "The service closed. Try again later. Sorry for any caused inconvenient.";
     while (!isEmptyQueue())
     {
         p_client_t = dequeue();
-        if (p_client_t != NULL) {
+        if (p_client_t != NULL)
+        {
             send(p_client_t->sock_FD, service_quit_message, strlen(service_quit_message), 0);
-            free_client_memory(p_client_t);
+            free_client_memory_with_ptr_to_ptr(&p_client_t);
         }
-        else {  
+        else
+        {
             perror("Error when dequeuing the client, found a null value when alerting the clients of closing the server");
         }
     }
@@ -197,21 +189,19 @@ void gracefully_reject_pending_clients(ClientInfo_t *p_client_t, pthread_mutex_t
  *
  * @return None
  */
-
-void * accept_incoming_connections(void *p_server_t_arg)
+void *accept_incoming_connections(void *p_server_t_arg)
 {
     UniSocket_t *p_server_t = (UniSocket_t *)p_server_t_arg;
 
     // Get the needed values from the (shared by threads) server struct
     pthread_mutex_lock(&g_mutex_server);
-    //
-    pthread_mutex_t *p_queue_mutex       = p_server_t->p_mutex_queue;
+    pthread_mutex_t *p_queue_mutex = p_server_t->p_mutex_queue;
     pthread_mutex_t *p_mutex_quit_signal = p_server_t->p_mutex_quit_signal;
     volatile sig_atomic_t *p_quit_signal = p_server_t->p_quit_signal;
-    pthread_cond_t *p_condition_var      = p_server_t->p_condition_var;
+    pthread_cond_t *p_condition_var = p_server_t->p_condition_var;
+    //
     int server_FD = p_server_t->sock_FD;
     ServiceFunctionPtr p_service_func = p_server_t->p_service_func;
-    //
     pthread_mutex_unlock(&g_mutex_server);
 
     ClientInfo_t *p_client_t;
@@ -230,21 +220,18 @@ void * accept_incoming_connections(void *p_server_t_arg)
         // Assign the client to an available thread
         pthread_mutex_lock(p_queue_mutex);
         enqueue(p_client_t);
-        //TODO inser the other part
         pthread_cond_signal(p_condition_var);
         pthread_mutex_unlock(p_queue_mutex);
 
-        // Check if the service was requested to close by some thread
+        // Check if the service was requested to close by other thread
         pthread_mutex_lock(p_mutex_quit_signal);
         quit_signal_val = *p_quit_signal;
         pthread_mutex_unlock(p_mutex_quit_signal);
 
     } while (!quit_signal_val);
 
-    // Empty the queue of pending connection requests
     gracefully_reject_pending_clients(p_client_t, p_queue_mutex);
 }
-
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -259,21 +246,72 @@ void * accept_incoming_connections(void *p_server_t_arg)
  *
  * @return None
  */
-void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t) {
+void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
+{
 
-    pthread_t p_thread_pool[SIZE_THREAD_POOL];
+    // Thread pool
+    pthread_t *p_thread_pool = malloc(SIZE_THREAD_POOL * sizeof(pthread_t));
+    if (p_thread_pool == NULL)
+    {
+        perror("Error allocating memory for thread pool");
+        exit(EXIT_FAILURE);
+    }
     p_server_t->p_thread_pool = p_thread_pool;
+
+    // Conditional variables
+    pthread_cond_t *p_condition_var = malloc(sizeof(pthread_cond_t));
+    if (p_condition_var == NULL)
+    {
+        perror("Error allocating memory for condition variable");
+        exit(EXIT_FAILURE);
+    }
+    if (pthread_cond_init(p_condition_var, NULL) != 0)
+    {
+        perror("Error initializing condition variable");
+        free(p_condition_var); // Free allocated memory
+        exit(EXIT_FAILURE);
+    }
+    p_server_t->p_condition_var = p_condition_var;
+
+    // Mutexes
+    pthread_mutex_t *p_mutex_queue = malloc(sizeof(pthread_mutex_t));
+    if (p_mutex_queue == NULL)
+    {
+        perror("Error allocating memory for the QUEUE mutex");
+        exit(EXIT_FAILURE);
+    }
+    if (pthread_mutex_init(p_mutex_queue, NULL) != 0)
+    {
+        perror("Error initializing the QUEUE mutex");
+        free(p_mutex_queue); 
+        exit(EXIT_FAILURE);
+    }
+    p_server_t->p_mutex_queue = p_mutex_queue;
     //
-    pthread_cond_t condition_var = PTHREAD_COND_INITIALIZER;
-    p_server_t->p_condition_var = &condition_var;
-    //
-    pthread_mutex_t mutex_queue = PTHREAD_MUTEX_INITIALIZER;
-    pthread_mutex_t mutex_quit_signal = PTHREAD_MUTEX_INITIALIZER;
-    p_server_t->p_mutex_queue = &mutex_queue;
-    p_server_t->p_mutex_quit_signal = &mutex_quit_signal;
-    //
-    volatile sig_atomic_t quit_signal = 0; // to finish threads gracefully
-    p_server_t->p_quit_signal = &quit_signal;
+    pthread_mutex_t *p_mutex_quit_signal = malloc(sizeof(pthread_mutex_t));
+    if (p_mutex_quit_signal == NULL)
+    {
+        perror("Error allocating memory for the QUIT SIGNAL mutex");
+        exit(EXIT_FAILURE);
+    }
+    if (pthread_mutex_init(p_mutex_quit_signal, NULL) != 0)
+    {
+        perror("Error initializing the QUIT SIGNAL mutex");
+        free(p_mutex_quit_signal); 
+        exit(EXIT_FAILURE);
+    }
+    p_server_t->p_mutex_quit_signal = p_mutex_quit_signal;
+    // TODO consdier functin for this
+
+    // Quit signal (to finish threads gracefully)
+    volatile sig_atomic_t *p_quit_signal = malloc(sizeof(sig_atomic_t));
+    if (p_quit_signal == NULL)
+    {
+        perror("Error allocating memory for quit signal");
+        exit(EXIT_FAILURE);
+    }
+    p_server_t->p_quit_signal = p_quit_signal; 
+    *p_server_t->p_quit_signal = 0;
     // Volatile avoids processor optimizations
     // allowing changes from signal handlers
     // to be always considered
@@ -292,7 +330,6 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t) {
 }
 
 //----------------------------------------------------------------------------------------------------------
-
 /**
  * @brief Starts accepting incoming connections
  *
@@ -323,11 +360,6 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
         perror("Error joinin listening thread of the server");
         return join_status;
     }
-
-    //TODO Start the thread for the service itself
-
-
-    return 0;
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -361,12 +393,11 @@ int start_service(int port, ServiceFunctionPtr p_service_func_arg)
 
     // Start the server
     int error_status;
-    if ((error_status = start_accepting_incoming_connections(p_server_t)) < 0) {
+    if ((error_status = start_accepting_incoming_connections(p_server_t)) < 0)
+    {
         perror("Error acepting incoming connections");
         return error_status;
     }
-    
-    close_service(p_server_t);
 
-    return 0;
+    close_service(p_server_t);
 }

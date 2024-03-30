@@ -39,10 +39,10 @@ struct ClientInfo_t
     struct sockaddr *p_addr;
     socklen_t *p_addr_len;
     char *buffer;
-    
+
 
     // Within the struct
-    long sock_FD;
+    int sock_FD;
     char *addr_info;
     char *name;
     char *recipient;
@@ -83,23 +83,15 @@ UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg
     int initialize_socket(UniSocket_t *p_socket_t);
         int assign_descriptor_to_stream_socket_t(UniSocket_t *p_socket_t);
         int setup_service_socket_t(int opt, UniSocket_t *p_socket_t);
-    void free_unisocket_memory(UniSocket_t *p_socket_t);
 void close_server_socket(UniSocket_t *p_socket_t);
+
+void free_unisocket_memory_with_ptr_to_ptr(UniSocket_t **p_p_socket_t);
 //
 ClientInfo_t *accept_connection(int service_FD);
     ClientInfo_t *allocate_client_info_struct();
     void ensure_client_disconnection_and_remove_data(ClientInfo_t *p_client_t);
-    void free_client_memory(ClientInfo_t *p_client_t);
-
-
-
-    
-
-
-
-
-
-
-
+    void free_client_memory_with_ptr_to_ptr(ClientInfo_t **p_p_client_t);
+//
+void close_socket_with_ptr_if_open(int *p_socket_descriptor);
 
 #endif
