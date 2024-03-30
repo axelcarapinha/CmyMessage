@@ -16,6 +16,8 @@
 #include <signal.h>
 //TODO verify unnecessary imports here
 
+#include "hash_table.h"
+
 
 // Colors for stdout text
 #define RESET "\x1B[0m"
@@ -27,10 +29,12 @@
 #define CYAN "\x1B[36m"
 #define WHITE "\x1B[37m"
 
+
 // Settings
 #define SIZE_THREAD_POOL 3
 
-typedef struct ClientInfo_t ClientInfo_t; // declared here to avoid circular dependency
+// Forward-declared to avoid circular dependencies
+typedef struct ClientInfo_t ClientInfo_t; 
 typedef int (*ServiceFunctionPtr)(ClientInfo_t *);
 
 struct ClientInfo_t
@@ -73,9 +77,15 @@ typedef struct
     pthread_t *p_thread_pool;
     pthread_mutex_t *p_mutex_queue;
     pthread_mutex_t *p_mutex_quit_signal;
+    pthread_mutex_t *p_mutex_clients_ht; // client's hash table
     pthread_cond_t *p_condition_var;
 
+    // Client's hash table pointer
+    hash_table *p_usernames_ht;
+
+
 } UniSocket_t;
+//TODO check the server closing function after all changes in the utils code
 
 // Function prototypes
 UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg);
@@ -85,12 +95,12 @@ UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg
         int setup_service_socket_t(int opt, UniSocket_t *p_socket_t);
 void close_server_socket(UniSocket_t *p_socket_t);
 
-void free_unisocket_memory_with_ptr_to_ptr(UniSocket_t **p_p_socket_t);
+void free_unisocket_memory_with_ptr_to_ptr(void **p_p_socket_t);
 //
 ClientInfo_t *accept_connection(int service_FD);
     ClientInfo_t *allocate_client_info_struct();
     void ensure_client_disconnection_and_remove_data(ClientInfo_t *p_client_t);
-    void free_client_memory_with_ptr_to_ptr(ClientInfo_t **p_p_client_t);
+    void free_client_memory_with_ptr_to_ptr(void **p_p_client_t);
 //
 void close_socket_with_ptr_if_open(int *p_socket_descriptor);
 

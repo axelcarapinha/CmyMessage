@@ -7,12 +7,21 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define ELEMENT_TYPE const char
+#define ELEMENT_TYPE const char // RECOMMENDED (does not involve changing code)
 #define OBJECT_TYPE int
+//
+
+
+//TODO use dynamic libraries to avoid circular dependencies
+//TODO and be able to use values defined in the broadcat chat service
+//! HARDCODED 
+
 
 typedef struct _hash_table hash_table; // hide details from the implemetation for the user
-typedef uint16_t(hashFunc)(ELEMENT_TYPE *);
-typedef void cleanObjFunc(void *); // TODO consider removing the typedef
+typedef uint32_t(hashFunc)(ELEMENT_TYPE * p_key); // prepared for murmur3_32 hash
+typedef void cleanObjFunc(void **); // TODO consider removing the typedef
+// A pointer to a pointer allows to set the first pointed one to be NULL,
+// in order to mark it as freed
 
 typedef struct entry
 {
@@ -42,5 +51,8 @@ void hash_table_destroy_with_ptr_to_ptr(hash_table **p_p_ht);
 //
 static size_t hash_table_calc_index_with_hash(hash_table *p_ht, ELEMENT_TYPE *p_key);
 static void hash_table_free_element(hash_table *p_ht, entry *p_entry);
+//
+// "const char *" by origin, instead of ELEMENT_TYPE; changed to make more general
+uint32_t murmur3_32_hash(ELEMENT_TYPE *p_key);
 
 #endif

@@ -123,7 +123,7 @@ void *search_for_thread_work(void *p_server_t_arg)
                 int (*functionPtr)(ClientInfo_t *) = p_client_t->p_service_func;
                 (*functionPtr)(p_client_t);
 
-                free_client_memory_with_ptr_to_ptr(&p_client_t); // in case the service did NOT
+                free_client_memory_with_ptr_to_ptr((void **)&p_client_t); // in case the service did NOT
             }
         }
 
@@ -162,7 +162,7 @@ void gracefully_reject_pending_clients(ClientInfo_t *p_client_t, pthread_mutex_t
         if (p_client_t != NULL)
         {
             send(p_client_t->sock_FD, service_quit_message, strlen(service_quit_message), 0);
-            free_client_memory_with_ptr_to_ptr(&p_client_t);
+            free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
         }
         else
         {
@@ -283,7 +283,7 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     if (pthread_mutex_init(p_mutex_queue, NULL) != 0)
     {
         perror("Error initializing the QUEUE mutex");
-        free(p_mutex_queue); 
+        free(p_mutex_queue);
         exit(EXIT_FAILURE);
     }
     p_server_t->p_mutex_queue = p_mutex_queue;
@@ -297,11 +297,25 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     if (pthread_mutex_init(p_mutex_quit_signal, NULL) != 0)
     {
         perror("Error initializing the QUIT SIGNAL mutex");
-        free(p_mutex_quit_signal); 
+        free(p_mutex_quit_signal);
         exit(EXIT_FAILURE);
     }
     p_server_t->p_mutex_quit_signal = p_mutex_quit_signal;
-    // TODO consdier functin for this
+    //
+    pthread_mutex_t *p_mutex_clients_ht = malloc(sizeof(pthread_mutex_t));
+    if (p_mutex_clients_ht == NULL)
+    {
+        perror("Error allocating memory for the CLIENT'S HASH TABLE mutex");
+        exit(EXIT_FAILURE);
+    }
+    if (pthread_mutex_init(p_mutex_clients_ht, NULL) != 0)
+    {
+        perror("Error initializing the CLIENT'S HASH TABLE mutex");
+        free(p_mutex_clients_ht);
+        exit(EXIT_FAILURE);
+    }
+    p_server_t->p_mutex_clients_ht = p_mutex_clients_ht;
+
 
     // Quit signal (to finish threads gracefully)
     volatile sig_atomic_t *p_quit_signal = malloc(sizeof(sig_atomic_t));
@@ -310,7 +324,7 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
         perror("Error allocating memory for quit signal");
         exit(EXIT_FAILURE);
     }
-    p_server_t->p_quit_signal = p_quit_signal; 
+    p_server_t->p_quit_signal = p_quit_signal;
     *p_server_t->p_quit_signal = 0;
     // Volatile avoids processor optimizations
     // allowing changes from signal handlers
@@ -331,6 +345,27 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
 
 //----------------------------------------------------------------------------------------------------------
 /**
+ * @brief
+ *
+ *
+ * @param
+ *
+ * @return
+ */
+hash_table *get_usernames_hash_table_ptr()
+{
+    hash_table *p_usernames_ht;
+
+    uint32_t size = __FD_SETSIZE;
+    hashFunc *p_hash_func = murmur3_32_hash;
+    cleanObjFunc *p_cleanup_func = free_client_memory_with_ptr_to_ptr;
+    p_usernames_ht = hash_table_create(size, p_hash_func, p_cleanup_func);
+
+    return p_usernames_ht;
+}
+
+//----------------------------------------------------------------------------------------------------------
+/**
  * @brief Starts accepting incoming connections
  *
  * This function starts listening for incoming connections on a separate thread.
@@ -343,6 +378,10 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
  */
 int start_accepting_incoming_connections(UniSocket_t *p_server_t)
 {
+    // For the client's structs, to allow data sharing between threads
+    hash_table *p_usernames_ht = get_usernames_hash_table_ptr();
+    p_server_t->p_usernames_ht = p_usernames_ht;
+
     initialize_server_concurrency_and_thread_pool(p_server_t);
 
     // Start listening for connections on a separate thread

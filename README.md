@@ -48,10 +48,14 @@ Had fun knowing more about:
     * semaphors
 * Networking
   * IPv4 mapped-addresses, dual stack network
+  * Bloom filters and routing tables
+  * 
 * Information security practices
   * Input sanitization
   * Forms of AUTH (and its fragilities)
   * Shadow networks
+  * Hashes (its fragilities, some types, ...)
+  * 
 * Cmake (build system generator)
 * Software architecture 
 
@@ -65,9 +69,9 @@ Had fun knowing more about:
 - Simple connection ✅
 - Chat between clients 🛠️ 
   - Supporting concurrency ✅
-  - Generic hash table for the user's struct 🛠️
-  - Broadcast chat
-  - Direct chat
+  - Generic hash table for the user's struct ✅
+  - Broadcast chat 🛠️
+  - Direct chat 🛠️
 - Containers (probably with Docker compose) 🔁
   - Docker Swarm (ease the scalability)
 - Database 🔁

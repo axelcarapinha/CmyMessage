@@ -16,6 +16,10 @@
 #define BUFFER_SIZE 1500 // widely used in LANs (size of ethernet packets)
 #define DEFAULT_MAX_NUM_CLIENTS 30
 #define MAX_NUM_CLIENTS 2
+//
+#define USERNAMES_HASH_SEED 23
+#define MAX_USERNAME_LENGTH 20 // 20 chars, 20 bytes
+
 
 // Other values
 #define SERVICE_NAME "BROADCAST CHAT" 
