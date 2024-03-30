@@ -4,11 +4,28 @@ int queue_size = 0;
 node_t *head = NULL;
 node_t *tail = NULL;
 
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief 
+ *
+ * @param 
+ * @return 
+ */
 bool isEmptyQueue()
 {
     return head == NULL;
 }
 
+
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief 
+ *
+ * @param 
+ * @return 
+ */
 int enqueue(ClientInfo_t *p_client_t)
 {
     // Alert the client if the server is full of capacity for now
@@ -49,6 +66,15 @@ int enqueue(ClientInfo_t *p_client_t)
     queue_size++;
 }
 
+
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief 
+ *
+ * @param 
+ * @return 
+ */
 ClientInfo_t *dequeue()
 {
     if (isEmptyQueue())
@@ -69,3 +95,13 @@ ClientInfo_t *dequeue()
     free(temp);
     return result;
 }
+
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief 
+ *
+ * @param 
+ * @return 
+ */
+//TODO clean all the queue

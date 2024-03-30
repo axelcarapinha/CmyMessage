@@ -2,11 +2,13 @@
 #define BROADCAST_CHAT_SERVICE_H
 
 #include <semaphore.h>
+
+//TODO solve the CMake file problem,
+//TODO I am needing to import this here too for some reason
+#include <pthread.h> 
 //
 #include "net_utils_tcp.h"
 #include "service_utils.h"
-//TODO include just the necessary headers
-
 
 // TODO use the config file
 //  Default values

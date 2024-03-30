@@ -126,6 +126,10 @@ void *search_for_thread_work(void *p_server_t_arg)
             // HANDLE client request
             if (p_client_t != NULL)
             {
+                //TODO retirar
+                const char *msg = "ANother part of the code\n";
+                send(p_client_t->sock_FD, msg, strlen(msg), 0);
+
                 // Forward the client to the desired service function
                 int (*functionPtr)(ClientInfo_t *) = p_client_t->p_service_func;
                 (*functionPtr)(p_client_t);
@@ -226,7 +230,7 @@ void * accept_incoming_connections(void *p_server_t_arg)
         // Assign the client to an available thread
         pthread_mutex_lock(p_queue_mutex);
         enqueue(p_client_t);
-        
+        //TODO inser the other part
         pthread_cond_signal(p_condition_var);
         pthread_mutex_unlock(p_queue_mutex);
 
@@ -319,6 +323,9 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
         perror("Error joinin listening thread of the server");
         return join_status;
     }
+
+    //TODO Start the thread for the service itself
+
 
     return 0;
 }
