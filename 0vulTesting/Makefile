@@ -1,4 +1,4 @@
-FILENAME = "queue"
+FILENAME = "hash_table"
 
 default: compile run
 

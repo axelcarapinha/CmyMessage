@@ -3,6 +3,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/broadcastChat.dir/src/broadcast_chat_service.c.o.d"
   "CMakeFiles/broadcastChat.dir/src/main.c.o"
   "CMakeFiles/broadcastChat.dir/src/main.c.o.d"
+  "CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o"
+  "CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o.d"
   "CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o"
   "CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o.d"
   "CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o"

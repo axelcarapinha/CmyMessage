@@ -97,10 +97,24 @@ CMakeFiles/broadcastChat.dir/src/main.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/broadcastChat.dir/src/main.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/main.c" -o CMakeFiles/broadcastChat.dir/src/main.c.s
 
+CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o: CMakeFiles/broadcastChat.dir/flags.make
+CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o: ../src/utils/hash_table.c
+CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o: CMakeFiles/broadcastChat.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o -MF CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o.d -o CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o -c "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/hash_table.c"
+
+CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing C source to CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/hash_table.c" > CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.i
+
+CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling C source to assembly CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/hash_table.c" -o CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.s
+
 CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o: CMakeFiles/broadcastChat.dir/flags.make
 CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o: ../src/utils/linkedlist.c
 CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o: CMakeFiles/broadcastChat.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o -MF CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o.d -o CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o -c "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/linkedlist.c"
 
 CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.i: cmake_force
@@ -114,7 +128,7 @@ CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.s: cmake_force
 CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o: CMakeFiles/broadcastChat.dir/flags.make
 CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o: ../src/utils/net_utils_tcp.c
 CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o: CMakeFiles/broadcastChat.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o -MF CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o.d -o CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o -c "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/net_utils_tcp.c"
 
 CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.i: cmake_force
@@ -128,7 +142,7 @@ CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.s: cmake_force
 CMakeFiles/broadcastChat.dir/src/utils/queue.c.o: CMakeFiles/broadcastChat.dir/flags.make
 CMakeFiles/broadcastChat.dir/src/utils/queue.c.o: ../src/utils/queue.c
 CMakeFiles/broadcastChat.dir/src/utils/queue.c.o: CMakeFiles/broadcastChat.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/broadcastChat.dir/src/utils/queue.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/broadcastChat.dir/src/utils/queue.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/broadcastChat.dir/src/utils/queue.c.o -MF CMakeFiles/broadcastChat.dir/src/utils/queue.c.o.d -o CMakeFiles/broadcastChat.dir/src/utils/queue.c.o -c "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/queue.c"
 
 CMakeFiles/broadcastChat.dir/src/utils/queue.c.i: cmake_force
@@ -142,7 +156,7 @@ CMakeFiles/broadcastChat.dir/src/utils/queue.c.s: cmake_force
 CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o: CMakeFiles/broadcastChat.dir/flags.make
 CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o: ../src/utils/service_utils.c
 CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o: CMakeFiles/broadcastChat.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o -MF CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o.d -o CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o -c "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/src/utils/service_utils.c"
 
 CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.i: cmake_force
@@ -157,6 +171,7 @@ CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.s: cmake_force
 broadcastChat_OBJECTS = \
 "CMakeFiles/broadcastChat.dir/src/broadcast_chat_service.c.o" \
 "CMakeFiles/broadcastChat.dir/src/main.c.o" \
+"CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o" \
 "CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o" \
 "CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o" \
 "CMakeFiles/broadcastChat.dir/src/utils/queue.c.o" \
@@ -167,13 +182,14 @@ broadcastChat_EXTERNAL_OBJECTS =
 
 broadcastChat/broadcastChat: CMakeFiles/broadcastChat.dir/src/broadcast_chat_service.c.o
 broadcastChat/broadcastChat: CMakeFiles/broadcastChat.dir/src/main.c.o
+broadcastChat/broadcastChat: CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o
 broadcastChat/broadcastChat: CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o
 broadcastChat/broadcastChat: CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o
 broadcastChat/broadcastChat: CMakeFiles/broadcastChat.dir/src/utils/queue.c.o
 broadcastChat/broadcastChat: CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o
 broadcastChat/broadcastChat: CMakeFiles/broadcastChat.dir/build.make
 broadcastChat/broadcastChat: CMakeFiles/broadcastChat.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_7) "Linking C executable broadcastChat/broadcastChat"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir="/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/broadcastChat/out/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_8) "Linking C executable broadcastChat/broadcastChat"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/broadcastChat.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

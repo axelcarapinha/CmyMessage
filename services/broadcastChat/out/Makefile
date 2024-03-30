@@ -178,6 +178,30 @@ src/main.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/main.c.s
 .PHONY : src/main.c.s
 
+src/utils/hash_table.o: src/utils/hash_table.c.o
+.PHONY : src/utils/hash_table.o
+
+# target to build an object file
+src/utils/hash_table.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o
+.PHONY : src/utils/hash_table.c.o
+
+src/utils/hash_table.i: src/utils/hash_table.c.i
+.PHONY : src/utils/hash_table.i
+
+# target to preprocess a source file
+src/utils/hash_table.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.i
+.PHONY : src/utils/hash_table.c.i
+
+src/utils/hash_table.s: src/utils/hash_table.c.s
+.PHONY : src/utils/hash_table.s
+
+# target to generate assembly for a file
+src/utils/hash_table.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/broadcastChat.dir/build.make CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.s
+.PHONY : src/utils/hash_table.c.s
+
 src/utils/linkedlist.o: src/utils/linkedlist.c.o
 .PHONY : src/utils/linkedlist.o
 
@@ -289,6 +313,9 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
+	@echo "... src/utils/hash_table.o"
+	@echo "... src/utils/hash_table.i"
+	@echo "... src/utils/hash_table.s"
 	@echo "... src/utils/linkedlist.o"
 	@echo "... src/utils/linkedlist.i"
 	@echo "... src/utils/linkedlist.s"

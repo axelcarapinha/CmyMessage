@@ -1,0 +1,45 @@
+#ifndef HASH_TABLE_H // based on a Linked List
+#define HASH_TABLE_H
+
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+
+#define ELEMENT_TYPE const char
+#define OBJECT_TYPE int
+
+typedef struct _hash_table hash_table; // hide details from the implemetation for the user
+typedef uint16_t(hashFunc)(ELEMENT_TYPE *);
+typedef void cleanObjFunc(void *); // TODO consider removing the typedef
+
+typedef struct entry
+{
+    ELEMENT_TYPE *p_key;
+    void *p_object;
+    struct entry *p_next;
+} entry;
+
+struct _hash_table
+{
+    uint32_t size;
+    entry **elements; // array of pointers
+
+    // Functions
+    hashFunc *p_hash_func;
+    cleanObjFunc *p_cleanup_func;
+};
+
+// Function prototypes
+hash_table *hash_table_create(uint32_t size, hashFunc *p_hash_func, cleanObjFunc p_clean_obj_func);
+static size_t hash_table_calc_index_with_hash(hash_table *p_ht, ELEMENT_TYPE *p_key);
+void *hash_table_lookup(hash_table *p_ht, ELEMENT_TYPE *p_key);
+bool hash_table_insert(hash_table *p_ht, ELEMENT_TYPE *p_key, OBJECT_TYPE *p_object);
+void *hash_table_print(hash_table *p_ht);
+static void hash_table_free_element(hash_table *p_ht, entry *p_entry);
+void hash_table_clean_fully(hash_table *p_ht);
+void *hash_table_delete_element(hash_table *p_ht, ELEMENT_TYPE *p_key);
+void hash_table_destroy_with_ptr_to_ptr(hash_table **p_p_ht);
+
+#endif

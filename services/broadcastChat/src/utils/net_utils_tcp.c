@@ -95,13 +95,13 @@ void ensure_client_disconnection_and_remove_data(ClientInfo_t *p_client_t) // In
 
     close(p_client_t->sock_FD);
     //
-    if (p_client_t->buffer != NULL)
+    if (p_client_t->buffer)
         memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    if (p_client_t->name != NULL)
+    if (p_client_t->name)
         memset(p_client_t->name, 0, strlen(p_client_t->name));
-    if (p_client_t->addr_info != NULL)
+    if (p_client_t->addr_info)
         memset(p_client_t->addr_info, 0, strlen(p_client_t->addr_info));
-    if (p_client_t->recipient != NULL)
+    if (p_client_t->recipient)
         memset(p_client_t->recipient, 0, strlen(p_client_t->recipient));
 }
 

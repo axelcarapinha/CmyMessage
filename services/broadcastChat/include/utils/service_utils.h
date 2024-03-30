@@ -3,6 +3,7 @@
 
 #include "net_utils_tcp.h"
 #include "queue.h"
+#include "hash_table.h"
 
 #define CLOSE_SERVER 1
 

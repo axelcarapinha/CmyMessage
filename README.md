@@ -75,6 +75,7 @@ Had fun knowing more about:
     - Making the queries 🔁
     - Connecting it 🔁
 - Authentication (probalby with JWT tokens) 🔁
+  - Hashing + Salting
 - Security check, like avoiding: 🔁
   - Open ports dangers 🔁
   - SQL injection 🔁
