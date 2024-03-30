@@ -361,30 +361,24 @@ hash_table *get_usernames_hash_table_ptr()
     cleanObjFunc *p_cleanup_func = free_client_memory_with_ptr_to_ptr;
     p_usernames_ht = hash_table_create(size, p_hash_func, p_cleanup_func);
 
+    if (p_usernames_ht == NULL) {
+        perror("Error creating the hash table for the usernames");
+        return NULL;
+    }
+
     return p_usernames_ht;
 }
 
 //----------------------------------------------------------------------------------------------------------
+
 /**
- * @brief Starts accepting incoming connections
+ * @brief 
  *
- * This function starts listening for incoming connections on a separate thread.
- * It creates a thread for listening using the accept_incoming_connections function
- * and handles any errors that may occur during thread creation or joining.
+ * @param 
  *
- * @param p_server_t Pointer to the UniSocket_t structure representing the server
- *
- * @return 0 on success, or a negative value indicating an error
+ * @return 
  */
-int start_accepting_incoming_connections(UniSocket_t *p_server_t)
-{
-    // For the client's structs, to allow data sharing between threads
-    hash_table *p_usernames_ht = get_usernames_hash_table_ptr();
-    p_server_t->p_usernames_ht = p_usernames_ht;
-
-    initialize_server_concurrency_and_thread_pool(p_server_t);
-
-    // Start listening for connections on a separate thread
+int listen_for_connections_on_separate_thread(UniSocket_t *p_server_t) {
     pthread_t listening_thread;
     int creation_status;
     if ((creation_status = pthread_create(&listening_thread, NULL, (void *(*)(void *))accept_incoming_connections, (void *)p_server_t)) < 0)
@@ -398,6 +392,77 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
     {
         perror("Error joinin listening thread of the server");
         return join_status;
+    }
+
+    return 0;
+}
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief 
+ 
+ *
+ * @param 
+ * @param 
+ *
+ * @return 
+ */
+int start_main_service_thread(UniSocket_t *p_server_t) {
+    pthread_t main_service_thread;
+    int creation_status;
+    if ((creation_status = pthread_create(&main_service_thread, NULL, (void *(*)(void *))p_server_t->p_service_func,(void *)p_server_t)) < 0)
+    {
+        perror("Error CREATING the thread for the pretended MAIN service function");
+        return creation_status;
+    }
+    //
+    int join_status;
+    if ((join_status = join_thread_and_handle_errors(&main_service_thread)) < 0)
+    {
+        perror("Error JOINING the thread for the pretended MAIN service function");
+        return join_status;
+    }
+
+    return 0;
+}
+
+//----------------------------------------------------------------------------------------------------------
+
+/**
+ * @brief 
+ 
+ *
+ * @param 
+ * @param 
+ *
+ * @return 
+ */
+int start_accepting_incoming_connections(UniSocket_t *p_server_t)
+{
+    // For the client's structs, to allow data sharing between threads
+    hash_table *p_usernames_ht = get_usernames_hash_table_ptr();
+    if (p_usernames_ht == NULL) {
+        perror("Error, unexpected value for the pointer of the usernames table. Possibel creation failure.");
+        return -1;
+    }
+    p_server_t->p_usernames_ht = p_usernames_ht;
+
+    // The other threads are treated as client-handlers, in the end
+    //TODO this way it works, see why it needs to be commented out
+    // int main_service_thread_status;
+    // if ((main_service_thread_status = start_main_service_thread(p_server_t)) < 0) {
+    //     perror("Error starting the MAIN service thread");
+    //     return main_service_thread_status;
+    // }
+
+    // Does NOT return error values because it ends the execution in that case
+    // (the consequences would be too critical to handle)
+    initialize_server_concurrency_and_thread_pool(p_server_t);
+
+    int listen_exit_status;
+    if ((listen_exit_status = listen_for_connections_on_separate_thread(p_server_t)) < 0) {
+        perror("Error creating or executing the listening thread");
+        return listen_exit_status;
     }
 }
 

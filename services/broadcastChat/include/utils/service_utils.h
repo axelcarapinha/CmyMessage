@@ -11,6 +11,8 @@
 // Function prototypes
 int start_service(int port, ServiceFunctionPtr p_server_t);
 int start_accepting_incoming_connections(UniSocket_t *p_server_t);
+hash_table *get_usernames_hash_table_ptr();
+int listen_for_connections_on_separate_thread(UniSocket_t *p_server_t);
 void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t);
 void *accept_incoming_connections(void *p_server_t_arg);
 void *search_for_thread_work(void *p_server_t_arg);
