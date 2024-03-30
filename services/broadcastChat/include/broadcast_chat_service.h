@@ -1,16 +1,6 @@
 #ifndef BROADCAST_CHAT_SERVICE_H
 #define BROADCAST_CHAT_SERVICE_H
 
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <time.h>
-#include <stdbool.h>
-#include <pthread.h>
-#include <ctype.h>
 #include <semaphore.h>
 //
 #include "net_utils_tcp.h"

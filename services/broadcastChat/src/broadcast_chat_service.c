@@ -8,6 +8,7 @@
  *
  * @param a
  */
+//TODO finish this function
 int broadcast_client(ClientInfo_t *p_client_t)
 {
     // Get the client needed memory variables
@@ -22,6 +23,7 @@ int broadcast_client(ClientInfo_t *p_client_t)
         size_t bytes_received;
         if ((bytes_received = recv(client_FD, p_buffer_cli, BUFFER_SIZE, 0)) > 0)
         {
+            //TODO heere
             send(client_FD, p_buffer_cli, BUFFER_SIZE, 0);
             memset(p_buffer_cli, 0, BUFFER_SIZE);
         }
@@ -43,18 +45,25 @@ int broadcast_client(ClientInfo_t *p_client_t)
 }
 
 //----------------------------------------------------------------------------------------------------------
-
 /**
- * @brief
+ * @brief Prepares a client to broadcast chat messages
  *
- * @param a
+ * This function prepares a client to broadcast chat messages by interacting with the client.
+ * It asks the client for their name, receives the name, and sends a customized welcome message.
+ * If any error occurs during interaction with the client, it prints an error message
+ * and terminates the program with the appropriate exit status.
+ *
+ * @param p_client_t Pointer to the ClientInfo_t structure representing the client
+ *
+ * @return 0 on success
  */
+
 int prepare_to_broadcast_chat(ClientInfo_t *p_client_t)
 {
     // Prepare the pointers for the necessary data (for a cleaner code)
-    char *p_name_cli = p_client_t->name;
+    char *p_name_cli   = p_client_t->name;
     char *p_buffer_cli = p_client_t->buffer;
-    long client_FD = p_client_t->sock_FD;
+    long client_FD     = p_client_t->sock_FD;
 
     // Ask for a simple ID
     strcpy(p_buffer_cli, "\nOur newest guest! How can we call you? ");
@@ -92,12 +101,19 @@ int prepare_to_broadcast_chat(ClientInfo_t *p_client_t)
 }
 
 //----------------------------------------------------------------------------------------------------------
-
 /**
- * @brief
+ * @brief Prepares client structures for data
  *
- * @param a
+ * This function prepares client structures for storing data.
+ * It allocates memory for the client's name and buffer, and retrieves the client's IP address
+ * for unique identification. If any error occurs during memory allocation or IP address retrieval,
+ * it prints an error message, frees the client's memory, and returns NULL.
+ *
+ * @param p_client_t Pointer to the ClientInfo_t structure representing the client
+ *
+ * @return Pointer to the prepared client structure on success, or NULL if an error occurs
  */
+
 void * prepare_client_structs_for_data(ClientInfo_t *p_client_t)
 {
     if (p_client_t == NULL)
@@ -134,12 +150,20 @@ void * prepare_client_structs_for_data(ClientInfo_t *p_client_t)
 }
 
 //----------------------------------------------------------------------------------------------------------
-
 /**
- * @brief
+ * @brief Prepares a client for broadcast and starts broadcasting
  *
- * @param a
+ * This function prepares a client for broadcast by initializing necessary data structures
+ * and then starts broadcasting the client's data. It first prepares the client's data structures
+ * for broadcasting, then prepares the client for broadcasting, and finally broadcasts the client.
+ * If any error occurs during preparation or broadcasting, it prints an error message,
+ * frees the client's memory, and returns the corresponding error status.
+ *
+ * @param p_client_t Pointer to the ClientInfo_t structure representing the client
+ *
+ * @return 0 on success, or a negative value indicating an error
  */
+
 int prepare_client_for_broadcast_and_start(ClientInfo_t *p_client_t)
 {
     if ((prepare_client_structs_for_data(p_client_t)) == NULL) {
@@ -161,8 +185,5 @@ int prepare_client_for_broadcast_and_start(ClientInfo_t *p_client_t)
         return exit_status;
     }
     
-    // const char *here = "here";
-    // send(p_client_t->sock_FD, here, strlen(here), 0);
-
-    // free_client_memory(p_client_t);
+    free_client_memory(p_client_t);
 }

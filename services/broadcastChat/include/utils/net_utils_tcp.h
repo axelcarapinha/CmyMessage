@@ -39,6 +39,7 @@ struct ClientInfo_t
     struct sockaddr *p_addr;
     socklen_t *p_addr_len;
     char *buffer;
+    
 
     // Within the struct
     long sock_FD;

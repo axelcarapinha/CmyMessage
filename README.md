@@ -63,8 +63,11 @@ Had fun knowing more about:
 
 - Plan the architecture / structure of the code ✅
 - Simple connection ✅
-- Simple chat between two specific clients 🛠️ 
+- Chat between clients 🛠️ 
   - Supporting concurrency ✅
+  - Generic hash table for the user's struct 🛠️
+  - Broadcast chat
+  - Direct chat
 - Containers (probably with Docker compose) 🔁
   - Docker Swarm (ease the scalability)
 - Database 🔁
@@ -80,6 +83,7 @@ Had fun knowing more about:
   - ... 🔁
 - Pentests to check for vulnerabilities 🔁
 - Deployment 🔁
+    - Consider using shared object files for shared code
     - Server setup and configuration (probably in an Azure VM) 🔁
     - Documentation of the code 🔁
 

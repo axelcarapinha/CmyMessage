@@ -81,7 +81,6 @@ void free_client_memory(ClientInfo_t *p_client_t)
 }
 
 //----------------------------------------------------------------------------------------------------------
-
 /**
  * @brief Ensures client disconnection and removes sensitive data.
  *
@@ -96,7 +95,7 @@ void ensure_client_disconnection_and_remove_data(ClientInfo_t *p_client_t) // In
 
     close(p_client_t->sock_FD);
     //
-    if (p_client_t->buffer != NULL) 
+    if (p_client_t->buffer != NULL)
         memset(p_client_t->buffer, 0, BUFFER_SIZE);
     if (p_client_t->name != NULL)
         memset(p_client_t->name, 0, strlen(p_client_t->name));
