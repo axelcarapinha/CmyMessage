@@ -85,7 +85,6 @@ void *hash_table_lookup(hash_table *p_ht, ELEMENT_TYPE *p_key)
  * @return true if the insertion is successful, false otherwise
  */
 
-
 bool hash_table_insert(hash_table *p_ht, ELEMENT_TYPE *p_key, OBJECT_TYPE *p_object)
 {
     if (p_key == NULL || p_object == NULL)

@@ -26,6 +26,11 @@ void close_service(UniSocket_t *p_server_t)
     *(p_server_t->p_quit_signal) = CLOSE_SERVER;
     pthread_mutex_unlock(&g_mutex_server);
 
+    // Clean information stored during the service execution
+    pthread_mutex_lock(p_server_t->p_mutex_usernames_ht);
+    hash_table_destroy_with_ptr_to_ptr(&p_server_t->p_usernames_ht);
+    pthread_mutex_unlock(p_server_t->p_mutex_usernames_ht);
+
     close_server_socket(p_server_t);
     printf("Service closed.\n");
 }
@@ -99,6 +104,9 @@ void *search_for_thread_work(void *p_server_t_arg)
     //
     pthread_mutex_t *p_mutex_quit_signal = p_server_t->p_mutex_quit_signal;
     volatile sig_atomic_t *p_quit_signal = p_server_t->p_quit_signal;
+    //
+    pthread_mutex_t *p_mutex_usernames_ht = p_server_t->p_mutex_usernames_ht;
+    hash_table *p_usernames_ht = p_server_t->p_usernames_ht;
     pthread_mutex_unlock(&g_mutex_server);
 
     int quit_signal_val;
@@ -119,6 +127,13 @@ void *search_for_thread_work(void *p_server_t_arg)
             // HANDLE client request
             if (p_client_t != NULL)
             {
+                // Send the needed variables with the client struct
+                p_client_t->p_mutex_quit_signal = p_mutex_quit_signal;
+                p_client_t->p_quit_signal = p_quit_signal;
+                //
+                p_client_t->p_mutex_usernames_ht = p_mutex_usernames_ht;
+                p_client_t->p_usernames_ht = p_usernames_ht;
+
                 // Forward the client to the desired service function
                 int (*functionPtr)(ClientInfo_t *) = p_client_t->p_service_func;
                 (*functionPtr)(p_client_t);
@@ -302,20 +317,19 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     }
     p_server_t->p_mutex_quit_signal = p_mutex_quit_signal;
     //
-    pthread_mutex_t *p_mutex_clients_ht = malloc(sizeof(pthread_mutex_t));
-    if (p_mutex_clients_ht == NULL)
+    pthread_mutex_t *p_mutex_usernames_ht = malloc(sizeof(pthread_mutex_t));
+    if (p_mutex_usernames_ht == NULL)
     {
         perror("Error allocating memory for the CLIENT'S HASH TABLE mutex");
         exit(EXIT_FAILURE);
     }
-    if (pthread_mutex_init(p_mutex_clients_ht, NULL) != 0)
+    if (pthread_mutex_init(p_mutex_usernames_ht, NULL) != 0)
     {
         perror("Error initializing the CLIENT'S HASH TABLE mutex");
-        free(p_mutex_clients_ht);
+        free(p_mutex_usernames_ht);
         exit(EXIT_FAILURE);
     }
-    p_server_t->p_mutex_clients_ht = p_mutex_clients_ht;
-
+    p_server_t->p_mutex_usernames_ht = p_mutex_usernames_ht;
 
     // Quit signal (to finish threads gracefully)
     volatile sig_atomic_t *p_quit_signal = malloc(sizeof(sig_atomic_t));
@@ -361,7 +375,8 @@ hash_table *get_usernames_hash_table_ptr()
     cleanObjFunc *p_cleanup_func = free_client_memory_with_ptr_to_ptr;
     p_usernames_ht = hash_table_create(size, p_hash_func, p_cleanup_func);
 
-    if (p_usernames_ht == NULL) {
+    if (p_usernames_ht == NULL)
+    {
         perror("Error creating the hash table for the usernames");
         return NULL;
     }
@@ -369,16 +384,22 @@ hash_table *get_usernames_hash_table_ptr()
     return p_usernames_ht;
 }
 
+// fd_set *get_set_of_clients_descriptors()
+// {
+//     fd_set *p_active_client_fd_set = (fd_set *)
+// }
+
 //----------------------------------------------------------------------------------------------------------
 
 /**
- * @brief 
+ * @brief
  *
- * @param 
+ * @param
  *
- * @return 
+ * @return
  */
-int listen_for_connections_on_separate_thread(UniSocket_t *p_server_t) {
+int listen_for_connections_on_separate_thread(UniSocket_t *p_server_t)
+{
     pthread_t listening_thread;
     int creation_status;
     if ((creation_status = pthread_create(&listening_thread, NULL, (void *(*)(void *))accept_incoming_connections, (void *)p_server_t)) < 0)
@@ -398,69 +419,37 @@ int listen_for_connections_on_separate_thread(UniSocket_t *p_server_t) {
 }
 
 //----------------------------------------------------------------------------------------------------------
-/**
- * @brief 
- 
- *
- * @param 
- * @param 
- *
- * @return 
- */
-int start_main_service_thread(UniSocket_t *p_server_t) {
-    pthread_t main_service_thread;
-    int creation_status;
-    if ((creation_status = pthread_create(&main_service_thread, NULL, (void *(*)(void *))p_server_t->p_service_func,(void *)p_server_t)) < 0)
-    {
-        perror("Error CREATING the thread for the pretended MAIN service function");
-        return creation_status;
-    }
-    //
-    int join_status;
-    if ((join_status = join_thread_and_handle_errors(&main_service_thread)) < 0)
-    {
-        perror("Error JOINING the thread for the pretended MAIN service function");
-        return join_status;
-    }
-
-    return 0;
-}
-
-//----------------------------------------------------------------------------------------------------------
 
 /**
- * @brief 
- 
+ * @brief
+
  *
- * @param 
- * @param 
+ * @param
+ * @param
  *
- * @return 
+ * @return
  */
 int start_accepting_incoming_connections(UniSocket_t *p_server_t)
 {
     // For the client's structs, to allow data sharing between threads
     hash_table *p_usernames_ht = get_usernames_hash_table_ptr();
-    if (p_usernames_ht == NULL) {
+    if (p_usernames_ht == NULL)
+    {
         perror("Error, unexpected value for the pointer of the usernames table. Possibel creation failure.");
         return -1;
     }
     p_server_t->p_usernames_ht = p_usernames_ht;
 
-    // The other threads are treated as client-handlers, in the end
-    //TODO this way it works, see why it needs to be commented out
-    // int main_service_thread_status;
-    // if ((main_service_thread_status = start_main_service_thread(p_server_t)) < 0) {
-    //     perror("Error starting the MAIN service thread");
-    //     return main_service_thread_status;
-    // }
+    // Know what clients are online
+    // get_set_of_clients_descriptors();
 
     // Does NOT return error values because it ends the execution in that case
     // (the consequences would be too critical to handle)
     initialize_server_concurrency_and_thread_pool(p_server_t);
 
     int listen_exit_status;
-    if ((listen_exit_status = listen_for_connections_on_separate_thread(p_server_t)) < 0) {
+    if ((listen_exit_status = listen_for_connections_on_separate_thread(p_server_t)) < 0)
+    {
         perror("Error creating or executing the listening thread");
         return listen_exit_status;
     }

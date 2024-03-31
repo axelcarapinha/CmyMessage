@@ -16,7 +16,6 @@
 //TODO and be able to use values defined in the broadcat chat service
 //! HARDCODED 
 
-
 typedef struct _hash_table hash_table; // hide details from the implemetation for the user
 typedef uint32_t(hashFunc)(ELEMENT_TYPE * p_key); // prepared for murmur3_32 hash
 typedef void cleanObjFunc(void **); // TODO consider removing the typedef

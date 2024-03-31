@@ -1,6 +1,5 @@
 #include "broadcast_chat_service.h"
 
-
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
@@ -8,46 +7,55 @@
  * @param a
  */
 
-// TODO send ALL the content, in a loop (func for that)
+//TODO consider a variable to allow for verificatino from all the threads
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
- *
- * @param a
- */
-// TODO finish this function
 int broadcast_client(ClientInfo_t *p_client_t)
 {
-    // Get the client needed memory variables
-    char *p_name_cli = p_client_t->name;
+    // Put the needed pointers in more practical variables
+    char *p_name_cli = p_client_t->name; //TODO change the name from the client side
     char *p_buffer_cli = p_client_t->buffer;
     int client_FD = p_client_t->sock_FD;
+    //
+    pthread_mutex_t *p_mutex_quit_signal = p_client_t->p_mutex_quit_signal;
+    pthread_mutex_t *p_mutex_usernames_ht = p_client_t->p_mutex_usernames_ht;
+    volatile sig_atomic_t *p_quit_signal = p_client_t->p_quit_signal;
+    hash_table *p_usernames_ht = p_client_t->p_usernames_ht;
 
+    // Send a customised WELCOME message
     memset(p_buffer_cli, 0, BUFFER_SIZE);
+    char welcome_msg[BUFFER_SIZE];
+    strcpy(welcome_msg, "Welcome to the broadcast channel, ");
+    strcat(welcome_msg, p_name_cli);
+    strcat(welcome_msg, "!\n");
+    //
+    strcpy(p_buffer_cli, welcome_msg);
+    send(client_FD, welcome_msg, strlen(welcome_msg), 0);
 
-    while (true)
-    {
-        size_t bytes_received;
-        if ((bytes_received = recv(client_FD, p_buffer_cli, BUFFER_SIZE, 0)) > 0)
-        {
-            // TODO heere
-            send(client_FD, p_buffer_cli, BUFFER_SIZE, 0);
-            memset(p_buffer_cli, 0, BUFFER_SIZE);
-        }
-        else if (bytes_received == 0)
-        {
-            printf("The client '%s' terminated the connection\n", p_client_t->name);
-            break;
-        }
-        else
-        {
-            fprintf(stderr, "Failed to receive content from the client\n");
-            break;
-        }
-    }
+    // Add the socket descriptor to the shared list
 
-    memset(p_buffer_cli, 0, BUFFER_SIZE);
+
+    // Use assync I/O to share the messages
+    int quit_signal_val;
+    do {
+        // 
+        pthread_mutex_lock(p_mutex_usernames_ht);
+
+
+
+        pthread_mutex_unlock(p_mutex_usernames_ht);
+
+       
+        // Check if the server was request to finish by some thread
+        pthread_mutex_lock(p_mutex_quit_signal);
+        quit_signal_val = *p_quit_signal;
+        pthread_mutex_unlock(p_mutex_quit_signal);
+
+    } while (!quit_signal_val);
+
+    // Remove the username from the hash table
+    pthread_mutex_lock(p_mutex_usernames_ht);
+    hash_table_delete_element(p_usernames_ht, (const char *)p_client_t->name);
+    pthread_mutex_unlock(p_mutex_usernames_ht);
 
     return 0;
 }
@@ -72,38 +80,66 @@ int prepare_to_broadcast_chat(ClientInfo_t *p_client_t)
     char *p_name_cli = p_client_t->name;
     char *p_buffer_cli = p_client_t->buffer;
     int client_FD = p_client_t->sock_FD;
+    //
+    hash_table *p_usernames_ht = p_client_t->p_usernames_ht;
+    pthread_mutex_t *p_mutex_usernames_ht = p_client_t->p_mutex_usernames_ht;
 
     // Ask for a simple ID
     strcpy(p_buffer_cli, "\nOur newest guest! How can we call you? ");
     send(client_FD, p_buffer_cli, strlen(p_buffer_cli), 0);
 
-    // Assign its ID
-    memset(p_buffer_cli, 0, BUFFER_SIZE);
-    int bytes_received;
-    if ((bytes_received = recv(client_FD, p_buffer_cli, BUFFER_SIZE, 0)) < 0)
-    {
-        fprintf(stderr, "recv() function failed, with exit code %d\n", bytes_received);
-        exit(EXIT_FAILURE);
-    }
-    else if (bytes_received == 0)
-    {
-        fprintf(stderr, "Client terminated the connection.\n");
-        exit(EXIT_SUCCESS);
-    }
+    // Get pretended username
+    bool is_valid_username = false;
+    while (is_valid_username == false) {
 
-    // Assign the username to its struct (temporary memory)
-    if (bytes_received <= BUFFER_SIZE)
-    {
-        p_buffer_cli[bytes_received - 1] = '\0';
-    }
-    strcpy(p_name_cli, p_buffer_cli);
+        // Receive the pretended username
+        memset(p_buffer_cli, 0, BUFFER_SIZE);
+        int bytes_received;
+        if ((bytes_received = recv(client_FD, p_buffer_cli, BUFFER_SIZE, 0)) < 0)
+        {
+            perror("Error receiving the preferred name from the client");
+            exit(EXIT_FAILURE);
+        }
+        else if (bytes_received == 0)
+        {
+            printf("Client terminated the connection.\n");
+            exit(EXIT_SUCCESS);
+        }
 
-    // Send a customised welcome message
-    char message[BUFFER_SIZE];
-    strcpy(message, "Welcome to the broadcast channel, ");
-    strcat(message, p_name_cli);
-    strcat(message, "!\n");
-    send(client_FD, message, strlen(message), 0);
+        // Sanitize the input (and allow for a correct comparison of names)
+        if (bytes_received <= BUFFER_SIZE)
+        {
+            p_buffer_cli[bytes_received - 1] = '\0';
+        }
+
+        // Check if present in the session
+        pthread_mutex_lock(p_mutex_usernames_ht);
+        void *p_lookup_result = hash_table_lookup(p_usernames_ht, (const char *)p_buffer_cli); 
+        pthread_mutex_unlock(p_mutex_usernames_ht);
+        
+        if (p_lookup_result == NULL) {
+
+            // Assign the username to its struct (temporary memory)
+            strcpy(p_name_cli, p_buffer_cli);
+
+            // Inform the acceptance of the username
+            memset(p_buffer_cli, 0, BUFFER_SIZE);
+            strcpy(p_buffer_cli, "\nUsername accepted!\n");
+            send(client_FD, p_buffer_cli, strlen(p_buffer_cli), 0);
+
+            // Place the username in the hash table
+            pthread_mutex_lock(p_mutex_usernames_ht);
+            hash_table_insert(p_usernames_ht, p_name_cli, p_client_t);
+            pthread_mutex_unlock(p_mutex_usernames_ht);
+
+            is_valid_username = true;
+        }
+        else { // Report invalid username
+            memset(p_buffer_cli, 0, BUFFER_SIZE);
+            strcpy(p_buffer_cli, "\nThat username is present in the session...\nPlease, chose another: ");
+            send(client_FD, p_buffer_cli, strlen(p_buffer_cli), 0);
+        }
+    }
 
     return 0;
 }
