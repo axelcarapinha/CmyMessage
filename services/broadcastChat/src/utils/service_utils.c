@@ -133,6 +133,8 @@ void *search_for_thread_work(void *p_server_t_arg)
                 //
                 p_client_t->p_mutex_usernames_ht = p_mutex_usernames_ht;
                 p_client_t->p_usernames_ht = p_usernames_ht;
+                //
+                p_client_t->p_common_msg_buffer = p_server_t->p_common_msg_buffer;
 
                 // Forward the client to the desired service function
                 int (*functionPtr)(ClientInfo_t *) = p_client_t->p_service_func;
@@ -384,10 +386,21 @@ hash_table *get_usernames_hash_table_ptr()
     return p_usernames_ht;
 }
 
-// fd_set *get_set_of_clients_descriptors()
-// {
-//     fd_set *p_active_client_fd_set = (fd_set *)
-// }
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief
+ *
+ *
+ * @param
+ *
+ * @return
+ */
+fd_set *get_set_of_clients_descriptors()
+{
+    fd_set *p_online_clients_set;
+    FD_ZERO(p_online_clients_set);
+    return p_online_clients_set;
+}
 
 //----------------------------------------------------------------------------------------------------------
 
@@ -435,13 +448,26 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
     hash_table *p_usernames_ht = get_usernames_hash_table_ptr();
     if (p_usernames_ht == NULL)
     {
-        perror("Error, unexpected value for the pointer of the usernames table. Possibel creation failure.");
+        perror("Error, unexpected value for the pointer of the usernames table. Possible creation failure.");
         return -1;
     }
     p_server_t->p_usernames_ht = p_usernames_ht;
 
     // Know what clients are online
-    // get_set_of_clients_descriptors();
+    fd_set *p_online_clients_set = get_set_of_clients_descriptors();
+    if (p_online_clients_set == NULL)
+    {
+        perror("Error, unexpected value for the pointer of the online clients socket descriptors set. Possible creation failure.");
+        return -1;
+    }
+    p_server_t->p_online_clients_set = p_online_clients_set;
+    //
+    int *p_max_socket_so_far = (int *)malloc(sizeof(int));
+    p_server_t->p_max_socket_so_far = p_max_socket_so_far;
+
+    // Prepare the buffer for the common messages
+    char *p_common_msg_buffer = (char *)malloc(BUFFER_SIZE * MAX_QUEUE_SIZE); //TODO change for the total number of clients
+    p_server_t->p_common_msg_buffer = p_common_msg_buffer;
 
     // Does NOT return error values because it ends the execution in that case
     // (the consequences would be too critical to handle)

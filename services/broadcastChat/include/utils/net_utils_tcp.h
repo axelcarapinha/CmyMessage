@@ -53,6 +53,10 @@ struct ClientInfo_t
     pthread_mutex_t *p_mutex_quit_signal;
     hash_table *p_usernames_ht;
     pthread_mutex_t *p_mutex_usernames_ht; // client's hash table
+    //
+    fd_set *p_online_clients_set;
+    pthread_mutex_t *p_mutex_online_clients_set;
+    char *p_common_msg_buffer;
 };
 
 // If the system or network configs does NOT support dual-stack sockets,
@@ -84,7 +88,12 @@ typedef struct
     //
     pthread_mutex_t *p_mutex_usernames_ht;
     hash_table *p_usernames_ht;
-
+    //
+    //TODO use in a separate struct (avoid many locks)
+    fd_set *p_online_clients_set;
+    pthread_mutex_t *p_mutex_online_clients_set;
+    int *p_max_socket_so_far; 
+    char *p_common_msg_buffer;
 } UniSocket_t;
 // TODO check the server closing function after all changes in the utils code
 

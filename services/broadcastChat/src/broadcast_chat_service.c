@@ -7,12 +7,12 @@
  * @param a
  */
 
-//TODO consider a variable to allow for verificatino from all the threads
+// TODO consider a variable to allow for verificatino from all the threads
 
 int broadcast_client(ClientInfo_t *p_client_t)
 {
     // Put the needed pointers in more practical variables
-    char *p_name_cli = p_client_t->name; //TODO change the name from the client side
+    char *p_name_cli = p_client_t->name; // TODO change the name from the client side
     char *p_buffer_cli = p_client_t->buffer;
     int client_FD = p_client_t->sock_FD;
     //
@@ -20,6 +20,11 @@ int broadcast_client(ClientInfo_t *p_client_t)
     pthread_mutex_t *p_mutex_usernames_ht = p_client_t->p_mutex_usernames_ht;
     volatile sig_atomic_t *p_quit_signal = p_client_t->p_quit_signal;
     hash_table *p_usernames_ht = p_client_t->p_usernames_ht;
+    //
+    pthread_mutex_t *p_mutex_online_clients_set = p_client_t->p_mutex_online_clients_set;
+    fd_set *p_online_clients_set = p_client_t->p_online_clients_set;
+
+    //TODO use a common buffer for the final common message
 
     // Send a customised WELCOME message
     memset(p_buffer_cli, 0, BUFFER_SIZE);
@@ -30,21 +35,70 @@ int broadcast_client(ClientInfo_t *p_client_t)
     //
     strcpy(p_buffer_cli, welcome_msg);
     send(client_FD, welcome_msg, strlen(welcome_msg), 0);
+    char *p_common_msg_buffer = p_client_t->p_common_msg_buffer;
 
     // Add the socket descriptor to the shared list
-
+    pthread_mutex_lock(p_mutex_online_clients_set);
+    FD_SET(p_client_t->sock_FD, *p_online_clients_set);
+    pthread_mutex_unlock(p_mutex_online_clients_set);
 
     // Use assync I/O to share the messages
+    fd_set ready_sockets_set;
     int quit_signal_val;
-    do {
-        // 
+    do
+    {
+        //
+        pthread_mutex_lock(p_mutex_online_clients_set);
+        ready_sockets_set = *p_online_clients_set;
+        if (select(__FD_SETSIZE, &ready_sockets_set, NULL, NULL, NULL) < 0)
+        {
+            perror("Error select while broadcasting clients");
+            exit(EXIT_FAILURE);
+        }
+        //
+        int tot_num_bytes_recv = 0;
+        for (int i = 0; i < __FD_SETSIZE; i++)
+        {
+            if (FD_ISSET(i, &ready_sockets_set))
+            {
+                // Receive the content that the user MAY have sent
+                memset(p_buffer_cli, 0, BUFFER_SIZE); //TODO avoid so much memset with strategic '\0'
+                int bytes_received;
+                if ((bytes_received = recv(i, p_buffer_cli, BUFFER_SIZE, 0)) < 0)
+                {
+                    perror("Error receiving content from one of the clients");
+                }
+                else if (bytes_received == 0)
+                {
+                    printf("Client terminated the connection.\n");
+                    close_socket_with_ptr_if_open(&i);
+                }
+                tot_num_bytes_recv += bytes_received;
+
+                // Append that message to be broadcasted later
+                strcat(p_common_msg_buffer, p_buffer_cli);
+            }
+        }
+        pthread_mutex_unlock(p_mutex_online_clients_set);
+
+        // Broadcast the content from the active clients
+        p_buffer_cli[tot_num_bytes_recv - 1] = '\0';
+        
+        //
         pthread_mutex_lock(p_mutex_usernames_ht);
+        for (uint32_t i = 0; i < p_usernames_ht->size; i++)
+        {
+            if (p_usernames_ht->elements[i] != NULL)
+            {
+                // Find the element, if it exists
+                entry *p_temp = p_usernames_ht->elements[i];
+                while (p_temp != NULL)
+                {
+                    send(i, p_common_msg_buffer, strlen(p_common_msg_buffer), 0);
+                }
+            }
+        }
 
-
-
-        pthread_mutex_unlock(p_mutex_usernames_ht);
-
-       
         // Check if the server was request to finish by some thread
         pthread_mutex_lock(p_mutex_quit_signal);
         quit_signal_val = *p_quit_signal;
@@ -90,7 +144,8 @@ int prepare_to_broadcast_chat(ClientInfo_t *p_client_t)
 
     // Get pretended username
     bool is_valid_username = false;
-    while (is_valid_username == false) {
+    while (is_valid_username == false)
+    {
 
         // Receive the pretended username
         memset(p_buffer_cli, 0, BUFFER_SIZE);
@@ -114,10 +169,11 @@ int prepare_to_broadcast_chat(ClientInfo_t *p_client_t)
 
         // Check if present in the session
         pthread_mutex_lock(p_mutex_usernames_ht);
-        void *p_lookup_result = hash_table_lookup(p_usernames_ht, (const char *)p_buffer_cli); 
+        void *p_lookup_result = hash_table_lookup(p_usernames_ht, (const char *)p_buffer_cli);
         pthread_mutex_unlock(p_mutex_usernames_ht);
-        
-        if (p_lookup_result == NULL) {
+
+        if (p_lookup_result == NULL)
+        {
 
             // Assign the username to its struct (temporary memory)
             strcpy(p_name_cli, p_buffer_cli);
@@ -134,7 +190,8 @@ int prepare_to_broadcast_chat(ClientInfo_t *p_client_t)
 
             is_valid_username = true;
         }
-        else { // Report invalid username
+        else
+        { // Report invalid username
             memset(p_buffer_cli, 0, BUFFER_SIZE);
             strcpy(p_buffer_cli, "\nThat username is present in the session...\nPlease, chose another: ");
             send(client_FD, p_buffer_cli, strlen(p_buffer_cli), 0);
