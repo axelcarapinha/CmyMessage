@@ -15,11 +15,6 @@ int broadcast_client(ClientInfo_t *p_client_t)
     char *p_buffer_cli = p_client_t->buffer;
     int client_FD = p_client_t->sock_FD;
     //
-
-    //TODO retirar isto
-    const char* another = "WIll start the party heheh";
-    send(client_FD, another, strlen(another), 0);
-
     pthread_mutex_t *p_mutex_quit_signal = p_client_t->p_mutex_quit_signal;
     pthread_mutex_t *p_mutex_usernames_ht = p_client_t->p_mutex_usernames_ht;
     volatile sig_atomic_t *p_quit_signal = p_client_t->p_quit_signal;
@@ -52,7 +47,7 @@ int broadcast_client(ClientInfo_t *p_client_t)
         // Create the set of clients
         pthread_mutex_lock(p_mutex_online_clients_set);
         ready_sockets_set = *p_online_clients_set;
-        pthread_mutex_unlock(p_mutex_online_clients_set); // TODO ver se pode ser aqui
+        pthread_mutex_unlock(p_mutex_online_clients_set); 
         if (select(FD_SETSIZE, &ready_sockets_set, NULL, NULL, NULL) < 0)
         {
             perror("Error select while broadcasting clients");
@@ -70,26 +65,42 @@ int broadcast_client(ClientInfo_t *p_client_t)
                 if ((bytes_received = recv(i, p_buffer_cli, BUFFER_SIZE, 0)) < 0)
                 {
                     perror("Error receiving content from one of the clients. Maybe terminated the connection.");
-                    //
-                    FD_CLR(i, &ready_sockets_set);
-                    //
+
+                    // Remove the error socket...
+                    FD_CLR(i, &ready_sockets_set); // ...from the current set
+                    pthread_mutex_lock(p_mutex_online_clients_set);
+                    FD_CLR(i, p_online_clients_set); // ...from the online set
+                    pthread_mutex_unlock(p_mutex_online_clients_set); 
+
+                    // Make the used username available for the next clients
                     pthread_mutex_lock(p_mutex_usernames_ht);
                     hash_table_delete_element(p_usernames_ht, (const char *)p_client_t->name);
                     pthread_mutex_unlock(p_mutex_usernames_ht);
-                    return 0;
+
+                    // Leave the broadcast for another thread
+                    // if the user with error was the one handled by this one //TODO considerar mudar isto
+                    if (i == p_client_t->sock_FD) {
+                        return 0;
+                    }
                 }
                 else if (bytes_received == 0)
                 {
                     perror("Client terminated the connection");
-                    FD_CLR(i, &ready_sockets_set);
+
+                    // Remove the error socket...
+                    FD_CLR(i, &ready_sockets_set); // ...from the current set
+                    pthread_mutex_lock(p_mutex_online_clients_set);
+                    FD_CLR(i, p_online_clients_set); // ...from the online set
+                    pthread_mutex_unlock(p_mutex_online_clients_set); 
+
                     //
                     // pthread_mutex_lock(p_mutex_usernames_ht);
                     // hash_table_delete_element(p_usernames_ht, (const char *)p_client_t->name);
                     // pthread_mutex_unlock(p_mutex_usernames_ht);
                     //
-                    close_socket_with_ptr_if_open(&i);
+                    // close_socket_with_ptr_if_open(&i);
                     //
-                    return 0;
+                    // return 0;
                 }
                 else
                 {
