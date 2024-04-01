@@ -67,6 +67,7 @@ typedef struct
     fd_set *p_online_clients_set;
     pthread_mutex_t *p_mutex_online_clients_set;
     int *p_max_socket_so_far;
+    pthread_mutex_t *p_mutex_common_msg_buffer;
     char *p_common_msg_buffer;
 } UniSocket_t;
 // TODO check the server closing function after all changes in the utils code

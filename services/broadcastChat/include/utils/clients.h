@@ -36,6 +36,8 @@ struct ClientInfo_t
     //
     fd_set *p_online_clients_set;
     pthread_mutex_t *p_mutex_online_clients_set;
+    //
+    pthread_mutex_t *p_mutex_common_msg_buffer;
     char *p_common_msg_buffer;
 };
 

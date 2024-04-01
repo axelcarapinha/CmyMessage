@@ -7,6 +7,13 @@
  * @param a
  */
 
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief
+ *
+ * @param a
+ */
+
 // TODO consider a variable to allow for verificatino from all the threads
 int broadcast_client(ClientInfo_t *p_client_t)
 {
@@ -22,6 +29,10 @@ int broadcast_client(ClientInfo_t *p_client_t)
     //
     pthread_mutex_t *p_mutex_online_clients_set = p_client_t->p_mutex_online_clients_set;
     fd_set *p_online_clients_set = p_client_t->p_online_clients_set;
+    //
+    char *p_client_msg_edited = (char *)malloc(BUFFER_SIZE + MAX_NUM_CLIENTS + 3);
+    // 
+    pthread_mutex_t *p_mutex_common_msg_buffer = p_client_t->p_mutex_common_msg_buffer;
 
     // Send a customised WELCOME message
     memset(p_buffer_cli, 0, BUFFER_SIZE);
@@ -47,14 +58,18 @@ int broadcast_client(ClientInfo_t *p_client_t)
         // Create the set of clients
         pthread_mutex_lock(p_mutex_online_clients_set);
         ready_sockets_set = *p_online_clients_set;
-        pthread_mutex_unlock(p_mutex_online_clients_set); 
+        pthread_mutex_unlock(p_mutex_online_clients_set);
         if (select(FD_SETSIZE, &ready_sockets_set, NULL, NULL, NULL) < 0)
         {
             perror("Error select while broadcasting clients");
             exit(EXIT_FAILURE);
         }
-        //
+        
+        // Reset possible previous messages from the buffer
+        memset(p_common_msg_buffer, 0, BUFFER_SIZE + MAX_NUM_CLIENTS + 3);
         int tot_num_bytes_recv = 0;
+        
+        // Gather the data from the different clients
         for (int i = 0; i < FD_SETSIZE; i++)
         {
             if (FD_ISSET(i, &ready_sockets_set))
@@ -67,10 +82,10 @@ int broadcast_client(ClientInfo_t *p_client_t)
                     perror("Error receiving content from one of the clients. Maybe terminated the connection.");
 
                     // Remove the error socket...
-                    FD_CLR(i, &ready_sockets_set); // ...from the current set
+                    FD_CLR(i, &ready_sockets_set); // ...from the CURRENT set
                     pthread_mutex_lock(p_mutex_online_clients_set);
-                    FD_CLR(i, p_online_clients_set); // ...from the online set
-                    pthread_mutex_unlock(p_mutex_online_clients_set); 
+                    FD_CLR(i, p_online_clients_set); // ...from the ONLINE set
+                    pthread_mutex_unlock(p_mutex_online_clients_set);
 
                     // Make the used username available for the next clients
                     pthread_mutex_lock(p_mutex_usernames_ht);
@@ -78,8 +93,10 @@ int broadcast_client(ClientInfo_t *p_client_t)
                     pthread_mutex_unlock(p_mutex_usernames_ht);
 
                     // Leave the broadcast for another thread
-                    // if the user with error was the one handled by this one //TODO considerar mudar isto
-                    if (i == p_client_t->sock_FD) {
+                    // if the user with error was the one handled by this one
+                    // because there will be other threads handling newcome clients
+                    if (i == p_client_t->sock_FD)
+                    {
                         return 0;
                     }
                 }
@@ -91,48 +108,68 @@ int broadcast_client(ClientInfo_t *p_client_t)
                     FD_CLR(i, &ready_sockets_set); // ...from the current set
                     pthread_mutex_lock(p_mutex_online_clients_set);
                     FD_CLR(i, p_online_clients_set); // ...from the online set
-                    pthread_mutex_unlock(p_mutex_online_clients_set); 
+                    pthread_mutex_unlock(p_mutex_online_clients_set);
 
-                    //
+                    // Make the used username available for the next clients
                     // pthread_mutex_lock(p_mutex_usernames_ht);
                     // hash_table_delete_element(p_usernames_ht, (const char *)p_client_t->name);
                     // pthread_mutex_unlock(p_mutex_usernames_ht);
-                    //
-                    // close_socket_with_ptr_if_open(&i);
-                    //
-                    // return 0;
+
+                    close_socket_with_ptr_if_open(&i);
                 }
                 else
                 {
                     tot_num_bytes_recv += bytes_received;
 
-                    // Append that message to be broadcasted later
-                    // strcat(p_common_msg_buffer, p_buffer_cli);
-                    send(i, p_buffer_cli, strlen(p_buffer_cli), 0);
+                    //TODO generalize the leftmost part of the message
+                    // if (i == p_client_t->sock_FD) {
+                    //     char *p_client_msg_edited = (char *)malloc(BUFFER_SIZE + MAX_NUM_CLIENTS + 3);
+                    //     sprintf(p_client_msg_edited, "User %d> %s", i, p_buffer_cli);     
+                    // }
 
-                    // const char *here = "\nDID IT!\n";
-                    // send(p_client_t->sock_FD, here, strlen(here), 0);
+                    // message + number of the socket descriptor + spaces
+                    pthread_mutex_lock(p_mutex_common_msg_buffer);
+                    sprintf(p_client_msg_edited, "User %d> %s", i, p_buffer_cli);
+                    strcat(p_common_msg_buffer, p_client_msg_edited);
+                    pthread_mutex_unlock(p_mutex_common_msg_buffer);
+                    //
+                    memset(p_client_msg_edited, 0, BUFFER_SIZE);
                 }
             }
         }
 
-        // // Broadcast the content from the active clients
+        // Broadcast the message
+        // int send_status;
         // p_buffer_cli[tot_num_bytes_recv - 1] = '\0';
-
-        // // Broadcast the message to ALL active clients
-        // pthread_mutex_lock(p_mutex_usernames_ht);
-        // for (uint32_t i = 0; i < p_usernames_ht->size; i++)
+        // if ((send_status = send(p_client_t->sock_FD, p_common_msg_buffer, strlen(p_common_msg_buffer), 0)) < 0)
         // {
-        //     if (p_usernames_ht->elements[i] != NULL)
-        //     {
-        //         // Get all the usernames present in the hash table at the moment
-        //         entry *p_temp = p_usernames_ht->elements[i];
-        //         while (p_temp != NULL)
-        //         {
-        //             send(i, p_common_msg_buffer, strlen(p_common_msg_buffer), 0);
-        //         }
-        //     }
+        //     perror("Error sending the message to the client");
         // }
+
+        // Broadcast the message to ALL active clients
+        p_buffer_cli[tot_num_bytes_recv - 1] = '\0'; 
+        pthread_mutex_lock(p_mutex_usernames_ht);
+        for (uint32_t i = 0; i < p_usernames_ht->size; i++)
+        {            
+            if (p_usernames_ht->elements[i] != NULL) 
+            {
+                // Get all the usernames present in the hash table at the moment
+                entry *p_temp = p_usernames_ht->elements[i];
+                while (p_temp != NULL)
+                {
+                    ClientInfo_t *p_target_client_t = hash_table_lookup(p_usernames_ht, (const char *)p_temp->p_key);
+                    send(p_target_client_t->sock_FD, p_common_msg_buffer, strlen(p_common_msg_buffer), 0);
+
+                    // TODO tirar muita coisa de aqui
+                    // send(p_client_t->sock_FD, p_common_msg_buffer, strlen(p_common_msg_buffer), 0);
+
+
+                    // Get the next user (if stored)
+                    p_temp = p_temp->p_next;
+                }
+            }
+        }
+        pthread_mutex_unlock(p_mutex_usernames_ht);
 
         // Check if the server was request to finish by some thread
         pthread_mutex_lock(p_mutex_quit_signal);

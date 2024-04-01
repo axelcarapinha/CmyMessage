@@ -113,6 +113,8 @@ void *search_for_thread_work(void *p_server_t_arg)
     //
     pthread_mutex_t *p_mutex_online_clients_set = p_server_t->p_mutex_online_clients_set;
     fd_set *p_online_clients_set = p_server_t->p_online_clients_set;
+    //
+    pthread_mutex_t *p_mutex_common_msg_buffer = p_server_t->p_mutex_common_msg_buffer;
     pthread_mutex_unlock(&g_mutex_server);
 
     int quit_signal_val;
@@ -143,6 +145,7 @@ void *search_for_thread_work(void *p_server_t_arg)
                 p_client_t->p_mutex_online_clients_set = p_mutex_online_clients_set;
                 p_client_t->p_online_clients_set = p_online_clients_set;
                 //
+                p_client_t->p_mutex_common_msg_buffer = p_mutex_common_msg_buffer;
                 p_client_t->p_common_msg_buffer = p_server_t->p_common_msg_buffer; // TODO
 
                 // Forward the client to the desired service function
@@ -355,6 +358,20 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
         exit(EXIT_FAILURE);
     }
     p_server_t->p_mutex_online_clients_set = p_mutex_online_clients_set;
+    //
+    pthread_mutex_t *p_mutex_common_msg_buffer = malloc(sizeof(pthread_mutex_t));
+    if (p_mutex_common_msg_buffer == NULL)
+    {
+        perror("Error allocating memory for the COMMON MSG BUFFER mutex");
+        exit(EXIT_FAILURE);
+    }
+    if (pthread_mutex_init(p_mutex_common_msg_buffer, NULL) != 0)
+    {
+        perror("Error initializing the COMMON MSG BUFFER mutex");
+        free(p_mutex_common_msg_buffer);
+        exit(EXIT_FAILURE);
+    }
+    p_server_t->p_mutex_common_msg_buffer = p_mutex_common_msg_buffer;
 
     // Quit signal (to finish threads gracefully)
     volatile sig_atomic_t *p_quit_signal = malloc(sizeof(sig_atomic_t));

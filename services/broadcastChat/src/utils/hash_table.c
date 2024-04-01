@@ -59,12 +59,14 @@ void *hash_table_lookup(hash_table *p_ht, ELEMENT_TYPE *p_key)
 
     // Try to find the desired element
     entry *p_temp = p_ht->elements[index];
-    while (p_temp != NULL && strcmp(p_temp->p_key, p_key) != 0)
+    while (p_temp != NULL && strcmp(p_temp->p_key, p_key) != 0) {
         p_temp = p_temp->p_next;
+    }
 
     // The element was not found
-    if (p_temp == NULL)
+    if (p_temp == NULL) {
         return NULL;
+    }
 
     return (OBJECT_TYPE *)p_temp->p_object;
 }
