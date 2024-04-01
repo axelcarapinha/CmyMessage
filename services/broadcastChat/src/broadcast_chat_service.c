@@ -8,7 +8,6 @@
  */
 
 // TODO consider a variable to allow for verificatino from all the threads
-
 int broadcast_client(ClientInfo_t *p_client_t)
 {
     // Put the needed pointers in more practical variables
@@ -16,6 +15,11 @@ int broadcast_client(ClientInfo_t *p_client_t)
     char *p_buffer_cli = p_client_t->buffer;
     int client_FD = p_client_t->sock_FD;
     //
+
+    //TODO retirar isto
+    const char* another = "WIll start the party heheh";
+    send(client_FD, another, strlen(another), 0);
+
     pthread_mutex_t *p_mutex_quit_signal = p_client_t->p_mutex_quit_signal;
     pthread_mutex_t *p_mutex_usernames_ht = p_client_t->p_mutex_usernames_ht;
     volatile sig_atomic_t *p_quit_signal = p_client_t->p_quit_signal;
@@ -23,8 +27,6 @@ int broadcast_client(ClientInfo_t *p_client_t)
     //
     pthread_mutex_t *p_mutex_online_clients_set = p_client_t->p_mutex_online_clients_set;
     fd_set *p_online_clients_set = p_client_t->p_online_clients_set;
-
-    //TODO use a common buffer for the final common message
 
     // Send a customised WELCOME message
     memset(p_buffer_cli, 0, BUFFER_SIZE);
@@ -39,7 +41,7 @@ int broadcast_client(ClientInfo_t *p_client_t)
 
     // Add the socket descriptor to the shared list
     pthread_mutex_lock(p_mutex_online_clients_set);
-    FD_SET(p_client_t->sock_FD, *p_online_clients_set);
+    FD_SET(p_client_t->sock_FD, p_online_clients_set);
     pthread_mutex_unlock(p_mutex_online_clients_set);
 
     // Use assync I/O to share the messages
@@ -47,57 +49,79 @@ int broadcast_client(ClientInfo_t *p_client_t)
     int quit_signal_val;
     do
     {
-        //
+        // Create the set of clients
         pthread_mutex_lock(p_mutex_online_clients_set);
         ready_sockets_set = *p_online_clients_set;
-        if (select(__FD_SETSIZE, &ready_sockets_set, NULL, NULL, NULL) < 0)
+        pthread_mutex_unlock(p_mutex_online_clients_set); // TODO ver se pode ser aqui
+        if (select(FD_SETSIZE, &ready_sockets_set, NULL, NULL, NULL) < 0)
         {
             perror("Error select while broadcasting clients");
             exit(EXIT_FAILURE);
         }
         //
         int tot_num_bytes_recv = 0;
-        for (int i = 0; i < __FD_SETSIZE; i++)
+        for (int i = 0; i < FD_SETSIZE; i++)
         {
             if (FD_ISSET(i, &ready_sockets_set))
             {
                 // Receive the content that the user MAY have sent
-                memset(p_buffer_cli, 0, BUFFER_SIZE); //TODO avoid so much memset with strategic '\0'
+                memset(p_buffer_cli, 0, BUFFER_SIZE); // TODO avoid so much memset with strategic '\0'
                 int bytes_received;
                 if ((bytes_received = recv(i, p_buffer_cli, BUFFER_SIZE, 0)) < 0)
                 {
-                    perror("Error receiving content from one of the clients");
+                    perror("Error receiving content from one of the clients. Maybe terminated the connection.");
+                    //
+                    FD_CLR(i, &ready_sockets_set);
+                    //
+                    pthread_mutex_lock(p_mutex_usernames_ht);
+                    hash_table_delete_element(p_usernames_ht, (const char *)p_client_t->name);
+                    pthread_mutex_unlock(p_mutex_usernames_ht);
+                    return 0;
                 }
                 else if (bytes_received == 0)
                 {
-                    printf("Client terminated the connection.\n");
+                    perror("Client terminated the connection");
+                    FD_CLR(i, &ready_sockets_set);
+                    //
+                    // pthread_mutex_lock(p_mutex_usernames_ht);
+                    // hash_table_delete_element(p_usernames_ht, (const char *)p_client_t->name);
+                    // pthread_mutex_unlock(p_mutex_usernames_ht);
+                    //
                     close_socket_with_ptr_if_open(&i);
+                    //
+                    return 0;
                 }
-                tot_num_bytes_recv += bytes_received;
-
-                // Append that message to be broadcasted later
-                strcat(p_common_msg_buffer, p_buffer_cli);
-            }
-        }
-        pthread_mutex_unlock(p_mutex_online_clients_set);
-
-        // Broadcast the content from the active clients
-        p_buffer_cli[tot_num_bytes_recv - 1] = '\0';
-        
-        //
-        pthread_mutex_lock(p_mutex_usernames_ht);
-        for (uint32_t i = 0; i < p_usernames_ht->size; i++)
-        {
-            if (p_usernames_ht->elements[i] != NULL)
-            {
-                // Find the element, if it exists
-                entry *p_temp = p_usernames_ht->elements[i];
-                while (p_temp != NULL)
+                else
                 {
-                    send(i, p_common_msg_buffer, strlen(p_common_msg_buffer), 0);
+                    tot_num_bytes_recv += bytes_received;
+
+                    // Append that message to be broadcasted later
+                    // strcat(p_common_msg_buffer, p_buffer_cli);
+                    send(i, p_buffer_cli, strlen(p_buffer_cli), 0);
+
+                    // const char *here = "\nDID IT!\n";
+                    // send(p_client_t->sock_FD, here, strlen(here), 0);
                 }
             }
         }
+
+        // // Broadcast the content from the active clients
+        // p_buffer_cli[tot_num_bytes_recv - 1] = '\0';
+
+        // // Broadcast the message to ALL active clients
+        // pthread_mutex_lock(p_mutex_usernames_ht);
+        // for (uint32_t i = 0; i < p_usernames_ht->size; i++)
+        // {
+        //     if (p_usernames_ht->elements[i] != NULL)
+        //     {
+        //         // Get all the usernames present in the hash table at the moment
+        //         entry *p_temp = p_usernames_ht->elements[i];
+        //         while (p_temp != NULL)
+        //         {
+        //             send(i, p_common_msg_buffer, strlen(p_common_msg_buffer), 0);
+        //         }
+        //     }
+        // }
 
         // Check if the server was request to finish by some thread
         pthread_mutex_lock(p_mutex_quit_signal);
@@ -289,5 +313,5 @@ int prepare_client_for_broadcast_and_start(ClientInfo_t *p_client_t)
         return exit_status;
     }
 
-    free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
+    // free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
 }

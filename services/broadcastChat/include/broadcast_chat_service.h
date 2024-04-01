@@ -13,8 +13,6 @@
 // TODO use the config file
 //  Default values
 #define DEFAULT_PORT 8041
-#define BUFFER_SIZE 1500 // widely used in LANs (size of ethernet packets)
-#define DEFAULT_MAX_NUM_CLIENTS 30
 #define MAX_NUM_CLIENTS 2
 //
 #define USERNAMES_HASH_SEED 23

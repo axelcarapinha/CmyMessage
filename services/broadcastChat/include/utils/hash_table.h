@@ -7,9 +7,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "clients.h"
+
 #define ELEMENT_TYPE const char // RECOMMENDED (does not involve changing code)
-#define OBJECT_TYPE int
-//
+#define OBJECT_TYPE ClientInfo_t
 
 
 //TODO use dynamic libraries to avoid circular dependencies

@@ -8,6 +8,11 @@
 
 #define CLOSE_SERVER 1
 
+// Settings
+#define BUFFER_SIZE 1500 // widely used in LANs (size of ethernet packets)
+#define DEFAULT_MAX_NUM_CLIENTS 30
+
+
 // Function prototypes
 int start_service(int port, ServiceFunctionPtr p_server_t);
 int start_accepting_incoming_connections(UniSocket_t *p_server_t);

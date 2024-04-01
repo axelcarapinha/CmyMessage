@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/select.h>
 #include <unistd.h>
 #include <time.h>
 #include <stdbool.h>
@@ -14,8 +15,9 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <signal.h>
-// TODO verify unnecessary imports here
 
+// TODO verify unnecessary imports here
+#include "clients.h"
 #include "hash_table.h"
 
 // Colors for stdout text
@@ -30,34 +32,6 @@
 
 // Settings
 #define SIZE_THREAD_POOL 3
-
-// Forward-declared to avoid circular dependencies
-typedef struct ClientInfo_t ClientInfo_t;
-typedef int (*ServiceFunctionPtr)(ClientInfo_t *);
-
-struct ClientInfo_t
-{
-    // Specifically ALLOCATED in the usages
-    struct sockaddr *p_addr;
-    socklen_t *p_addr_len;
-    char *buffer;
-
-    // Within the struct
-    int sock_FD;
-    char *addr_info;
-    char *name;
-    char *recipient;
-    ServiceFunctionPtr p_service_func;
-    //
-    volatile sig_atomic_t *p_quit_signal;
-    pthread_mutex_t *p_mutex_quit_signal;
-    hash_table *p_usernames_ht;
-    pthread_mutex_t *p_mutex_usernames_ht; // client's hash table
-    //
-    fd_set *p_online_clients_set;
-    pthread_mutex_t *p_mutex_online_clients_set;
-    char *p_common_msg_buffer;
-};
 
 // If the system or network configs does NOT support dual-stack sockets,
 // this approach, while NOT recommended, allows the server to accept only IPv4 connections.
@@ -89,10 +63,10 @@ typedef struct
     pthread_mutex_t *p_mutex_usernames_ht;
     hash_table *p_usernames_ht;
     //
-    //TODO use in a separate struct (avoid many locks)
+    // TODO use in a separate struct (avoid many locks)
     fd_set *p_online_clients_set;
     pthread_mutex_t *p_mutex_online_clients_set;
-    int *p_max_socket_so_far; 
+    int *p_max_socket_so_far;
     char *p_common_msg_buffer;
 } UniSocket_t;
 // TODO check the server closing function after all changes in the utils code

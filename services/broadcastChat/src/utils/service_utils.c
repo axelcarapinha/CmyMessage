@@ -93,6 +93,9 @@ int join_thread_and_handle_errors(pthread_t *p_thread_ID)
  *
  * @return None
  */
+
+// TODO consider allocating memory for the expected number of clients, and reusing
+// TODO instead of allocating every time
 void *search_for_thread_work(void *p_server_t_arg)
 {
     UniSocket_t *p_server_t = (UniSocket_t *)p_server_t_arg;
@@ -107,6 +110,9 @@ void *search_for_thread_work(void *p_server_t_arg)
     //
     pthread_mutex_t *p_mutex_usernames_ht = p_server_t->p_mutex_usernames_ht;
     hash_table *p_usernames_ht = p_server_t->p_usernames_ht;
+    //
+    pthread_mutex_t *p_mutex_online_clients_set = p_server_t->p_mutex_online_clients_set;
+    fd_set *p_online_clients_set = p_server_t->p_online_clients_set;
     pthread_mutex_unlock(&g_mutex_server);
 
     int quit_signal_val;
@@ -134,7 +140,10 @@ void *search_for_thread_work(void *p_server_t_arg)
                 p_client_t->p_mutex_usernames_ht = p_mutex_usernames_ht;
                 p_client_t->p_usernames_ht = p_usernames_ht;
                 //
-                p_client_t->p_common_msg_buffer = p_server_t->p_common_msg_buffer;
+                p_client_t->p_mutex_online_clients_set = p_mutex_online_clients_set;
+                p_client_t->p_online_clients_set = p_online_clients_set;
+                //
+                p_client_t->p_common_msg_buffer = p_server_t->p_common_msg_buffer; // TODO
 
                 // Forward the client to the desired service function
                 int (*functionPtr)(ClientInfo_t *) = p_client_t->p_service_func;
@@ -332,6 +341,20 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
         exit(EXIT_FAILURE);
     }
     p_server_t->p_mutex_usernames_ht = p_mutex_usernames_ht;
+    //
+    pthread_mutex_t *p_mutex_online_clients_set = malloc(sizeof(pthread_mutex_t));
+    if (p_mutex_online_clients_set == NULL)
+    {
+        perror("Error allocating memory for the CLIENT'S ONLINE CLIENTS SET mutex");
+        exit(EXIT_FAILURE);
+    }
+    if (pthread_mutex_init(p_mutex_online_clients_set, NULL) != 0)
+    {
+        perror("Error initializing the CLIENT'S ONLINE CLIENTS SET mutex");
+        free(p_mutex_online_clients_set);
+        exit(EXIT_FAILURE);
+    }
+    p_server_t->p_mutex_online_clients_set = p_mutex_online_clients_set;
 
     // Quit signal (to finish threads gracefully)
     volatile sig_atomic_t *p_quit_signal = malloc(sizeof(sig_atomic_t));
@@ -397,7 +420,13 @@ hash_table *get_usernames_hash_table_ptr()
  */
 fd_set *get_set_of_clients_descriptors()
 {
-    fd_set *p_online_clients_set;
+    fd_set *p_online_clients_set = malloc(sizeof(fd_set));
+    if (p_online_clients_set == NULL)
+    {
+        perror("Error allocating memory for the set of socket descriptors for the clients");
+        return NULL;
+    }
+
     FD_ZERO(p_online_clients_set);
     return p_online_clients_set;
 }
@@ -453,7 +482,7 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
     }
     p_server_t->p_usernames_ht = p_usernames_ht;
 
-    // Know what clients are online
+    // To know which clients are ONLINE
     fd_set *p_online_clients_set = get_set_of_clients_descriptors();
     if (p_online_clients_set == NULL)
     {
@@ -462,11 +491,11 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
     }
     p_server_t->p_online_clients_set = p_online_clients_set;
     //
-    int *p_max_socket_so_far = (int *)malloc(sizeof(int));
+    int *p_max_socket_so_far = (int *)malloc(sizeof(int)); // TODO
     p_server_t->p_max_socket_so_far = p_max_socket_so_far;
 
-    // Prepare the buffer for the common messages
-    char *p_common_msg_buffer = (char *)malloc(BUFFER_SIZE * MAX_QUEUE_SIZE); //TODO change for the total number of clients
+    // Prepare the buffer for the common messages //TODO
+    char *p_common_msg_buffer = (char *)malloc(BUFFER_SIZE * DEFAULT_MAX_NUM_CLIENTS); // TODO change for the total number of clients
     p_server_t->p_common_msg_buffer = p_common_msg_buffer;
 
     // Does NOT return error values because it ends the execution in that case
