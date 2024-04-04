@@ -1,33 +1,13 @@
 #include "broadcast_chat_service.h"
 
-pthread_mutex_t g_mutex_did_prepare_service_data;
-//
- typedef struct
-{
-    pthread_mutex_t p_mutex_broadcast_cond_var;
-    pthread_cond_t g_broadcast_condition_var;
-    //
-    pthread_mutex_t *p_mutex_working_bool;
-    pthread_mutex_t *p_mutex_usernames_by_FD_arr;
-    //
-    bool is_broadcasting;
-    bool did_prepare_service_data;
-} ThreadControl_t;
-
-typedef struct
-{
-    char **usernames_by_FD_arr; // easily map the name of the client to its file descriptor
-    ThreadControl_t *p_threads_t;
-
-} BroadcastControllers_t;
-
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief
-
- * @param
+ * @brief Sends a customized welcome message to a client.
  *
- * @return
+ * This function retrieves necessary data from the client, constructs a welcome
+ * message including the client's name, and sends it to the client.
+ *
+ * @param p_client_t Pointer to the structure containing client information.
  */
 void send_customized_welcome_message(ClientInfo_t *p_client_t)
 {
@@ -48,11 +28,14 @@ void send_customized_welcome_message(ClientInfo_t *p_client_t)
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief
-
- * @param
+ * @brief Removes a socket descriptor from sets of file descriptors.
  *
- * @return
+ * This function removes a specified socket descriptor from both the set of
+ * ready sockets and the set of online clients' sockets.
+ *
+ * @param p_client_t Pointer to the structure containing client information.
+ * @param socket_FD The socket descriptor to be removed.
+ * @param ready_sockets_set The set of ready sockets.
  */
 void remove_socket_from_sets(ClientInfo_t *p_client_t, int socket_FD, fd_set ready_sockets_set)
 {
@@ -93,6 +76,9 @@ void broadcast_message_to_online_clients(ClientInfo_t *p_client_t, long tot_num_
             entry *p_temp = p_usernames_ht->elements[i];
             while (p_temp != NULL)
             {
+                // TODO array with messages, and sent more customised layout ([PAGGInG] message <username)
+                // TODO have a pointer for the array
+
                 // Get the client information from the hash table
                 ClientInfo_t *p_target_client_t = hash_table_lookup(p_usernames_ht, (const char *)p_temp->p_key);
                 send(p_target_client_t->sock_FD, p_common_msg_buffer, strlen(p_common_msg_buffer), 0);
@@ -108,20 +94,19 @@ void broadcast_message_to_online_clients(ClientInfo_t *p_client_t, long tot_num_
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
-
- * @param
  *
- * @return
+ * @param a
  */
 
-int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t, ClientInfo_t *p_client_t)
+// TODO consider a variable to allow for verificatino from all the threads
+int get_messages_from_active_clients(ClientInfo_t *p_client_t)
 {
-    // Copy the pointers from the client
-    //
+    // Organize information
     char *p_name_cli = p_client_t->name;
     char *p_buffer_cli = p_client_t->buffer;
     int client_FD = p_client_t->sock_FD;
-    //
+
+    // Organize thread variables
     pthread_mutex_t *p_mutex_usernames_ht = p_client_t->p_mutex_usernames_ht;
     pthread_mutex_t *p_mutex_online_clients_set = p_client_t->p_mutex_online_clients_set;
     pthread_mutex_t *p_mutex_quit_signal = p_client_t->p_mutex_quit_signal;
@@ -142,24 +127,6 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
     FD_SET(p_client_t->sock_FD, p_online_clients_set);
     pthread_mutex_unlock(p_mutex_online_clients_set);
 
-    // Let a thread attend only a client at a time
-    while (true)
-    {
-
-        // Check if the broadcast service does NOT have any thread handling it
-        pthread_mutex_lock(p_broadcast_ctrls_t->p_threads_t->p_mutex_working_bool);
-        if (!p_broadcast_ctrls_t->p_threads_t->is_broadcasting)
-        {
-            p_broadcast_ctrls_t->p_threads_t->is_broadcasting = true; // handle the needed work
-            pthread_mutex_unlock(&p_mutex_working_bool);
-            break;
-        }
-        else
-        {
-            pthread_cond_wait(&g_broadcast_condition_var, &p_broadcast_ctrls_t->p_threads_t->p_mutex_working_bool);
-        }
-    }
-
     // Use assync I/O to share the messages
     fd_set ready_sockets_set;
     int quit_signal_val;
@@ -169,7 +136,6 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
         pthread_mutex_lock(p_mutex_online_clients_set);
         ready_sockets_set = *p_online_clients_set;
         pthread_mutex_unlock(p_mutex_online_clients_set);
-
         if (select(FD_SETSIZE, &ready_sockets_set, NULL, NULL, NULL) < 0) // TODO mudei number of clients em vez de FD_SETSIZE
         {
             perror("Error select while broadcasting clients");
@@ -181,10 +147,33 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
         int tot_num_bytes_recv = 0;
 
         // Gather the messages to be broadcasted
-        for (int i = 0; i < FD_SETSIZE; i++)
+        for (int i = 0; i < FD_SETSIZE; i++) // TODO mudar o setsize
         {
             if (FD_ISSET(i, &ready_sockets_set))
             {
+                // Get the associated client struct //TODO make more efficient
+                // pthread_mutex_lock(p_mutex_usernames_ht);
+                // for (uint32_t i = 0; i < p_usernames_ht->size; i++)
+                // {
+                //     if (p_usernames_ht->elements[i] != NULL)
+                //     {
+                //         // Get all the usernames present in the hash table at the moment
+                //         entry *p_temp = p_usernames_ht->elements[i];
+                //         while (p_temp != NULL)
+                //         {
+
+                //             // Get the client information from the hash table
+                //             ClientInfo_t *p_target_client_t = hash_table_lookup(p_usernames_ht, (const char *)p_temp->p_key);
+                //             if (i == p_target_client_t->sock_FD) {
+
+                //             }
+
+                //             // Get the next user (if stored)
+                //             p_temp = p_temp->p_next;
+                //         }
+                //     }
+                // }
+                // pthread_mutex_unlock(p_mutex_usernames_ht);
 
                 // Receive the content that the user MAY have sent
                 memset(p_buffer_cli, 0, BUFFER_SIZE); // TODO avoid so much memset with strategic '\0'
@@ -196,9 +185,9 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
                     remove_socket_from_sets(p_client_t, i, ready_sockets_set);
 
                     // // Make the used username available for the next clients
-                    pthread_mutex_lock(p_mutex_usernames_ht);
-                    hash_table_delete_element(p_usernames_ht, (const char *)p_client_t->name);
-                    pthread_mutex_unlock(p_mutex_usernames_ht);
+                    // pthread_mutex_lock(p_mutex_usernames_ht);
+                    // hash_table_delete_element(p_usernames_ht, (const char *)p_client_t->name);
+                    // pthread_mutex_unlock(p_mutex_usernames_ht);
 
                     // Leave the broadcast for another thread
                     // if the user with error was the one handled by this one
@@ -207,15 +196,6 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
                     {
                         return 0;
                     }
-
-                    // Let another thread handle the broadcast
-                    pthread_mutex_lock(&p_mutex_working_bool);
-                    is_broadcasting = false;
-                    pthread_mutex_unlock(&p_mutex_working_bool);
-                    //
-                    pthread_mutex_lock(&p_mutex_broadcast_cond_var);
-                    pthread_cond_signal(&g_broadcast_condition_var);
-                    pthread_mutex_unlock(&p_mutex_broadcast_cond_var);
                 }
                 else if (bytes_received == 0)
                 {
@@ -235,15 +215,6 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
                     }
 
                     close_socket_with_ptr_if_open(&i);
-
-                    // Let another thread handle the broadcast
-                    pthread_mutex_lock(&p_mutex_working_bool);
-                    is_broadcasting = false;
-                    pthread_mutex_unlock(&p_mutex_working_bool);
-                    //
-                    pthread_mutex_lock(&p_mutex_broadcast_cond_var);
-                    pthread_cond_signal(&g_broadcast_condition_var);
-                    pthread_mutex_unlock(&p_mutex_broadcast_cond_var);
                 }
                 else
                 {
@@ -252,7 +223,7 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
 
                     // Edite the preview of the message for the client...
                     pthread_mutex_lock(p_mutex_common_msg_buffer);
-                    sprintf(p_client_msg_edited, "(%d)%s> %s", i, usernames_by_FD_arr[i], p_buffer_cli);
+                    sprintf(p_client_msg_edited, "User %d> %s", i, p_buffer_cli);
                     strcat(p_common_msg_buffer, p_client_msg_edited); // TODO change the strcat
                     pthread_mutex_unlock(p_mutex_common_msg_buffer);
                     //
@@ -280,14 +251,19 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief
-
- * @param
+ * @brief Prepares a client to broadcast chat messages
  *
- * @return
+ * This function prepares a client to broadcast chat messages by interacting with the client.
+ * It asks the client for their name, receives the name, and sends a customized welcome message.
+ * If any error occurs during interaction with the client, it prints an error message
+ * and terminates the program with the appropriate exit status.
+ *
+ * @param p_client_t Pointer to the ClientInfo_t structure representing the client
+ *
+ * @return 0 on success
  */
 
-int prepare_to_broadcast_chat(BroadcastControllers_t *p_broadcast_ctrls_t, ClientInfo_t *p_client_t)
+int prepare_to_broadcast_chat(ClientInfo_t *p_client_t)
 {
     // Prepare the pointers for the necessary data (for a cleaner code)
     char *p_name_cli = p_client_t->name;
@@ -336,7 +312,6 @@ int prepare_to_broadcast_chat(BroadcastControllers_t *p_broadcast_ctrls_t, Clien
 
             // Assign the username to its struct (temporary memory)
             strcpy(p_name_cli, p_buffer_cli);
-            // TODO use strncpy
 
             // Inform the acceptance of the username
             memset(p_buffer_cli, 0, BUFFER_SIZE);
@@ -347,9 +322,6 @@ int prepare_to_broadcast_chat(BroadcastControllers_t *p_broadcast_ctrls_t, Clien
             pthread_mutex_lock(p_mutex_usernames_ht);
             hash_table_insert(p_usernames_ht, p_name_cli, p_client_t);
             pthread_mutex_unlock(p_mutex_usernames_ht);
-
-            // Relate the file descriptor to its username
-            strcpy(p_broadcast_ctrls_t->usernames_by_FD_arr[p_client_t->sock_FD], p_name_cli);
 
             is_valid_username = true;
         }
@@ -366,11 +338,16 @@ int prepare_to_broadcast_chat(BroadcastControllers_t *p_broadcast_ctrls_t, Clien
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief
-
- * @param
+ * @brief Prepares client structures for data
  *
- * @return
+ * This function prepares client structures for storing data.
+ * It allocates memory for the client's name and buffer, and retrieves the client's IP address
+ * for unique identification. If any error occurs during memory allocation or IP address retrieval,
+ * it prints an error message, frees the client's memory, and returns NULL.
+ *
+ * @param p_client_t Pointer to the ClientInfo_t structure representing the client
+ *
+ * @return Pointer to the prepared client structure on success, or NULL if an error occurs
  */
 
 void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
@@ -388,7 +365,6 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
         free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
         return NULL;
     }
-
     p_client_t->buffer = (char *)calloc(BUFFER_SIZE, sizeof(char));
     if (p_client_t->buffer == NULL)
     {
@@ -411,98 +387,21 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief
-
- * @param
+ * @brief Prepares a client for broadcast and starts broadcasting
  *
- * @return
- */
-ThreadControl_t * get_thread_control_struct_ptr() {
-    ThreadControl_t *p_threads_t = (ThreadControl_t *)malloc(sizeof(ThreadControl_t));
-
-    pthread_mutex_init(&(p_threads_t->p_mutex_broadcast_cond_var), NULL);
-    pthread_mutex_init(&(p_threads_t->p_mutex_working_bool), NULL);
-    pthread_mutex_init(&(p_threads_t->p_mutex_usernames_by_FD_arr), NULL);
-    //
-    pthread_cond_init(&(p_threads_t->g_broadcast_condition_var), NULL);
-    //
-    p_threads_t->is_broadcasting = false;
-    p_threads_t->did_prepare_service_data = false;
-
-    return p_threads_t;
-}
-
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
+ * This function prepares a client for broadcast by initializing necessary data structures
+ * and then starts broadcasting the client's data. It first prepares the client's data structures
+ * for broadcasting, then prepares the client for broadcasting, and finally broadcasts the client.
+ * If any error occurs during preparation or broadcasting, it prints an error message,
+ * frees the client's memory, and returns the corresponding error status.
  *
- * @return
- */
-BroadcastControllers_t * get_broadcast_controls_struct_ptr() {
-    BroadcastControllers_t *p_broadcast_ctrls_t;
-
-    // Prepare the array of usernames (avoids multiple lookups on the hash table)
-    char **usernames_by_FD_arr = malloc(FD_SETSIZE);
-    if (usernames_by_FD_arr == NULL)
-    {
-        perror("Error, unexpected value for the array of usernames indexes by file descriptors. Possible creation failure.");
-        exit(EXIT_FAILURE);
-    }
-    //
-    for (int i = 0; i < FD_SETSIZE; i++)
-    {
-        usernames_by_FD_arr[i] = malloc(MAX_USERNAME_LENGTH);
-        if (usernames_by_FD_arr[i] == NULL)
-        {
-            perror("Error, unexpected value for a username string. Possible creation failure.");
-            exit(EXIT_FAILURE);
-        }
-    }
-    p_broadcast_ctrls_t->usernames_by_FD_arr;
-    
-    // Compact the threads control variables onto a structure
-    ThreadControl_t *p_threads_t;
-    if ((p_threads_t = get_thread_control_struct_ptr()) == NULL) {
-        perror("Error getting the thread control struct");
-        return NULL;
-    }
-    p_broadcast_ctrls_t->p_threads_t = p_threads_t;
-
-    return p_broadcast_ctrls_t;
-}
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
+ * @param p_client_t Pointer to the ClientInfo_t structure representing the client
  *
- * @return
+ * @return 0 on success, or a negative value indicating an error
  */
 
 int prepare_client_for_broadcast_and_start(ClientInfo_t *p_client_t)
 {
-    static did_first_allocation = false;
-
-    // Start the server if NOT started before
-    pthread_mutex_lock(&g_mutex_did_prepare_service_data);
-    if (!did_first_allocation) {
-
-        BroadcastControllers_t *p_broadcast_ctrls_t;
-        if ((p_broadcast_ctrls_t = get_broadcast_controls_struct_ptr(p_broadcast_ctrls_t)) == NULL) {
-            perror("Error starting the service");
-            return -1;
-        }
-
-        did_first_allocation = true;
-    }
-    pthread_mutex_unlock(&g_mutex_did_prepare_service_data);
-
-    //TODO organize ALL the data in structs, and creta a mutex for the struct
-
     if ((prepare_client_structs_for_data(p_client_t)) == NULL)
     {
         perror("Error preparing client structs for the data");

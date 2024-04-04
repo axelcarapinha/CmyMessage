@@ -3,18 +3,15 @@
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief
+ * @brief 
  *
  *
- * @param
+ * @param 
  */
-void close_socket_with_ptr_if_open(int *p_socket_descriptor)
-{
-    if (*p_socket_descriptor != -1)
-    {
+void close_socket_with_ptr_if_open(int *p_socket_descriptor) {
+    if (*p_socket_descriptor != -1) {
         int closing_status;
-        if ((closing_status = close(*p_socket_descriptor)) < 0)
-        {
+        if ((closing_status = close(*p_socket_descriptor)) < 0) {
             perror("Error closing socket");
         }
         //
@@ -22,14 +19,15 @@ void close_socket_with_ptr_if_open(int *p_socket_descriptor)
     }
 }
 
+
 //----------------------------------------------------------------------------------------------------------
 
 /**
- * @brief
+ * @brief 
  *
 
  *
- * @param
+ * @param 
  */
 void close_server_socket(UniSocket_t *p_socket_t)
 {
@@ -41,13 +39,13 @@ void close_server_socket(UniSocket_t *p_socket_t)
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief
+ * @brief 
  *
 
  *
- * @param
+ * @param 
  */
-void free_unisocket_memory_with_ptr_to_ptr(void **p_p_socket_t_arg) // TODO change name to p_p_server_t_arg, and function name too
+void free_unisocket_memory_with_ptr_to_ptr(void **p_p_socket_t_arg) //TODO change name to p_p_server_t_arg, and function name too
 {
     // Allow compatibility with hash generalization
     UniSocket_t **p_p_socket_t = (UniSocket_t **)p_p_socket_t_arg;
@@ -71,44 +69,36 @@ void free_unisocket_memory_with_ptr_to_ptr(void **p_p_socket_t_arg) // TODO chan
         (*p_p_socket_t)->addr_u.p_ipv6 = NULL;
     }
 
-    // TODO UNDERSTAND why it works with this order (troquei again)
-    if (*p_p_socket_t != NULL)
-    {
+    //TODO UNDERSTAND why it works with this order (troquei again)
+    if (*p_p_socket_t != NULL) {
         *p_p_socket_t = NULL;
-        free(*p_p_socket_t);
+        free(*p_p_socket_t); 
     }
-
-    // TODO man signal
-    //TODO mini estrutura para apontadores
-    //TODO fork para lançar um novo propgrama (execve e execvp)
-    //TODO telnet com upload de ficheiros
-
-
-    //TODO não estar a fazer free da struct
 }
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief
+ * @brief 
  *
  *
- * @param
+ * @param 
  */
 
-// TODO ver a func do hash se faz o adequado
+//TODO ver a func do hash se faz o adequado
 void free_client_memory_with_ptr_to_ptr(void **p_p_client_t_arg)
-{
+{   
     // Allow compatibility with hash generalization
     ClientInfo_t **p_p_client_t = (ClientInfo_t **)p_p_client_t_arg;
 
-    // TODO ver porque com isto não dá
-    //  ensure_client_disconnection_and_remove_data(*p_p_client_t);
+    //TODO ver porque com isto não dá
+    // ensure_client_disconnection_and_remove_data(*p_p_client_t);
 
     // Check if the client struct was already deallocated from the heap
     if (p_p_client_t == NULL || *p_p_client_t == NULL)
     {
         return;
     }
+
 
     // Address related memory
     if ((*p_p_client_t)->p_addr != NULL)
@@ -129,13 +119,13 @@ void free_client_memory_with_ptr_to_ptr(void **p_p_client_t_arg)
         (*p_p_client_t)->buffer = NULL;
     }
 
-    // TODO UNDERSTAND why it works with this order (troquei again)
-    if (*p_p_client_t != NULL)
-    {
+    //TODO UNDERSTAND why it works with this order (troquei again)
+    if (*p_p_client_t != NULL) {
         *p_p_client_t = NULL;
-        free(*p_p_client_t);
+        free(*p_p_client_t); 
     }
 }
+
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -159,24 +149,21 @@ void ensure_client_disconnection_and_remove_data(ClientInfo_t *p_client_t) // In
     if (p_client_t->name != NULL)
     {
         size_t name_len = strlen(p_client_t->name);
-        if (name_len > 0)
-        {
+        if (name_len > 0) {
             memset(p_client_t->name, 0, name_len);
         }
     }
     if (p_client_t->addr_info != NULL)
     {
         size_t addr_info_len = strlen(p_client_t->addr_info);
-        if (addr_info_len > 0)
-        {
+        if (addr_info_len > 0) {
             memset(p_client_t->addr_info, 0, addr_info_len);
         }
     }
     if (p_client_t->recipient != NULL)
     {
         size_t recipient_name_len = strlen(p_client_t->recipient);
-        if (recipient_name_len > 0)
-        {
+        if (recipient_name_len > 0) {
             memset(p_client_t->recipient, 0, recipient_name_len);
         }
     }
