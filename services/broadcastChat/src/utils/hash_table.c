@@ -97,6 +97,9 @@ bool hash_table_insert(hash_table *p_ht, ELEMENT_TYPE *p_key, OBJECT_TYPE *p_obj
         return false; // the key is already present in the hash table
     }
 
+    //TODO Sanitize the input
+    // p_key[strlen(p_key)] = '\0';
+
     size_t index = hash_table_calc_index_with_hash(p_ht, p_key);
 
     // Avoid duplicates in the table
@@ -209,6 +212,10 @@ bool hash_table_delete_element(hash_table *p_ht, ELEMENT_TYPE *p_key)
         p_prev = p_temp;
         p_temp = p_temp->p_next;
     }
+
+
+    //TODO find why this does not find the username
+    
 
     // Element NOT found
     if (p_temp == NULL) {

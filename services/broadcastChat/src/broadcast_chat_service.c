@@ -38,11 +38,20 @@ int start_removing_client_from_broadcast(BroadcastControllers_t *p_broadcast_ctr
     }
 
     pthread_mutex_lock(p_client_t->p_mutex_usernames_ht);
-    //TODO trstin
+
+    hash_table_delete_element(p_client_t->p_usernames_ht, p_broadcast_ctrls_t_s->usernames_by_FD_arr[socket_FD]);
+
+    //TODO tryin to make it workfor the FD  
+
+
+
+
+    
+
     // int value = hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name);
     // printf("value = %d from user %s\n", value, p_client_t->name);
-    
-    // if (hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name)) {
+
+    // if (hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name) == true) {
     //     printf("Client username removed from the hash table successfully");
     // }
     // else {
@@ -116,6 +125,9 @@ int remove_socket_from_sets(ClientInfo_t *p_client_t, int socket_FD, fd_set read
 
 int broadcast_message_to_online_clients(ClientInfo_t *p_client_t, long tot_num_bytes_recv)
 {
+    pthread_mutex_lock(&g_mutex_server);
+    
+
     hash_table *p_usernames_ht = p_client_t->p_usernames_ht;
 
     p_client_t->buffer[tot_num_bytes_recv - 1] = '\0';
@@ -139,6 +151,9 @@ int broadcast_message_to_online_clients(ClientInfo_t *p_client_t, long tot_num_b
         }
     }
     pthread_mutex_unlock(p_client_t->p_mutex_usernames_ht);
+
+    pthread_mutex_unlock(&g_mutex_server);
+
 
     return 0;
 }
@@ -436,19 +451,21 @@ ThreadControl_t *get_thread_control_struct_ptr()
         return NULL;
     }
     //
-    p_threads_t->is_broadcasting = (bool *)malloc(sizeof(bool));
-    if (p_threads_t->is_broadcasting == NULL)
+    void * is_broadcasting = malloc(sizeof(bool));
+    if (is_broadcasting == NULL)
     {
         perror("Error allocating memory for the working bool indicator");
         return NULL;
     }
+    p_threads_t->is_broadcasting = is_broadcasting;
     //
-    p_threads_t->did_prepare_service_data = (bool *)malloc(sizeof(bool));
-    if (p_threads_t->did_prepare_service_data == NULL)
+    void * did_prepare_service_data = malloc(sizeof(bool));
+    if (did_prepare_service_data == NULL)
     {
         perror("Error allocating memory for the service data boolean value");
         return NULL;
     }
+    p_threads_t->did_prepare_service_data = did_prepare_service_data;
 
     // Initialiaze
     pthread_cond_init(p_threads_t->p_broadcast_condition_var, NULL);
