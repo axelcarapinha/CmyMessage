@@ -22,6 +22,10 @@
 hash_table *hash_table_create(uint32_t size, hashFunc *p_hash_func, cleanObjFunc p_clean_obj_func)
 {
     hash_table *p_ht = malloc(sizeof(*p_ht));
+    if (p_ht == NULL) {
+        perror("Error allocating memory for the hash table failed");
+        return NULL;
+    }
 
     p_ht->size = size;
     //
@@ -89,14 +93,16 @@ void *hash_table_lookup(hash_table *p_ht, ELEMENT_TYPE *p_key)
 
 bool hash_table_insert(hash_table *p_ht, ELEMENT_TYPE *p_key, OBJECT_TYPE *p_object)
 {
-    if (p_key == NULL || p_object == NULL)
+    if (p_key == NULL || p_object == NULL) {
         return false; // the key is already present in the hash table
+    }
 
     size_t index = hash_table_calc_index_with_hash(p_ht, p_key);
 
     // Avoid duplicates in the table
-    if (hash_table_lookup(p_ht, p_key) != NULL)
+    if (hash_table_lookup(p_ht, p_key) != NULL) {
         return false;
+    }
 
     // CREATE a new entry
     entry *p_entry = (entry *)malloc(sizeof(*p_entry));
@@ -187,14 +193,15 @@ void hash_table_clean_fully(hash_table *p_ht)
  * @return Pointer to the deleted element's object, or NULL if not found
  */
 
-void *hash_table_delete_element(hash_table *p_ht, ELEMENT_TYPE *p_key)
+bool hash_table_delete_element(hash_table *p_ht, ELEMENT_TYPE *p_key)
 {
     // Table does not exist, or an invalid pointer was passed
-    if (p_ht == NULL || p_key == NULL)
+    if (p_ht == NULL || p_key == NULL) {
         return false;
+    }
     size_t index = hash_table_calc_index_with_hash(p_ht, p_key);
 
-    // Traverse the linkedList to find the ELEMENT
+    // Traverse the TARGET linkedList to find the ELEMENT
     entry *p_temp = p_ht->elements[index];
     entry *p_prev = NULL;
     while (p_temp != NULL && strcmp(p_temp->p_key, p_key) != 0)
@@ -204,20 +211,22 @@ void *hash_table_delete_element(hash_table *p_ht, ELEMENT_TYPE *p_key)
     }
 
     // Element NOT found
-    if (p_temp == NULL)
-        return NULL;
+    if (p_temp == NULL) {
+        return false;
+    }
 
     // DELETE...
-    if (p_prev == NULL)
+    if (p_prev == NULL) {
         p_ht->elements[index] = p_temp->p_next; // ...the HEAD of the list
-    else
+    }
+    else {
         p_prev->p_next = p_temp->p_next; // ...other than the head
+    }
 
     // Return the deleted content of the ELEMENT
-    void *p_result = p_temp->p_object;
-    hash_table_free_element(p_ht, p_temp);
+    // hash_table_free_element(p_ht, p_temp); //TODO fix!
 
-    return p_result;
+    return true;
 }
 
 
@@ -296,7 +305,7 @@ static void hash_table_free_element(hash_table *p_ht, entry *p_entry)
         p_ht->p_cleanup_func(p_entry->p_object); // it's free by default
     }
 
-    // free(p_entry);
+    free(p_entry);
 }
 
 

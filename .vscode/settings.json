@@ -8,6 +8,12 @@
         "queue.h": "c",
         "service_utils.h": "c",
         "broadcast_chat_service.h": "c",
-        "system_error": "c"
+        "system_error": "c",
+        "array": "c",
+        "buffer": "c",
+        "socket": "c",
+        "string_view": "c",
+        "initializer_list": "c",
+        "utility": "c"
     }
 }

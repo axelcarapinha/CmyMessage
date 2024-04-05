@@ -46,7 +46,7 @@ hash_table *hash_table_create(uint32_t size, hashFunc *p_hash_func, cleanObjFunc
     void *hash_table_lookup(hash_table *p_ht, ELEMENT_TYPE *p_key);
     void *hash_table_print(hash_table *p_ht);
     void hash_table_clean_fully(hash_table *p_ht);
-    void *hash_table_delete_element(hash_table *p_ht, ELEMENT_TYPE *p_key);
+    int hash_table_delete_element(hash_table *p_ht, ELEMENT_TYPE *p_key);
 void hash_table_destroy_with_ptr_to_ptr(hash_table **p_p_ht);
 //
 static size_t hash_table_calc_index_with_hash(hash_table *p_ht, ELEMENT_TYPE *p_key);

@@ -14,25 +14,14 @@ static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
  */
 //TODO solve the problem of removing the username from the hash table
 void wait_for_thread_work(BroadcastControllers_t *p_broadcast_ctrls_t_s) {
-
-    bool is_broadcasting_copy = true;
-    while (is_broadcasting_copy)
-    {
-
-        // Check if the broadcast service does NOT have any thread handling it
-        pthread_mutex_lock(&g_mutex_server);
-        if (!p_broadcast_ctrls_t_s->p_threads_t->is_broadcasting)
-        {
-            p_broadcast_ctrls_t_s->p_threads_t->is_broadcasting = true; // handle the needed work
-            pthread_mutex_unlock(&g_mutex_server);
-            is_broadcasting_copy = false;
-        }
-        else
-        {
-            pthread_cond_wait(&p_broadcast_ctrls_t_s->p_threads_t->p_broadcast_condition_var, &g_mutex_server);
-        }
+    pthread_mutex_lock(&g_mutex_server);
+    while (p_broadcast_ctrls_t_s->p_threads_t->is_broadcasting) {
+        pthread_cond_wait(p_broadcast_ctrls_t_s->p_threads_t->p_broadcast_condition_var, &g_mutex_server);
     }
+    p_broadcast_ctrls_t_s->p_threads_t->is_broadcasting = true;
+    pthread_mutex_unlock(&g_mutex_server);
 }
+
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -48,19 +37,23 @@ int start_removing_client_from_broadcast(BroadcastControllers_t *p_broadcast_ctr
         return -1;
     }
 
-    //TODO Make the used username available for the next clients
     pthread_mutex_lock(p_client_t->p_mutex_usernames_ht);
-    if (hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name) == NULL) {
-        perror("Tried to delete, from the hash table, a username that was NOT there");
-        return -1;
-    }
+    //TODO trstin
+    // int value = hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name);
+    // printf("value = %d from user %s\n", value, p_client_t->name);
+    
+    // if (hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name)) {
+    //     printf("Client username removed from the hash table successfully");
+    // }
+    // else {
+    //     perror("Tried to delete, from the hash table, a username that was NOT there");
+    //     return -1;
+    // }
     pthread_mutex_unlock(p_client_t->p_mutex_usernames_ht);
 
     // Let another thread handle the broadcast
-    pthread_mutex_lock(&g_mutex_server);
     p_broadcast_ctrls_t_s->p_threads_t->is_broadcasting = false;
     pthread_cond_signal(p_broadcast_ctrls_t_s->p_threads_t->p_broadcast_condition_var);
-    pthread_mutex_unlock(&g_mutex_server);
 
     return 0;
 }
@@ -75,20 +68,15 @@ int start_removing_client_from_broadcast(BroadcastControllers_t *p_broadcast_ctr
  */
 int send_customized_welcome_message(ClientInfo_t *p_client_t)
 {
-    // Get the necessary data from the client
-    char *p_buffer_cli = p_client_t->buffer;
-    char *p_name_cli = p_client_t->name;
-    int client_FD = p_client_t->sock_FD;
-
-    memset(p_buffer_cli, 0, BUFFER_SIZE);
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
     char welcome_msg[BUFFER_SIZE];
     strcpy(welcome_msg, "Welcome to the broadcast channel, ");
-    strcat(welcome_msg, p_name_cli);
+    strcat(welcome_msg, p_client_t->name);
     strcat(welcome_msg, "!\n");
     //
-    strncpy(p_buffer_cli, welcome_msg, strlen(welcome_msg));
+    strncpy(p_client_t->buffer, welcome_msg, strlen(welcome_msg));
     int sending_status;
-    if ((sending_status = send(client_FD, welcome_msg, strlen(welcome_msg), 0)) < 0) {
+    if ((sending_status = send(p_client_t->sock_FD, welcome_msg, strlen(welcome_msg), 0)) < 0) {
         perror("Error sending the customized welcome message");
         return sending_status;
     }
@@ -128,33 +116,29 @@ int remove_socket_from_sets(ClientInfo_t *p_client_t, int socket_FD, fd_set read
 
 int broadcast_message_to_online_clients(ClientInfo_t *p_client_t, long tot_num_bytes_recv)
 {
-
-    // Get the needed data from the client
-    char *p_buffer_cli = p_client_t->buffer;
-    pthread_mutex_t *p_mutex_usernames_ht = p_client_t->p_mutex_usernames_ht;
     hash_table *p_usernames_ht = p_client_t->p_usernames_ht;
-    char *p_common_msg_buffer = p_client_t->p_common_msg_buffer;
 
-    p_buffer_cli[tot_num_bytes_recv - 1] = '\0';
-    pthread_mutex_lock(p_mutex_usernames_ht);
+    p_client_t->buffer[tot_num_bytes_recv - 1] = '\0';
+    pthread_mutex_lock(p_client_t->p_mutex_usernames_ht);
     for (uint32_t i = 0; i < p_usernames_ht->size; i++)
     {
-        if (p_usernames_ht->elements[i] != NULL)
+        // if (p_client_t->p_usernames_ht->elements[i] != NULL)
+        if (p_client_t->p_usernames_ht != NULL)
         {
             // Get all the usernames present in the hash table at the moment
             entry *p_temp = p_usernames_ht->elements[i];
             while (p_temp != NULL)
             {
                 // Get the client information from the hash table
-                ClientInfo_t *p_target_client_t = hash_table_lookup(p_usernames_ht, (const char *)p_temp->p_key);
-                send(p_target_client_t->sock_FD, p_common_msg_buffer, strlen(p_common_msg_buffer), 0);
+                ClientInfo_t *p_target_client_t = hash_table_lookup(p_client_t->p_usernames_ht, (const char *)p_temp->p_key);
+                send(p_target_client_t->sock_FD, p_client_t->p_common_msg_buffer, strlen(p_client_t->p_common_msg_buffer), 0);
 
                 // Get the next user (if stored)
                 p_temp = p_temp->p_next;
             }
         }
     }
-    pthread_mutex_unlock(p_mutex_usernames_ht);
+    pthread_mutex_unlock(p_client_t->p_mutex_usernames_ht);
 
     return 0;
 }
@@ -218,10 +202,11 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
                 {
                     perror("Error receiving content from one of the clients. Maybe terminated the connection.");
 
+                    pthread_mutex_lock(&g_mutex_server);
                     if (start_removing_client_from_broadcast(p_broadcast_ctrls_t_s, p_client_t, i, ready_sockets_set) < 0) {
                         perror("Error when starting to remove client from the broadcast session");
                     }
-                    start_removing_client_from_broadcast(p_broadcast_ctrls_t_s, p_client_t, i, ready_sockets_set);
+                    pthread_mutex_unlock(&g_mutex_server);
 
                     // Leave the broadcast for another thread
                     // if the user with error was the one handled by this one
@@ -235,10 +220,13 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
                 {
                     perror("Client terminated the connection");
 
+                    pthread_mutex_lock(&g_mutex_server);
                     if (start_removing_client_from_broadcast(p_broadcast_ctrls_t_s, p_client_t, i, ready_sockets_set) < 0) {
                         perror("Error when starting to remove client from the broadcast session");
                     }
                     close_socket_with_ptr_if_open(&i);
+                    pthread_mutex_unlock(&g_mutex_server);
+
                     //
                     if (i == p_client_t->sock_FD) // same reason as above
                     {
@@ -274,7 +262,9 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
 
     // Remove the username from the hash table
     pthread_mutex_lock(p_client_t->p_mutex_usernames_ht);
-    hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name);
+    if (hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name) == false) {
+        perror("Error deleting the desired element, maybe because it was already by another thread");
+    }
     pthread_mutex_unlock(p_client_t->p_mutex_usernames_ht);
 
     return 0;

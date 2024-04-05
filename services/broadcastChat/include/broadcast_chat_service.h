@@ -68,15 +68,4 @@ ThreadControl_t *get_thread_control_struct_ptr();
 BroadcastControllers_t *get_broadcast_controls_struct_ptr();
 int prepare_client_for_broadcast_and_start(ClientInfo_t *p_client_t);
 
-
-
-
-
-
-
-
-
-
-
-
 #endif
