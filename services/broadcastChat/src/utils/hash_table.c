@@ -285,16 +285,18 @@ static size_t hash_table_calc_index_with_hash(hash_table *p_ht, ELEMENT_TYPE *p_
  * @param p_entry Pointer to the entry to be freed
  */
 
+//TODO USE the pointer to pointer strategy
 static void hash_table_free_element(hash_table *p_ht, entry *p_entry)
 {
     //! Uncomment in case the type is not CONSTANT
     // if (p_entry->p_key)
     //     free(p_entry->p_key);
 
-    if (p_entry->p_object)
+    if (p_entry->p_object) {
         p_ht->p_cleanup_func(p_entry->p_object); // it's free by default
+    }
 
-    free(p_entry);
+    // free(p_entry);
 }
 
 
