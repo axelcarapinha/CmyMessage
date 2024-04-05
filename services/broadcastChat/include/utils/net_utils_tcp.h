@@ -33,6 +33,21 @@
 // Settings
 #define SIZE_THREAD_POOL 3
 
+
+#define VERBOSE true
+
+// Function macros
+#define ERROR_VERBOSE_LOG(string) \
+    if (VERBOSE) { \
+        perror(string); \
+    } \
+
+#define INFO_VERBOSE_LOG(string) \
+    if (VERBOSE) { \
+        printf(string); \
+    } \
+
+
 // If the system or network configs does NOT support dual-stack sockets,
 // this approach, while NOT recommended, allows the server to accept only IPv4 connections.
 // Noteworthy, if the server has IPv4 and IPv6 sockets,
@@ -92,7 +107,7 @@ int assign_descriptor_to_stream_socket_t(UniSocket_t *p_socket_t);
 int setup_service_socket_t(int opt, UniSocket_t *p_socket_t);
 void close_server_socket(UniSocket_t *p_socket_t);
 
-void free_unisocket_memory_with_ptr_to_ptr(void **p_p_socket_t);
+void free_server_socket_memory_with_ptr_to_ptr(void **p_p_socket_t);
 //
 ClientInfo_t *accept_connection(int service_FD);
 ClientInfo_t *allocate_client_info_struct();

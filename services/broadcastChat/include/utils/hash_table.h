@@ -13,6 +13,20 @@
 #define OBJECT_TYPE ClientInfo_t
 
 
+//TODO define this out of this scope
+#define VERBOSE true
+
+#define ERROR_VERBOSE_LOG(string) \
+    if (VERBOSE) { \
+        perror(string); \
+    } \
+
+#define INFO_VERBOSE_LOG(string) \
+    if (VERBOSE) { \
+        printf(string); \
+    } \
+
+
 //TODO use dynamic libraries to avoid circular dependencies
 //TODO and be able to use values defined in the broadcat chat service
 //! HARDCODED 
@@ -49,7 +63,7 @@ void hash_table_clean_fully(hash_table *p_ht);
 bool hash_table_delete_element(hash_table *p_ht, ELEMENT_TYPE *p_key);
 void hash_table_destroy_with_ptr_to_ptr(hash_table **p_p_ht);
 static size_t hash_table_calc_index_with_hash(hash_table *p_ht, ELEMENT_TYPE *p_key);
-static void hash_table_free_element(hash_table *p_ht, entry *p_entry);
+static void hash_table_free_element_with_ptr_to_ptr_of_entry(hash_table *p_ht, entry **p_p_entry);
 uint32_t murmur3_32_hash(ELEMENT_TYPE *p_key);
 
 #endif

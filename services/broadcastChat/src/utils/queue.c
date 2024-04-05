@@ -4,50 +4,47 @@ int queue_size = 0;
 node_t *head = NULL;
 node_t *tail = NULL;
 
-
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief 
+ * @brief
  *
- * @param 
- * @return 
+ * @param
+ * @return
  */
-bool isEmptyQueue()
-{
-    return head == NULL;
-}
-
-
+bool isEmptyQueue() { return head == NULL; }
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief 
+ * @brief
  *
- * @param 
- * @return 
+ * @param
+ * @return
  */
 int enqueue(ClientInfo_t *p_client_t)
 {
     // Alert the client if the server is full of capacity for now
-    if (queue_size >= SIZE_THREAD_POOL) {
+    if (queue_size >= SIZE_THREAD_POOL)
+    {
         char *message;
 
-        if (queue_size == MAX_QUEUE_SIZE) {
+        if (queue_size == MAX_QUEUE_SIZE)
+        {
             message = "Sorry, we are having too much requests. Try again later.";
             send(p_client_t->sock_FD, message, strlen(message), 0);
-            fprintf(stderr, "Queue size is too large. The client must wait.");
+            ERROR_VERBOSE_LOG("Queue size is too large. The client must wait");
             return EXIT_FAILURE;
         }
-        
+
         message = "Request pending... We thank your patience :)";
-        send(p_client_t->sock_FD, message, strlen(message), 0);   
+        send(p_client_t->sock_FD, message, strlen(message), 0);
     }
 
     // Add the client to the pending requests
     node_t *new_node = malloc(sizeof(node_t));
-    if (new_node == NULL) {
-        fprintf(stderr, "Memory allocation for the new node failed.\n");
-        return EXIT_FAILURE;
+    if (new_node == NULL)
+    {
+        ERROR_VERBOSE_LOG("Memory allocation for the new node failed");
+        return -1;
     }
     //
     new_node->p_client_t = p_client_t;
@@ -66,14 +63,12 @@ int enqueue(ClientInfo_t *p_client_t)
     queue_size++;
 }
 
-
-
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief 
+ * @brief
  *
- * @param 
- * @return 
+ * @param
+ * @return
  */
 ClientInfo_t *dequeue()
 {
@@ -96,12 +91,11 @@ ClientInfo_t *dequeue()
     return result;
 }
 
-
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief 
+ * @brief
  *
- * @param 
- * @return 
+ * @param
+ * @return
  */
-//TODO clean all the queue
+// TODO clean all the queue

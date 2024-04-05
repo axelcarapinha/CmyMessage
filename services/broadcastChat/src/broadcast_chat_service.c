@@ -3,7 +3,6 @@
 // Let only a thread at a time to access the main service struct
 static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
 
-
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
@@ -12,17 +11,17 @@ static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
  *
  * @return
  */
-//TODO solve the problem of removing the username from the hash table
-void wait_for_thread_work(BroadcastControllers_t *p_broadcast_ctrls_t_s) {
+void wait_for_thread_work(BroadcastControllers_t *p_broadcast_ctrls_t_s)
+{
     pthread_mutex_lock(&g_mutex_server);
-    while (p_broadcast_ctrls_t_s->p_threads_t->is_broadcasting) {
+    while (p_broadcast_ctrls_t_s->p_threads_t->is_broadcasting)
+    {
         pthread_cond_wait(p_broadcast_ctrls_t_s->p_threads_t->p_broadcast_condition_var, &g_mutex_server);
     }
     p_broadcast_ctrls_t_s->p_threads_t->is_broadcasting = true;
     pthread_mutex_unlock(&g_mutex_server);
 }
 
-
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
@@ -31,38 +30,27 @@ void wait_for_thread_work(BroadcastControllers_t *p_broadcast_ctrls_t_s) {
  *
  * @return
  */
-int start_removing_client_from_broadcast(BroadcastControllers_t *p_broadcast_ctrls_t_s, ClientInfo_t *p_client_t, int socket_FD, fd_set ready_sockets_set) {
-    if (remove_socket_from_sets(p_client_t, socket_FD, ready_sockets_set) < 0) {
-        perror("Error removing socket from the ready sockets set");
+int start_removing_client_from_broadcast(BroadcastControllers_t *p_broadcast_ctrls_t_s, ClientInfo_t *p_client_t, int socket_FD, fd_set ready_sockets_set)
+{
+    pthread_mutex_lock(&g_mutex_server);
+
+    if (remove_socket_from_sets(p_client_t, socket_FD, ready_sockets_set) < 0)
+    {
+        ERROR_VERBOSE_LOG("Error removing socket from the ready sockets set");
+        pthread_mutex_unlock(&g_mutex_server);
         return -1;
     }
 
+    // Make its username avaialbale againf for new clients
     pthread_mutex_lock(p_client_t->p_mutex_usernames_ht);
-
     hash_table_delete_element(p_client_t->p_usernames_ht, p_broadcast_ctrls_t_s->usernames_by_FD_arr[socket_FD]);
-
-    //TODO tryin to make it workfor the FD  
-
-
-
-
-    
-
-    // int value = hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name);
-    // printf("value = %d from user %s\n", value, p_client_t->name);
-
-    // if (hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name) == true) {
-    //     printf("Client username removed from the hash table successfully");
-    // }
-    // else {
-    //     perror("Tried to delete, from the hash table, a username that was NOT there");
-    //     return -1;
-    // }
     pthread_mutex_unlock(p_client_t->p_mutex_usernames_ht);
 
     // Let another thread handle the broadcast
     p_broadcast_ctrls_t_s->p_threads_t->is_broadcasting = false;
     pthread_cond_signal(p_broadcast_ctrls_t_s->p_threads_t->p_broadcast_condition_var);
+
+    pthread_mutex_unlock(&g_mutex_server);
 
     return 0;
 }
@@ -85,8 +73,9 @@ int send_customized_welcome_message(ClientInfo_t *p_client_t)
     //
     strncpy(p_client_t->buffer, welcome_msg, strlen(welcome_msg));
     int sending_status;
-    if ((sending_status = send(p_client_t->sock_FD, welcome_msg, strlen(welcome_msg), 0)) < 0) {
-        perror("Error sending the customized welcome message");
+    if ((sending_status = send(p_client_t->sock_FD, welcome_msg, strlen(welcome_msg), 0)) < 0)
+    {
+        ERROR_VERBOSE_LOG("Error sending the customized welcome message");
         return sending_status;
     }
 
@@ -123,19 +112,23 @@ int remove_socket_from_sets(ClientInfo_t *p_client_t, int socket_FD, fd_set read
  * @param a
  */
 
+
 int broadcast_message_to_online_clients(ClientInfo_t *p_client_t, long tot_num_bytes_recv)
 {
-    pthread_mutex_lock(&g_mutex_server);
-    
+    // Prevent errors from unknown errors
+    if (p_client_t == NULL) {
+        ERROR_VERBOSE_LOG("Invalid client struct pointer");
+        return -1;
+    }
 
     hash_table *p_usernames_ht = p_client_t->p_usernames_ht;
-
+    //
     p_client_t->buffer[tot_num_bytes_recv - 1] = '\0';
+    pthread_mutex_lock(&g_mutex_server);
     pthread_mutex_lock(p_client_t->p_mutex_usernames_ht);
     for (uint32_t i = 0; i < p_usernames_ht->size; i++)
     {
-        // if (p_client_t->p_usernames_ht->elements[i] != NULL)
-        if (p_client_t->p_usernames_ht != NULL)
+        if (p_usernames_ht->elements[i] != NULL)
         {
             // Get all the usernames present in the hash table at the moment
             entry *p_temp = p_usernames_ht->elements[i];
@@ -143,7 +136,13 @@ int broadcast_message_to_online_clients(ClientInfo_t *p_client_t, long tot_num_b
             {
                 // Get the client information from the hash table
                 ClientInfo_t *p_target_client_t = hash_table_lookup(p_client_t->p_usernames_ht, (const char *)p_temp->p_key);
-                send(p_target_client_t->sock_FD, p_client_t->p_common_msg_buffer, strlen(p_client_t->p_common_msg_buffer), 0);
+                if (p_target_client_t == NULL) {
+                    ERROR_VERBOSE_LOG("Error finding the client struct data for that username");
+                    //TODO solve problem with similar names in the hash table
+                }
+                else {
+                    send(p_target_client_t->sock_FD, p_client_t->p_common_msg_buffer, strlen(p_client_t->p_common_msg_buffer), 0);
+                }
 
                 // Get the next user (if stored)
                 p_temp = p_temp->p_next;
@@ -151,9 +150,7 @@ int broadcast_message_to_online_clients(ClientInfo_t *p_client_t, long tot_num_b
         }
     }
     pthread_mutex_unlock(p_client_t->p_mutex_usernames_ht);
-
     pthread_mutex_unlock(&g_mutex_server);
-
 
     return 0;
 }
@@ -173,8 +170,9 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
     // Space for the broadcast message
     char *p_client_msg_edited = (char *)malloc(BUFFER_SIZE + MAX_NUM_CLIENTS + 3);
 
-    if (send_customized_welcome_message(p_client_t) < 0) {
-        perror("Error sending the customized message");
+    if (send_customized_welcome_message(p_client_t) < 0)
+    {
+        ERROR_VERBOSE_LOG("Error sending the customized message");
     }
 
     // Add the socket descriptor to the shared list
@@ -183,7 +181,7 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
     pthread_mutex_unlock(p_client_t->p_mutex_online_clients_set);
 
     // Let a thread attend only a client AT A TIME
-    wait_for_thread_work(p_broadcast_ctrls_t_s); 
+    wait_for_thread_work(p_broadcast_ctrls_t_s);
 
     // Use assync I/O to share the messages
     fd_set ready_sockets_set;
@@ -194,9 +192,12 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
         // A mutex is NOT needed, there is only one thread handling this at a time
         ready_sockets_set = *p_client_t->p_online_clients_set;
 
-        if (select(FD_SETSIZE, &ready_sockets_set, NULL, NULL, NULL) < 0)
+        struct timeval timeout;
+        timeout.tv_sec = 3;
+        timeout.tv_usec = 0;
+        if (select(FD_SETSIZE, &ready_sockets_set, NULL, NULL, &timeout) < 0)
         {
-            perror("Error select while broadcasting clients");
+            ERROR_VERBOSE_LOG("Error select while broadcasting clients");
             exit(EXIT_FAILURE);
         }
 
@@ -215,13 +216,12 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
                 int bytes_received;
                 if ((bytes_received = recv(i, p_client_t->buffer, BUFFER_SIZE, 0)) < 0)
                 {
-                    perror("Error receiving content from one of the clients. Maybe terminated the connection.");
+                    ERROR_VERBOSE_LOG("Error receiving content from one of the clients. Maybe terminated the connection.");
 
-                    pthread_mutex_lock(&g_mutex_server);
-                    if (start_removing_client_from_broadcast(p_broadcast_ctrls_t_s, p_client_t, i, ready_sockets_set) < 0) {
-                        perror("Error when starting to remove client from the broadcast session");
+                    if (start_removing_client_from_broadcast(p_broadcast_ctrls_t_s, p_client_t, i, ready_sockets_set) < 0)
+                    {
+                        ERROR_VERBOSE_LOG("Error when starting to remove client from the broadcast session");
                     }
-                    pthread_mutex_unlock(&g_mutex_server);
 
                     // Leave the broadcast for another thread
                     // if the user with error was the one handled by this one
@@ -233,16 +233,14 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
                 }
                 else if (bytes_received == 0)
                 {
-                    perror("Client terminated the connection");
+                    ERROR_VERBOSE_LOG("Client terminated the connection");
 
-                    pthread_mutex_lock(&g_mutex_server);
-                    if (start_removing_client_from_broadcast(p_broadcast_ctrls_t_s, p_client_t, i, ready_sockets_set) < 0) {
-                        perror("Error when starting to remove client from the broadcast session");
+                    if (start_removing_client_from_broadcast(p_broadcast_ctrls_t_s, p_client_t, i, ready_sockets_set) < 0)
+                    {
+                        ERROR_VERBOSE_LOG("Error when starting to remove client from the broadcast session");
                     }
                     close_socket_with_ptr_if_open(&i);
-                    pthread_mutex_unlock(&g_mutex_server);
 
-                    //
                     if (i == p_client_t->sock_FD) // same reason as above
                     {
                         return 0;
@@ -264,8 +262,9 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
             }
         }
 
-        if (broadcast_message_to_online_clients(p_client_t, tot_num_bytes_recv) < 0) {
-            perror("Error broadcasting the message to the online clients");
+        if (broadcast_message_to_online_clients(p_client_t, tot_num_bytes_recv) < 0)
+        {
+            ERROR_VERBOSE_LOG("Error broadcasting the message to the online clients");
         }
 
         // Check if the server was requested to finish by some other thread
@@ -277,14 +276,14 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
 
     // Remove the username from the hash table
     pthread_mutex_lock(p_client_t->p_mutex_usernames_ht);
-    if (hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name) == false) {
-        perror("Error deleting the desired element, maybe because it was already by another thread");
+    if (hash_table_delete_element(p_client_t->p_usernames_ht, (const char *)p_client_t->name) == false)
+    {
+        ERROR_VERBOSE_LOG("Error deleting the desired element, maybe because it was already by another thread");
     }
     pthread_mutex_unlock(p_client_t->p_mutex_usernames_ht);
 
     return 0;
 }
-
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -294,14 +293,15 @@ int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t
  *
  * @return
  */
-int accept_and_store_client_username(BroadcastControllers_t *p_broadcast_ctrls_t_s, ClientInfo_t *p_client_t) {
+int accept_and_store_client_username(BroadcastControllers_t *p_broadcast_ctrls_t_s, ClientInfo_t *p_client_t)
+{
     // Assign the username to its struct (temporary memory)
     strncpy(p_client_t->name, p_client_t->buffer, strlen(p_client_t->buffer));
     p_client_t->name[MAX_USERNAME_LENGTH - 1] = '\0';
 
     // Inform the acceptance of the username
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    const char* accepted_msg = "\nUsername accepted!\n";
+    const char *accepted_msg = "\nUsername accepted!\n";
     strncpy(p_client_t->buffer, accepted_msg, strlen(accepted_msg));
     p_client_t->buffer[strlen(accepted_msg)] = '\0';
     send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0);
@@ -326,7 +326,7 @@ int accept_and_store_client_username(BroadcastControllers_t *p_broadcast_ctrls_t
  * @return
  */
 
-int prepare_to_broadcast_chat(BroadcastControllers_t *p_broadcast_ctrls_t_s, ClientInfo_t *p_client_t)
+int ask_and_assign_username(BroadcastControllers_t *p_broadcast_ctrls_t_s, ClientInfo_t *p_client_t)
 {
 
     // Ask for a simple ID
@@ -344,7 +344,7 @@ int prepare_to_broadcast_chat(BroadcastControllers_t *p_broadcast_ctrls_t_s, Cli
         int bytes_received;
         if ((bytes_received = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0)) < 0)
         {
-            perror("Error receiving the preferred name from the client");
+            ERROR_VERBOSE_LOG("Error receiving the preferred name from the client");
             exit(EXIT_FAILURE);
         }
         else if (bytes_received == 0)
@@ -394,14 +394,14 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
 {
     if (p_client_t == NULL)
     {
-        perror("Received a pointer pointing to improperly allocated memory");
+        ERROR_VERBOSE_LOG("Received a pointer pointing to improperly allocated memory");
         return NULL;
     }
     //
     p_client_t->name = (char *)calloc(BUFFER_SIZE, sizeof(char));
     if (p_client_t->name == NULL)
     {
-        perror("Error alocating memory for the p_client_t struct pointer");
+        ERROR_VERBOSE_LOG("Error alocating memory for the p_client_t struct pointer");
         free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
         return NULL;
     }
@@ -409,16 +409,16 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
     p_client_t->buffer = (char *)calloc(BUFFER_SIZE, sizeof(char));
     if (p_client_t->buffer == NULL)
     {
-        perror("Error alocating memory for the buffer pointer");
+        ERROR_VERBOSE_LOG("Error alocating memory for the buffer pointer");
         free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
         return NULL;
     }
 
     // Get the client's IP address (for a unique identification)
     char ip_buffer[INET_ADDRSTRLEN];
-    if (inet_ntop(AF_INET, (void *)&(p_client_t->p_addr), ip_buffer, INET_ADDRSTRLEN) == NULL) // TODO handle this error, and IPV6
+    if (inet_ntop(AF_INET, (void *)&(p_client_t->p_addr), ip_buffer, INET_ADDRSTRLEN) == NULL) //TODO handle IPV6 too
     {
-        perror("Error converting IP address");
+        ERROR_VERBOSE_LOG("Error converting IP address");
         free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
         return NULL;
     }
@@ -439,7 +439,7 @@ ThreadControl_t *get_thread_control_struct_ptr()
     ThreadControl_t *p_threads_t = (ThreadControl_t *)malloc(sizeof(ThreadControl_t));
     if (p_threads_t == NULL)
     {
-        perror("Error allocating memory for the thread control struct");
+        ERROR_VERBOSE_LOG("Error allocating memory for the thread control struct");
         return NULL;
     }
 
@@ -447,22 +447,22 @@ ThreadControl_t *get_thread_control_struct_ptr()
     p_threads_t->p_broadcast_condition_var = (pthread_cond_t *)malloc(sizeof(pthread_mutex_t));
     if (p_threads_t->p_broadcast_condition_var == NULL)
     {
-        perror("Error allocating memory for mutex");
+        ERROR_VERBOSE_LOG("Error allocating memory for mutex");
         return NULL;
     }
     //
-    void * is_broadcasting = malloc(sizeof(bool));
+    void *is_broadcasting = malloc(sizeof(bool));
     if (is_broadcasting == NULL)
     {
-        perror("Error allocating memory for the working bool indicator");
+        ERROR_VERBOSE_LOG("Error allocating memory for the working bool indicator");
         return NULL;
     }
     p_threads_t->is_broadcasting = is_broadcasting;
     //
-    void * did_prepare_service_data = malloc(sizeof(bool));
+    void *did_prepare_service_data = malloc(sizeof(bool));
     if (did_prepare_service_data == NULL)
     {
-        perror("Error allocating memory for the service data boolean value");
+        ERROR_VERBOSE_LOG("Error allocating memory for the service data boolean value");
         return NULL;
     }
     p_threads_t->did_prepare_service_data = did_prepare_service_data;
@@ -488,7 +488,7 @@ BroadcastControllers_t *get_broadcast_controls_struct_ptr()
     BroadcastControllers_t *p_broadcast_ctrls_t_s = (BroadcastControllers_t *)malloc(sizeof(BroadcastControllers_t));
     if (p_broadcast_ctrls_t_s == NULL)
     {
-        perror("Error alocating memory for the main server's controls struct");
+        ERROR_VERBOSE_LOG("Error alocating memory for the main server's controls struct");
         return NULL;
     }
 
@@ -496,7 +496,7 @@ BroadcastControllers_t *get_broadcast_controls_struct_ptr()
     char **usernames_by_FD_arr = malloc(FD_SETSIZE * sizeof(char *));
     if (usernames_by_FD_arr == NULL)
     {
-        perror("Error, unexpected value for the array of usernames indexes by file descriptors. Possible creation failure.");
+        ERROR_VERBOSE_LOG("Error, unexpected value for the array of usernames indexes by file descriptors. Possible creation failure.");
         return NULL;
     }
     //
@@ -505,17 +505,17 @@ BroadcastControllers_t *get_broadcast_controls_struct_ptr()
         usernames_by_FD_arr[i] = (char *)malloc(MAX_USERNAME_LENGTH);
         if (usernames_by_FD_arr[i] == NULL)
         {
-            perror("Error, unexpected value for a username string. Possible creation failure.");
+            ERROR_VERBOSE_LOG("Error, unexpected value for a username string. Possible creation failure.");
             return NULL;
         }
     }
     p_broadcast_ctrls_t_s->usernames_by_FD_arr = usernames_by_FD_arr;
 
-    // Compact the threads control variables onto a structure
+    // Compact the threads control variables into a structure
     ThreadControl_t *p_threads_t;
     if ((p_threads_t = get_thread_control_struct_ptr()) == NULL)
     {
-        perror("Error getting the thread control struct");
+        ERROR_VERBOSE_LOG("Error getting the thread control struct");
         return NULL;
     }
     p_broadcast_ctrls_t_s->p_threads_t = p_threads_t;
@@ -544,7 +544,7 @@ int prepare_client_for_broadcast_and_start(ClientInfo_t *p_client_t)
 
         if ((p_broadcast_ctrls_t_s = get_broadcast_controls_struct_ptr()) == NULL)
         {
-            perror("Error starting the service");
+            ERROR_VERBOSE_LOG("Error starting the service");
             return -1;
         }
 
@@ -554,22 +554,22 @@ int prepare_client_for_broadcast_and_start(ClientInfo_t *p_client_t)
 
     if ((prepare_client_structs_for_data(p_client_t)) == NULL)
     {
-        perror("Error preparing client structs for the data");
+        ERROR_VERBOSE_LOG("Error preparing client structs for the data");
         free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
         return -1;
     }
     //
     int exit_status;
-    if ((exit_status = prepare_to_broadcast_chat(p_broadcast_ctrls_t_s, p_client_t)) < 0)
+    if ((exit_status = ask_and_assign_username(p_broadcast_ctrls_t_s, p_client_t)) < 0)
     {
-        perror("Error preparing client to be broadcasted");
+        ERROR_VERBOSE_LOG("Error preparing client to be broadcasted");
         free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
         return exit_status;
     }
     //
     if ((exit_status = get_messages_from_active_clients(p_broadcast_ctrls_t_s, p_client_t)) < 0)
     {
-        perror("Error when broadcasting the client");
+        ERROR_VERBOSE_LOG("Error when broadcasting the client");
         free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
         return exit_status;
     }

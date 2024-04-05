@@ -32,7 +32,7 @@ void close_service(UniSocket_t *p_server_t)
     pthread_mutex_unlock(p_server_t->p_mutex_usernames_ht);
 
     close_server_socket(p_server_t);
-    printf("Service closed.\n");
+    INFO_VERBOSE_LOG("Service closed.\n");
 }
 // TODO consider using a cleanup handler for the threads
 // TODO to dispose already connected clients
@@ -57,13 +57,13 @@ int join_thread_and_handle_errors(pthread_t *p_thread_ID)
     int join_status;
     if ((join_status = pthread_join(*p_thread_ID, &p_thread_return_val)) < 0)
     {
-        perror("Error joining listener thread");
+        ERROR_VERBOSE_LOG("Error joining listener thread");
         return join_status;
     }
     //
     if (p_thread_return_val == NULL)
     {
-        perror("pthread_join could not allocate memory for the thread return value");
+        ERROR_VERBOSE_LOG("pthread_join could not allocate memory for the thread return value");
         return -1;
     }
     else
@@ -146,7 +146,7 @@ void *search_for_thread_work(void *p_server_t_arg)
                 p_client_t->p_online_clients_set = p_online_clients_set;
                 //
                 p_client_t->p_mutex_common_msg_buffer = p_mutex_common_msg_buffer;
-                p_client_t->p_common_msg_buffer = p_server_t->p_common_msg_buffer; // TODO
+                p_client_t->p_common_msg_buffer = p_server_t->p_common_msg_buffer; 
 
                 // Forward the client to the desired service function
                 int (*functionPtr)(ClientInfo_t *) = p_client_t->p_service_func;
@@ -195,7 +195,7 @@ void gracefully_reject_pending_clients(ClientInfo_t *p_client_t, pthread_mutex_t
         }
         else
         {
-            perror("Error when dequeuing the client, found a null value when alerting the clients of closing the server");
+            ERROR_VERBOSE_LOG("Error when dequeuing the client, found a null value when alerting the clients of closing the server");
         }
     }
 
@@ -239,7 +239,7 @@ void *accept_incoming_connections(void *p_server_t_arg)
     {
         if ((p_client_t = accept_connection(server_FD)) == NULL)
         {
-            perror("Error allocating memory for the client info struct");
+            ERROR_VERBOSE_LOG("Error allocating memory for the client info struct");
             continue; // another thread will PROBABLY handle the client
         }
 
@@ -282,7 +282,7 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     pthread_t *p_thread_pool = malloc(SIZE_THREAD_POOL * sizeof(pthread_t));
     if (p_thread_pool == NULL)
     {
-        perror("Error allocating memory for thread pool");
+        ERROR_VERBOSE_LOG("Error allocating memory for thread pool");
         exit(EXIT_FAILURE);
     }
     p_server_t->p_thread_pool = p_thread_pool;
@@ -291,12 +291,12 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     pthread_cond_t *p_condition_var = malloc(sizeof(pthread_cond_t));
     if (p_condition_var == NULL)
     {
-        perror("Error allocating memory for condition variable");
+        ERROR_VERBOSE_LOG("Error allocating memory for condition variable");
         exit(EXIT_FAILURE);
     }
     if (pthread_cond_init(p_condition_var, NULL) != 0)
     {
-        perror("Error initializing condition variable");
+        ERROR_VERBOSE_LOG("Error initializing condition variable");
         free(p_condition_var); // Free allocated memory
         exit(EXIT_FAILURE);
     }
@@ -306,12 +306,12 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     pthread_mutex_t *p_mutex_queue = malloc(sizeof(pthread_mutex_t));
     if (p_mutex_queue == NULL)
     {
-        perror("Error allocating memory for the QUEUE mutex");
+        ERROR_VERBOSE_LOG("Error allocating memory for the QUEUE mutex");
         exit(EXIT_FAILURE);
     }
     if (pthread_mutex_init(p_mutex_queue, NULL) != 0)
     {
-        perror("Error initializing the QUEUE mutex");
+        ERROR_VERBOSE_LOG("Error initializing the QUEUE mutex");
         free(p_mutex_queue);
         exit(EXIT_FAILURE);
     }
@@ -320,12 +320,12 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     pthread_mutex_t *p_mutex_quit_signal = malloc(sizeof(pthread_mutex_t));
     if (p_mutex_quit_signal == NULL)
     {
-        perror("Error allocating memory for the QUIT SIGNAL mutex");
+        ERROR_VERBOSE_LOG("Error allocating memory for the QUIT SIGNAL mutex");
         exit(EXIT_FAILURE);
     }
     if (pthread_mutex_init(p_mutex_quit_signal, NULL) != 0)
     {
-        perror("Error initializing the QUIT SIGNAL mutex");
+        ERROR_VERBOSE_LOG("Error initializing the QUIT SIGNAL mutex");
         free(p_mutex_quit_signal);
         exit(EXIT_FAILURE);
     }
@@ -334,12 +334,12 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     pthread_mutex_t *p_mutex_usernames_ht = malloc(sizeof(pthread_mutex_t));
     if (p_mutex_usernames_ht == NULL)
     {
-        perror("Error allocating memory for the CLIENT'S HASH TABLE mutex");
+        ERROR_VERBOSE_LOG("Error allocating memory for the CLIENT'S HASH TABLE mutex");
         exit(EXIT_FAILURE);
     }
     if (pthread_mutex_init(p_mutex_usernames_ht, NULL) != 0)
     {
-        perror("Error initializing the CLIENT'S HASH TABLE mutex");
+        ERROR_VERBOSE_LOG("Error initializing the CLIENT'S HASH TABLE mutex");
         free(p_mutex_usernames_ht);
         exit(EXIT_FAILURE);
     }
@@ -348,12 +348,12 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     pthread_mutex_t *p_mutex_online_clients_set = malloc(sizeof(pthread_mutex_t));
     if (p_mutex_online_clients_set == NULL)
     {
-        perror("Error allocating memory for the CLIENT'S ONLINE CLIENTS SET mutex");
+        ERROR_VERBOSE_LOG("Error allocating memory for the CLIENT'S ONLINE CLIENTS SET mutex");
         exit(EXIT_FAILURE);
     }
     if (pthread_mutex_init(p_mutex_online_clients_set, NULL) != 0)
     {
-        perror("Error initializing the CLIENT'S ONLINE CLIENTS SET mutex");
+        ERROR_VERBOSE_LOG("Error initializing the CLIENT'S ONLINE CLIENTS SET mutex");
         free(p_mutex_online_clients_set);
         exit(EXIT_FAILURE);
     }
@@ -362,12 +362,12 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     pthread_mutex_t *p_mutex_common_msg_buffer = malloc(sizeof(pthread_mutex_t));
     if (p_mutex_common_msg_buffer == NULL)
     {
-        perror("Error allocating memory for the COMMON MSG BUFFER mutex");
+        ERROR_VERBOSE_LOG("Error allocating memory for the COMMON MSG BUFFER mutex");
         exit(EXIT_FAILURE);
     }
     if (pthread_mutex_init(p_mutex_common_msg_buffer, NULL) != 0)
     {
-        perror("Error initializing the COMMON MSG BUFFER mutex");
+        ERROR_VERBOSE_LOG("Error initializing the COMMON MSG BUFFER mutex");
         free(p_mutex_common_msg_buffer);
         exit(EXIT_FAILURE);
     }
@@ -377,7 +377,7 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     volatile sig_atomic_t *p_quit_signal = malloc(sizeof(sig_atomic_t));
     if (p_quit_signal == NULL)
     {
-        perror("Error allocating memory for quit signal");
+        ERROR_VERBOSE_LOG("Error allocating memory for quit signal");
         exit(EXIT_FAILURE);
     }
     p_server_t->p_quit_signal = p_quit_signal;
@@ -393,7 +393,7 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
         creation_status = pthread_create(&p_thread_pool[i], NULL, (void *(*)(void *))search_for_thread_work, (void *)p_server_t);
         if (creation_status < 0)
         {
-            perror("Error creating one of the pool threads of the server");
+            ERROR_VERBOSE_LOG("Error creating one of the pool threads of the server");
             continue;
         }
     }
@@ -412,14 +412,14 @@ hash_table *get_usernames_hash_table_ptr()
 {
     hash_table *p_usernames_ht;
 
-    uint32_t size = __FD_SETSIZE;
+    uint32_t size = FD_SETSIZE;
     hashFunc *p_hash_func = murmur3_32_hash;
     cleanObjFunc *p_cleanup_func = free_client_memory_with_ptr_to_ptr;
     p_usernames_ht = hash_table_create(size, p_hash_func, p_cleanup_func);
 
     if (p_usernames_ht == NULL)
     {
-        perror("Error creating the hash table for the usernames");
+        ERROR_VERBOSE_LOG("Error creating the hash table for the usernames");
         return NULL;
     }
 
@@ -440,7 +440,7 @@ fd_set *get_set_of_clients_descriptors()
     fd_set *p_online_clients_set = malloc(sizeof(fd_set));
     if (p_online_clients_set == NULL)
     {
-        perror("Error allocating memory for the set of socket descriptors for the clients");
+        ERROR_VERBOSE_LOG("Error allocating memory for the set of socket descriptors for the clients");
         return NULL;
     }
 
@@ -463,14 +463,14 @@ int listen_for_connections_on_separate_thread(UniSocket_t *p_server_t)
     int creation_status;
     if ((creation_status = pthread_create(&listening_thread, NULL, (void *(*)(void *))accept_incoming_connections, (void *)p_server_t)) < 0)
     {
-        perror("Error creating the listening thread for the server");
+        ERROR_VERBOSE_LOG("Error creating the listening thread for the server");
         return creation_status;
     }
     //
     int join_status;
     if ((join_status = join_thread_and_handle_errors(&listening_thread)) < 0)
     {
-        perror("Error joinin listening thread of the server");
+        ERROR_VERBOSE_LOG("Error joinin listening thread of the server");
         return join_status;
     }
 
@@ -494,7 +494,7 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
     hash_table *p_usernames_ht = get_usernames_hash_table_ptr();
     if (p_usernames_ht == NULL)
     {
-        perror("Error, unexpected value for the pointer of the usernames table. Possible creation failure.");
+        ERROR_VERBOSE_LOG("Error, unexpected value for the pointer of the usernames table. Possible creation failure.");
         return -1;
     }
     p_server_t->p_usernames_ht = p_usernames_ht;
@@ -503,16 +503,16 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
     fd_set *p_online_clients_set = get_set_of_clients_descriptors();
     if (p_online_clients_set == NULL)
     {
-        perror("Error, unexpected value for the pointer of the online clients socket descriptors set. Possible creation failure.");
+        ERROR_VERBOSE_LOG("Error, unexpected value for the pointer of the online clients socket descriptors set. Possible creation failure.");
         return -1;
     }
     p_server_t->p_online_clients_set = p_online_clients_set;
     //
-    int *p_max_socket_so_far = (int *)malloc(sizeof(int)); // TODO
+    int *p_max_socket_so_far = (int *)malloc(sizeof(int)); // TODO use to improve perfomance
     p_server_t->p_max_socket_so_far = p_max_socket_so_far;
 
-    // Prepare the buffer for the common messages //TODO
-    char *p_common_msg_buffer = (char *)malloc(BUFFER_SIZE * DEFAULT_MAX_NUM_CLIENTS); // TODO change for the total number of clients
+    // Prepare the buffer for the common messages 
+    char *p_common_msg_buffer = (char *)malloc(BUFFER_SIZE * DEFAULT_MAX_NUM_CLIENTS); 
     p_server_t->p_common_msg_buffer = p_common_msg_buffer;
 
     // Does NOT return error values because it ends the execution in that case
@@ -522,7 +522,7 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
     int listen_exit_status;
     if ((listen_exit_status = listen_for_connections_on_separate_thread(p_server_t)) < 0)
     {
-        perror("Error creating or executing the listening thread");
+        ERROR_VERBOSE_LOG("Error creating or executing the listening thread");
         return listen_exit_status;
     }
 }
@@ -549,7 +549,7 @@ int start_service(int port, ServiceFunctionPtr p_service_func_arg)
     UniSocket_t *p_server_t;
     if (((p_server_t = create_socket_struct(true, port, true)) == NULL))
     {
-        perror("Error getting the socket struct pointer");
+        ERROR_VERBOSE_LOG("Error getting the socket struct pointer");
         return -1;
     }
 
@@ -560,7 +560,7 @@ int start_service(int port, ServiceFunctionPtr p_service_func_arg)
     int error_status;
     if ((error_status = start_accepting_incoming_connections(p_server_t)) < 0)
     {
-        perror("Error acepting incoming connections");
+        ERROR_VERBOSE_LOG("Error acepting incoming connections");
         return error_status;
     }
 

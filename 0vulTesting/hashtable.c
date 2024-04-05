@@ -10,7 +10,7 @@
  * If no cleanup function is provided, it defaults to 'free'.
  * 
  * If MUST be paid attention to using uncommenting the signaled part
- * of the 'hash_table_free_element_with_ptr_to_ptr_of_entry' function if the value is a constant
+ * of the 'hash_table_free_element' function if the value is a constant
  *
  * @param size The size of the hash table
  * @param p_hash_func Pointer to the hash function
@@ -23,7 +23,7 @@ hash_table *hash_table_create(uint32_t size, hashFunc *p_hash_func, cleanObjFunc
 {
     hash_table *p_ht = malloc(sizeof(*p_ht));
     if (p_ht == NULL) {
-        ERROR_VERBOSE_LOG("Error allocating memory for the hash table failed");
+        perror("Error allocating memory for the hash table failed");
         return NULL;
     }
 
@@ -135,11 +135,11 @@ void * hash_table_print(hash_table *p_ht)
 {
     // Check if the hash table exists
     if (p_ht == NULL) {
-        ERROR_VERBOSE_LOG("The provided hash table pointer is invalid. Probably the hash table does not exist");
+        perror("The provided hash table pointer is invalid. Probably the hash table does not exist");
         return NULL;
     }
 
-    INFO_VERBOSE_LOG("Printing the hash table...\n");
+    printf("Printing the hash table...\n");
     for (uint32_t i = 0; i < p_ht->size; i++)
     {
         if (p_ht->elements[i] != NULL)
@@ -156,7 +156,7 @@ void * hash_table_print(hash_table *p_ht)
             printf("\n");
         }
     }
-    INFO_VERBOSE_LOG("Finished printing the hash table\n");
+    printf("Finished printing the hash table\n");
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -178,19 +178,22 @@ void hash_table_clean_fully(hash_table *p_ht)
         {
             entry *p_temp = p_ht->elements[i];
             p_ht->elements[i] = p_ht->elements[i]->p_next;
-            hash_table_free_element_with_ptr_to_ptr_of_entry(p_ht, &p_temp);
+            hash_table_free_element(p_ht, p_temp);
         }
     }
 }
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief 
- * 
- * @param p_ht 
- * @param p_key 
- * @return true 
- * @return false 
+ * @brief Deletes an element from the hash table
+ *
+ * Deletes the element associated with the specified key from the hash table,
+ * if it exists. If the table or the key pointer is NULL, or if the element
+ * is not found, returns NULL.
+ *
+ * @param p_ht Pointer to the hash table structure
+ * @param p_key Pointer to the key of the element to delete
+ * @return Pointer to the deleted element's object, or NULL if not found
  */
 
 bool hash_table_delete_element(hash_table *p_ht, ELEMENT_TYPE *p_key)
@@ -210,7 +213,9 @@ bool hash_table_delete_element(hash_table *p_ht, ELEMENT_TYPE *p_key)
         p_temp = p_temp->p_next;
     }
 
-    //TODO discover why sometimes this does not find the username
+
+    //TODO find why this does not find the username
+
 
     // Element NOT found
     if (p_temp == NULL) {
@@ -226,7 +231,7 @@ bool hash_table_delete_element(hash_table *p_ht, ELEMENT_TYPE *p_key)
     }
 
     // Return the deleted content of the ELEMENT
-    // hash_table_free_element_with_ptr_to_ptr_of_entry(p_ht, &p_temp); 
+    hash_table_free_element(p_ht, &p_temp); 
 
     return true;
 }
@@ -265,11 +270,15 @@ void hash_table_destroy_with_ptr_to_ptr(hash_table **p_p_ht) {
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief 
- * 
- * @param p_ht 
- * @param p_key 
- * @return size_t 
+ * @brief Calculates the index for a given key in the hash table
+ *
+ * Uses the provided hash function to calculate the index for a given key
+ * within the hash table. The result is the remainder of the hash function
+ * value divided by the size of the hash table.
+ *
+ * @param p_ht Pointer to the hash table structure
+ * @param p_key Pointer to the key for which to calculate the index
+ * @return The calculated index for the key in the hash table
  */
 static size_t hash_table_calc_index_with_hash(hash_table *p_ht, ELEMENT_TYPE *p_key)
 {
@@ -280,12 +289,20 @@ static size_t hash_table_calc_index_with_hash(hash_table *p_ht, ELEMENT_TYPE *p_
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief 
- * 
- * @param p_ht 
- * @param p_p_entry 
+ * @brief Frees memory associated with a hash table element
+ *
+ * Deallocates memory associated with the given hash table element.
+ * If the element contains an object, it is cleaned up using the provided
+ * cleanup function. Memory for the element itself is then deallocated.
+ * If MUST be paid attention to using uncommenting the signaled part
+ * if the value is a constant
+ *
+ * @param p_ht Pointer to the hash table structure
+ * @param p_entry Pointer to the entry to be freed
  */
-static void hash_table_free_element_with_ptr_to_ptr_of_entry(hash_table *p_ht, entry **p_p_entry) {
+
+//TODO USE the pointer to pointer strategy
+static void hash_table_free_element(hash_table *p_ht, entry **p_p_entry) {
     if (*p_p_entry == NULL) {
         return;  
     }
@@ -306,8 +323,9 @@ static void hash_table_free_element_with_ptr_to_ptr_of_entry(hash_table *p_ht, e
 
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief 
- * 
+ * @brief
+ *
+ * @param a
  */
 
 // Faster than the 64 version; greater likelihood of collision is considered

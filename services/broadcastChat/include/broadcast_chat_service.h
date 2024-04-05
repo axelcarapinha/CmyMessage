@@ -8,6 +8,8 @@
 //TODO I am needing to import this here too for some reason
 #include <pthread.h> 
 #include <semaphore.h>
+#include <asm-generic/socket.h>
+
 
 // TODO use the config file
 //  Default values
@@ -62,7 +64,7 @@ int remove_socket_from_sets(ClientInfo_t *p_client_t, int socket_FD, fd_set read
 int broadcast_message_to_online_clients(ClientInfo_t *p_client_t, long tot_num_bytes_recv);
 int get_messages_from_active_clients(BroadcastControllers_t *p_broadcast_ctrls_t_s, ClientInfo_t *p_client_t);
 int accept_and_store_client_username(BroadcastControllers_t *p_broadcast_ctrls_t_s, ClientInfo_t *p_client_t);
-int prepare_to_broadcast_chat(BroadcastControllers_t *p_broadcast_ctrls_t_s, ClientInfo_t *p_client_t);
+int ask_and_assign_username(BroadcastControllers_t *p_broadcast_ctrls_t_s, ClientInfo_t *p_client_t);
 void *prepare_client_structs_for_data(ClientInfo_t *p_client_t);
 ThreadControl_t *get_thread_control_struct_ptr();
 BroadcastControllers_t *get_broadcast_controls_struct_ptr();
