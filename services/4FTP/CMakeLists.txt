@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(clients)
+project(ftp_service)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${PROJECT_NAME})
 
@@ -22,6 +22,22 @@ target_include_directories(${CMAKE_PROJECT_NAME}
     "${CMAKE_CURRENT_SOURCE_DIR}/include/utils"
 )
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
+add_compile_options(
+    -Wall
+    -pthread
+    -g
+)
+
+# dd debug flags
+target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC -g)
+
+# Set debug build type
+set(CMAKE_BUILD_TYPE Debug)
+
+# Uncomment if needed for pthread and Wall options
+# target_compile_options(${CMAKE_PROJECT_NAME} PUBLIC -pthread -Wall)
+#
+# Uncomment if needed for pthread options
+# target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC pthread)
 
 target_link_libraries(${CMAKE_PROJECT_NAME})

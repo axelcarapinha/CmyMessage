@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/out",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include/utils\" -g -g -o CMakeFiles/ftp_service.dir/src/ftp_service.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/ftp_service.c\"",
+  "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/ftp_service.c"
+},
+{
+  "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/out",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include/utils\" -g -g -o CMakeFiles/ftp_service.dir/src/main.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/main.c\"",
+  "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/main.c"
+},
+{
+  "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/out",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include/utils\" -g -g -o CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/utils/hash_table.c\"",
+  "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/utils/hash_table.c"
+},
+{
+  "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/out",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include/utils\" -g -g -o CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/utils/net_utils_tcp.c\"",
+  "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/utils/net_utils_tcp.c"
+},
+{
+  "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/out",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include/utils\" -g -g -o CMakeFiles/ftp_service.dir/src/utils/queue.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/utils/queue.c\"",
+  "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/utils/queue.c"
+},
+{
+  "directory": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/out",
+  "command": "/usr/bin/cc  -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include\" -I\"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/include/utils\" -g -g -o CMakeFiles/ftp_service.dir/src/utils/service_utils.c.o -c \"/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/utils/service_utils.c\"",
+  "file": "/home/asusftr/Desktop/CHEST/(2.3.) Uni UÉ/(1.0) Coding/1MAGIC/0RC CmyMessage/CmyMessage/services/4FTP/src/utils/service_utils.c"
+}
+]
