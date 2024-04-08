@@ -93,22 +93,6 @@ int parse_client_command_and_redirect(int command) {
     return 0;
 }
 
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
-int input_client_command_and_decode(ClientInfo_t *p_client_t) {
-   
-
-    
-    return 0;
-}
-
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
@@ -119,6 +103,7 @@ int input_client_command_and_decode(ClientInfo_t *p_client_t) {
  */
 int define_acess_controls(ClientInfo_t *p_client_t) {
     
+    return 0;
 }
 
 
@@ -261,11 +246,11 @@ int serve_client_with_FTP(ClientInfo_t *p_client_t)
         exit(EXIT_FAILURE);
     }
 
-    int handling_status;
-    if (handling_status = handle_client_commands(p_client_t) < 0) {
-        ERROR_VERBOSE_LOG("Error while handling client comments");
-        return handling_status;
-    }
+    // int input_command_status;
+    // if (input_command_status = input_client_command(p_client_t) < 0) {
+    //     ERROR_VERBOSE_LOG("Error while handling client comments");
+    //     return input_command_status;
+    // }
 
     free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
 }

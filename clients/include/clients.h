@@ -9,6 +9,10 @@
 #define MAX_NUM_CLIENTS 2
 #define MAX_USERNAME_LENGTH 20 // 20 chars, 20 bytes
 #define USERNAMES_HASH_SEED 23
+//
+#define FTP_COMMANDS_PORT 8021
+#define FTP_DATA_PORT 8020
+#define FTP_IP_ADDR "127.0.0.1" // localhost, for now
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +21,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <asm-generic/socket.h>
 #include <unistd.h>
 #include <time.h>
 #include <errno.h>
@@ -25,8 +30,6 @@
 #include <arpa/inet.h>
 #include <signal.h>
 #include <regex.h>
-//
-#include "net_utils_tcp.h"
 
 // Colors for stdout text
 #define RESET "\x1B[0m"
@@ -80,5 +83,8 @@ struct ClientInfo_t
     fd_set *p_online_clients_set;
     char *p_common_msg_buffer;
 };
+
+int use_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_func);
+
 
 #endif

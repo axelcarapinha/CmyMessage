@@ -1,3 +1,4 @@
+#include "net_utils_tcp.h"
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -157,8 +158,8 @@ void free_client_memory_with_ptr_to_ptr(void **p_p_client_t_arg)
     }
 }
 
-//----------------------------------------------------------------------------------------------------------
 
+//----------------------------------------------------------------------------------------------------------
 /**
  * @brief Allocate CLIENT information structure
  *
@@ -201,6 +202,38 @@ ClientInfo_t *allocate_client_info_struct()
 
     return p_client_t;
 }
+
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief 
+ *
+ * @return 
+ */
+
+//TODO use in the code for the server (allowing file transfering between servers, ...)
+int connect_to_server(UniSocket_t *p_socket_t, int server_port, char *server_ip) {
+    struct sockaddr_in6 server_addr; // the servers DO support both IPv4 and IPv6
+
+    // Prepare the server information for the connection
+    memset(&server_addr, 0, sizeof(server_addr));
+    server_addr.sin6_family = AF_INET6;
+    server_addr.sin6_port = htons(server_port);
+    if (inet_pton(AF_INET, server_ip, &server_addr.sin6_addr) <= 0) {
+        perror("Error, invalid address");
+        return -1;
+    }
+
+    // Connect to desired server
+    int connection_status;
+    if ((connection_status = connect(p_socket_t->sock_FD, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) < 0) {
+        perror("Error connecting to the desired server");
+        return connection_status;
+    }
+
+    return 0;
+}
+
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -362,9 +395,12 @@ int initialize_socket(UniSocket_t *p_socket_t)
         // Noteworthy, if the server has IPv4 and IPv6 sockets,
         // please, consider changing opt to 1, for a more controlled flow of the connections
         p_socket_t->addr_u.p_ipv4->sin_family = AF_INET;
-        p_socket_t->addr_u.p_ipv4->sin_addr.s_addr = INADDR_ANY;
-        p_socket_t->addr_u.p_ipv4->sin_port = htons(p_socket_t->port);
         *(p_socket_t->p_addr_len) = sizeof(p_socket_t->addr_u.p_ipv4);
+        //
+        if (p_socket_t->is_server) {
+            p_socket_t->addr_u.p_ipv4->sin_port = htons(p_socket_t->port);
+            p_socket_t->addr_u.p_ipv4->sin_addr.s_addr = INADDR_ANY;
+        }
     }
     else
     {
@@ -376,16 +412,18 @@ int initialize_socket(UniSocket_t *p_socket_t)
             return -1;
         }
         p_socket_t->addr_u.p_ipv6->sin6_family = AF_INET6;
-        p_socket_t->addr_u.p_ipv6->sin6_addr = in6addr_any;
-        p_socket_t->addr_u.p_ipv6->sin6_port = htons(p_socket_t->port);
         *(p_socket_t->p_addr_len) = sizeof(p_socket_t->addr_u.p_ipv6);
+        //
+        if (p_socket_t->is_server) {
+            p_socket_t->addr_u.p_ipv6->sin6_port = htons(p_socket_t->port);
+            p_socket_t->addr_u.p_ipv6->sin6_addr = in6addr_any; //TODO patch this on the other code
+        }
     }
 
     return 0;
 }
 
 //----------------------------------------------------------------------------------------------------------
-
 /**
  * @brief Allocate SOCKET structure
  *
@@ -466,6 +504,13 @@ UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg
     p_socket_t->port = port;
     p_socket_t->is_ipv4 = is_ipv4_arg;
     //
+    if (assign_descriptor_to_stream_socket_t(p_socket_t) < 0)
+    {
+        ERROR_VERBOSE_LOG("Error assigning descriptor to the socket");
+        free_server_socket_memory_with_ptr_to_ptr((void **)&p_socket_t);
+        return NULL;
+    }
+    //
     if (initialize_socket(p_socket_t) < 0)
     {
         ERROR_VERBOSE_LOG("Error initializing the socket");
@@ -473,12 +518,6 @@ UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg
         return NULL;
     }
     //
-    if (assign_descriptor_to_stream_socket_t(p_socket_t) < 0)
-    {
-        ERROR_VERBOSE_LOG("Error assigning descriptor to the socket");
-        free_server_socket_memory_with_ptr_to_ptr((void **)&p_socket_t);
-        return NULL;
-    }
 
     // SERVER specific settings
     if (p_socket_t->is_server)

@@ -1,1 +1,0 @@
-/usr/bin/cc  -pthread CMakeFiles/clients.dir/src/clients.c.o CMakeFiles/clients.dir/src/main.c.o CMakeFiles/clients.dir/src/utils/net_utils_tcp.c.o -o clients/clients 

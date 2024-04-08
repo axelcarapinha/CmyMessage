@@ -1,87 +1,82 @@
-// #include "clients.h"
-
-// void chat(uniSocket *cli_struct_ptr)
-// {
-//     char *buffer = (char *)malloc(BUFFER_SIZE);
-
-//     // Compile regex expression
-//     regex_t exit_regex;
-//     if (regcomp(&exit_regex, "([eE][xX][iI][tT])", REG_EXTENDED) != 0)
-//     {
-//         fprintf(stderr, "Failed to compile regex\n");
-//         exit(EXIT_FAILURE);
-//     }
-
-//     //TODO func to read all content frmo the seber
-
-//     // Start sending content to the server
-//     printf("Starting chat... (press Ctrl-C to exit)\n");
-//     while (true)
-//     {
-//         ssize_t valread;
-//         valread = recv(cli_struct_ptr->sock_fd, buffer, BUFFER_SIZE, 0);
-//         if (valread < 0) {
-//             perror("Failed to received data from the server");
-//             close_socket(cli_struct_ptr);
-//             exit(EXIT_FAILURE);
-//         }
-
-//         // Print the received
-//         printf(BLUE "%s\n" RESET, buffer);
-//         memset(buffer, 0, BUFFER_SIZE);
-
-//         // Send response
-//         printf("> ");
-//         fgets(buffer, BUFFER_SIZE, stdin);
-//         buffer[strlen(buffer) - 1] = '\0';
-//         //
-//         if (regexec(&exit_regex, buffer, 0, NULL, 0) == 0) {
-//             printf("Exiting chat.\n");
-//             break; 
-//         }
-//         //
-//         send(cli_struct_ptr->sock_fd, buffer, strlen(buffer), 0);
-//         printf("Sent %ld\n", strlen(buffer));
-
-//         // if valread
-//         // regexec(&regex, buffer, 0, NULL, 0) != 0)
-//         // TODO se ainda há conteúdo por enviar, fazer mais
-
-//         // Fully clean the buffer
-//         memset(buffer, 0, BUFFER_SIZE);
-//     }
-
-//     // Terminate gracefully
-//     bzero(buffer, BUFFER_SIZE);
-//     free(buffer);
-//     close(cli_struct_ptr->sock_fd);
-// }
+#include "net_utils_tcp.h"
 
 
-// //----------------------------------------------------------------------------------------------------------
-// /**
-//  * @brief 
-//  * 
-//  * @return int 
-//  */
-// int connect_client_to_server(ClientInfo_t *p_client_t) {
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief Allocate SOCKET structure
+ *
+ * This function allocates memory for a UniSocket_t structure along with its associated address
+ * structure and length variable. Additionally, it allocates memory for a service function pointer.
+ *
+ * If memory allocation fails at any point during the process, it frees the previously allocated
+ * memory and prints an error message using perror(), indicating the specific allocation failure.
+ *
+ * @return A pointer to the allocated UniSocket_t structure on success with allocation, otherwise NULL
+ */
+//TODO consider using this in a library
+void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
+{
+    if (p_client_t == NULL)
+    {
+        ERROR_VERBOSE_LOG("Received a pointer pointing to improperly allocated memory");
+        return NULL;
+    }
+    //
+    p_client_t->name = (char *)calloc(BUFFER_SIZE, sizeof(char));
+    if (p_client_t->name == NULL)
+    {
+        ERROR_VERBOSE_LOG("Error alocating memory for the p_client_t struct name");
+        free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
+        return NULL;
+    }
 
-//     return 0;
-// }
+    p_client_t->buffer = (char *)calloc(BUFFER_SIZE, sizeof(char));
+    if (p_client_t->buffer == NULL)
+    {
+        ERROR_VERBOSE_LOG("Error alocating memory for the buffer pointer");
+        free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
+        return NULL;
+    }
 
+    // Get the client's IP address (for a unique identification)
+    char ip_buffer[INET_ADDRSTRLEN]; //TODO started making changes here
+    if (inet_ntop(AF_INET6, (void *)&(p_client_t->p_addr), ip_buffer, INET_ADDRSTRLEN) == NULL) //TODO handle IPV6 too
+    {
+        ERROR_VERBOSE_LOG("Error converting IP address");
+        free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
+        return NULL;
+    }
+    //
+    p_client_t->addr_info = ip_buffer;
+}
 
-// //----------------------------------------------------------------------------------------------------------
-// /**
-//  * @brief 
-//  * 
-//  * @return int 
-//  */
-// int use_service() {
-//     uniSocket *cli_struct_ptr = create_socket(false, PORT, true);
-//     connect_cli(cli_struct_ptr, PORT);
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief 
+ * 
+ * @return int 
+ */
+int use_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_func) {
 
-//     chat(cli_struct_ptr);
-//     // close(cli_struct_ptr->sock_fd);
+    // In this case (the client) the port will be the port 
+    // that the client wants to connect to
+    UniSocket_t *p_socket_t = create_socket_struct(false, server_port, false);
+    if (p_socket_t == NULL) {
+        perror("Error creating socket for the client for the desired service");
+        return -1;
+    }
+    
+    ClientInfo_t *p_client_t = (ClientInfo_t *)malloc(sizeof(ClientInfo_t));
+    prepare_client_structs_for_data(p_client_t);
+    if (p_client_t == NULL) {
+        perror("Error initializing the struct for the client information");
+        return -1;
+    }
 
-//     return 0;
-// }
+    // Redirect the client to the CLIENT-SIDE service function
+    (*p_service_func)(p_client_t);
+
+    close_socket_with_ptr_if_open(&p_socket_t->sock_FD);
+
+    return 0;
+}

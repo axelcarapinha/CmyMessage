@@ -15,22 +15,18 @@
 //
 #define SERVICE_NAME "FTP"
 
-int serve_client_with_FTP(ClientInfo_t *p_client_t);
-void *prepare_client_structs_for_data(ClientInfo_t *p_client_t);
-int ask_client_basic_details(ClientInfo_t *p_client_t);
-int send_customized_welcome_message(ClientInfo_t *p_client_t);
-int define_acess_controls(ClientInfo_t *p_client_t);
+//TODO place the comments in the header file
 
-int parse_client_command_and_redirect(int command);
-int input_client_command_and_decode(ClientInfo_t *p_client_t);
-
-int compress_file();
-int write_file();
-int send_file();
 int open_file();
-
-
-
+int send_file();
+int write_file();
+int compress_file();
+int parse_client_command_and_redirect(int command);
+int define_access_controls(ClientInfo_t *p_client_t);
+int send_customized_welcome_message(ClientInfo_t *p_client_t);
+int ask_client_basic_details(ClientInfo_t *p_client_t);
+void *prepare_client_structs_for_data(ClientInfo_t *p_client_t);
+int serve_client_with_FTP(ClientInfo_t *p_client_t);
 
 
 

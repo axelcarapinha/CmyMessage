@@ -1,7 +1,7 @@
 #ifndef NET_UTILS_TCP_H
 #define NET_UTILS_TCP_H
 
-#include "clients.h" //TODO problem with this
+#include "clients.h"
 
 // If the system or network configs does NOT support dual-stack sockets,
 // this approach, while NOT recommended, allows the server to accept only IPv4 connections.
@@ -46,6 +46,7 @@ void close_server_socket(UniSocket_t *p_socket_t);
 void sigsegv_handler(int signum);
 void free_server_socket_memory_with_ptr_to_ptr(void **p_p_socket_t_arg);
 void free_client_memory_with_ptr_to_ptr(void **p_p_client_t_arg);
+int connect_to_server(UniSocket_t* p_socket_t, int server_port, char *server_ip);
 ClientInfo_t *allocate_client_info_struct();
 ClientInfo_t *accept_connection(int service_FD);
 int setup_service_socket_t(int opt, UniSocket_t *p_socket_t);

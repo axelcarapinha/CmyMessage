@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "net_utils_tcp.h": "c",
+        "clients.h": "c"
+    }
+}
