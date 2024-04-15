@@ -468,6 +468,13 @@ UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg
     p_socket_t->port = port;
     p_socket_t->is_ipv4 = is_ipv4_arg;
     //
+    if (assign_descriptor_to_stream_socket_t(p_socket_t) < 0)
+    {
+        ERROR_VERBOSE_LOG("Error assigning descriptor to the socket");
+        free_server_socket_memory_with_ptr_to_ptr((void **)&p_socket_t);
+        return NULL;
+    }
+    //
     if (initialize_socket(p_socket_t) < 0)
     {
         ERROR_VERBOSE_LOG("Error initializing the socket");
@@ -475,12 +482,6 @@ UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg
         return NULL;
     }
     //
-    if (assign_descriptor_to_stream_socket_t(p_socket_t) < 0)
-    {
-        ERROR_VERBOSE_LOG("Error assigning descriptor to the socket");
-        free_server_socket_memory_with_ptr_to_ptr((void **)&p_socket_t);
-        return NULL;
-    }
 
     // SERVER specific settings
     if (p_socket_t->is_server)

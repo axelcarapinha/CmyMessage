@@ -215,6 +215,49 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
     p_client_t->addr_info = ip_buffer;
 }
 
+
+
+//TODO:
+//  // Send the corresponding code to the server
+//     int option = INVALID_OPTION;
+//     //
+//     if (strcmp(p_client_t->buffer, CMD_HELP_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_HELP_FULL) == 0) {
+//         option = HELP;
+//     }
+//     //
+//     else if (strcmp(p_client_t->buffer, CMD_UPLOAD_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_UPLOAD_FULL) == 0) {
+//         option = UPLOAD;
+//     }
+//     else if (strcmp(p_client_t->buffer, CMD_DOWNLOAD_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_DOWNLOAD_FULL) == 0) {
+//         option = DOWNLOAD;
+//     }
+
+
+    // int input_commands_status;
+    // if (input_commands_status = input_client_commands(p_client_t)) {
+    //     perror("Error receiving the pretended commands from the client");
+    //     return input_commands_status;
+    // }
+
+// int input_client_commands(ClientInfo_t *p_client_t) {
+
+//     // Input the desired command
+//     printf("Insert the desired command after the '>'\n");
+//     printf("Enter '%s' (or '%s') to know the available commands\n", CMD_HELP_SHORT, CMD_HELP_FULL);
+//     fgets(p_client_t->buffer, BUFFER_SIZE, stdin);
+
+//     // Send the option to the FTP server
+//     p_client_t->buffer[BUFFER_SIZE] = '\0';
+//     send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0);
+
+//     //     
+
+    
+//     return 0;
+// }
+
+
+
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief

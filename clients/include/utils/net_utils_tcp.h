@@ -19,6 +19,7 @@ typedef struct
     } addr_u;
     socklen_t *p_addr_len;
     uint16_t port;
+    char *ip_address;
 
     ServiceFunctionPtr p_service_func;
 
@@ -46,13 +47,13 @@ void close_server_socket(UniSocket_t *p_socket_t);
 void sigsegv_handler(int signum);
 void free_server_socket_memory_with_ptr_to_ptr(void **p_p_socket_t_arg);
 void free_client_memory_with_ptr_to_ptr(void **p_p_client_t_arg);
-int connect_to_server(UniSocket_t* p_socket_t, int server_port, char *server_ip);
+int connect_to_server(UniSocket_t* p_socket_t);
 ClientInfo_t *allocate_client_info_struct();
 ClientInfo_t *accept_connection(int service_FD);
 int setup_service_socket_t(int opt, UniSocket_t *p_socket_t);
 int assign_descriptor_to_stream_socket_t(UniSocket_t *p_socket_t);
 int initialize_socket(UniSocket_t *p_socket_t);
-UniSocket_t *allocate_socket_struct();
-UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg);
+UniSocket_t *allocate_socket_struct(bool is_server_arg);
+UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg, char *ip_address);
 
 #endif

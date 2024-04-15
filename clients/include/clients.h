@@ -9,10 +9,12 @@
 #define MAX_NUM_CLIENTS 2
 #define MAX_USERNAME_LENGTH 20 // 20 chars, 20 bytes
 #define USERNAMES_HASH_SEED 23
+#define MAX_ADDRESS_LENGTH 128 // considering IPv6 addresses
 //
 #define FTP_COMMANDS_PORT 8021
 #define FTP_DATA_PORT 8020
-#define FTP_IP_ADDR "127.0.0.1" // localhost, for now
+#define FTP_ADDR_IPV4 "127.0.0.1" 
+#define FTP_ADDR_IPV6 "::1" 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -85,6 +87,8 @@ struct ClientInfo_t
 };
 
 int use_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_func);
+void *prepare_client_structs_for_data(ClientInfo_t *p_client_t);
+
 
 
 #endif

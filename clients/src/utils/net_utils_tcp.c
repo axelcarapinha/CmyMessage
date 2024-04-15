@@ -88,7 +88,7 @@ void free_server_socket_memory_with_ptr_to_ptr(void **p_p_socket_t_arg)
         (*p_p_socket_t)->addr_u.p_ipv6 = NULL;
     }
 
-    // TODO UNDERSTAND why it works with this order (troquei again)
+    // TODO UNDERSTAND why it works with this order (changed again)
     if (*p_p_socket_t != NULL)
     {
         *p_p_socket_t = NULL;
@@ -212,27 +212,71 @@ ClientInfo_t *allocate_client_info_struct()
  */
 
 //TODO use in the code for the server (allowing file transfering between servers, ...)
-int connect_to_server(UniSocket_t *p_socket_t, int server_port, char *server_ip) {
-    struct sockaddr_in6 server_addr; // the servers DO support both IPv4 and IPv6
+int connect_to_server(UniSocket_t *p_socket_t) {
 
-    // Prepare the server information for the connection
-    memset(&server_addr, 0, sizeof(server_addr));
-    server_addr.sin6_family = AF_INET6;
-    server_addr.sin6_port = htons(server_port);
-    if (inet_pton(AF_INET, server_ip, &server_addr.sin6_addr) <= 0) {
-        perror("Error, invalid address");
-        return -1;
+    //TODO: debug
+    // printf("port = %d\n", ntohs(p_socket_t->addr_u.p_ipv4->sin_port));
+
+    // Adapt to the desired server struct
+    struct sockaddr *p_desired_address_t;
+    size_t addr_len;
+    if (p_socket_t->is_ipv4) {
+        p_desired_address_t = (struct sockaddr *)p_socket_t->addr_u.p_ipv4;
+        addr_len = sizeof(struct sockaddr_in);
+    }
+    else {
+        p_desired_address_t = (struct sockaddr *)p_socket_t->addr_u.p_ipv6;
+        addr_len = sizeof(struct sockaddr_in6);
     }
 
-    // Connect to desired server
+
+    //TODO
+    printf("port = %d\n", p_socket_t->port);
+    printf("port = %s\n", p_socket_t->ip_address);
+    printf("is ipv4 = %d\n", p_socket_t->is_ipv4);
+    printf("addr len size struct = %d\n", *(p_socket_t->p_addr_len));
+
+    // printf("port = %d\n", addr_len);
+
+
+    // printf("size = %d\n", addr_len);
+    // printf("size = %d\n", *(p_socket_t->p_addr_len)); 
+
+    // Connect
     int connection_status;
-    if ((connection_status = connect(p_socket_t->sock_FD, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) < 0) {
+    if ((connection_status = connect(p_socket_t->sock_FD, p_desired_address_t, addr_len)) < 0) {
         perror("Error connecting to the desired server");
         return connection_status;
     }
 
     return 0;
 }
+
+
+//! ----------------------------------------------
+// int connect_to_server(unisocket_t *p_socket_t, int server_port, char *server_ip) {
+//     struct sockaddr_in6 server_addr; // the servers do support both ipv4 and ipv6
+
+//     // prepare the server information for the connection
+//     memset(&server_addr, 0, sizeof(server_addr));
+//     server_addr.sin6_family = af_inet6;
+//     server_addr.sin6_port = htons(server_port);
+//     if (inet_pton(af_inet, server_ip, &server_addr.sin6_addr) <= 0) {
+//         perror("error, invalid address");
+//         return -1;
+//     }
+
+//     // connect to desired server
+//     int connection_status;
+//     if ((connection_status = connect(p_socket_t->sock_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) < 0) {
+//         perror("error connecting to the desired server");
+//         return connection_status;
+//     }
+
+//     return 0;
+// }
+//! ----------------------------------------------
+
 
 
 //----------------------------------------------------------------------------------------------------------
@@ -271,6 +315,7 @@ ClientInfo_t *accept_connection(int service_FD)
 
     return p_client_t;
 }
+
 
 //----------------------------------------------------------------------------------------------------------
 
@@ -388,40 +433,65 @@ int assign_descriptor_to_stream_socket_t(UniSocket_t *p_socket_t)
  */
 int initialize_socket(UniSocket_t *p_socket_t)
 {
-    if (p_socket_t->is_ipv4)
+    if (p_socket_t->is_ipv4) 
     {
         // If the system or network configs does NOT support dual-stack sockets,
         // this approach, while NOT recommended, allows the server to accept only IPv4 connections.
         // Noteworthy, if the server has IPv4 and IPv6 sockets,
         // please, consider changing opt to 1, for a more controlled flow of the connections
         p_socket_t->addr_u.p_ipv4->sin_family = AF_INET;
-        *(p_socket_t->p_addr_len) = sizeof(p_socket_t->addr_u.p_ipv4);
-        //
-        if (p_socket_t->is_server) {
-            p_socket_t->addr_u.p_ipv4->sin_port = htons(p_socket_t->port);
+        *(p_socket_t->p_addr_len) = sizeof(*(p_socket_t->addr_u.p_ipv4));
+        p_socket_t->addr_u.p_ipv4->sin_port = htons(p_socket_t->port);
+
+        // Specify the pretended address
+        if (p_socket_t->ip_address != NULL) {
+            if (inet_pton(AF_INET, p_socket_t->ip_address, (struct sockaddr *)p_socket_t->addr_u.p_ipv4) <= 0) {
+                perror("Error, invalid address");
+                return -1;
+            }
+        }
+        else if (p_socket_t->is_server) {
+            //TODO consider specifying socket options
             p_socket_t->addr_u.p_ipv4->sin_addr.s_addr = INADDR_ANY;
         }
-    }
-    else
-    {
-        // Dual-stack socket
-        int opt = 0; // Option value to turn off IPV6_V6ONLY
-        if (setsockopt(p_socket_t->sock_FD, IPPROTO_IPV6, IPV6_V6ONLY, &opt, sizeof(opt)) < 0)
-        {
-            ERROR_VERBOSE_LOG("Error setting socket options");   
-            return -1;
+        else {
+            ERROR_VERBOSE_LOG("Error, invalid address for the client to connect");
         }
+    }
+    else // Dual-stack socket
+    {
         p_socket_t->addr_u.p_ipv6->sin6_family = AF_INET6;
-        *(p_socket_t->p_addr_len) = sizeof(p_socket_t->addr_u.p_ipv6);
-        //
+        *(p_socket_t->p_addr_len) = sizeof(*(p_socket_t->addr_u.p_ipv6));
+        p_socket_t->addr_u.p_ipv6->sin6_port = htons(p_socket_t->port);
+
+        // Specify the pretended address
+        if (p_socket_t->ip_address != NULL) {
+            if (inet_pton(AF_INET6, p_socket_t->ip_address, (struct sockaddr *)p_socket_t->addr_u.p_ipv6) <= 0) {
+                perror("Error, invalid address");
+                return -1;
+            }
+        }
+        else if (p_socket_t->is_server) {
+            p_socket_t->addr_u.p_ipv6->sin6_addr = in6addr_any; 
+        }
+        else {
+            ERROR_VERBOSE_LOG("Error, invalid address for the client to connect");
+        }
+
+        // Define the socket as DUAL-STACK
         if (p_socket_t->is_server) {
-            p_socket_t->addr_u.p_ipv6->sin6_port = htons(p_socket_t->port);
-            p_socket_t->addr_u.p_ipv6->sin6_addr = in6addr_any; //TODO patch this on the other code
+            int opt = 0; // Option value to turn off IPV6_V6ONLY
+            if (setsockopt(p_socket_t->sock_FD, IPPROTO_IPV6, IPV6_V6ONLY, &opt, sizeof(opt)) < 0)
+            {
+                ERROR_VERBOSE_LOG("Error setting socket options");   
+                return -1;
+            }
         }
     }
 
     return 0;
 }
+
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -435,7 +505,7 @@ int initialize_socket(UniSocket_t *p_socket_t)
  *
  * @return A pointer to the allocated UniSocket_t structure on success with allocation, otherwise NULL
  */
-UniSocket_t *allocate_socket_struct()
+UniSocket_t *allocate_socket_struct(bool is_ipv4_arg)
 {
     UniSocket_t *p_socket_t = (UniSocket_t *)malloc(sizeof(UniSocket_t));
 
@@ -446,12 +516,23 @@ UniSocket_t *allocate_socket_struct()
     }
 
     // Address
-    p_socket_t->addr_u.p_ipv6 = (struct sockaddr_in6 *)malloc(sizeof(struct sockaddr_in6));
-    if (p_socket_t->addr_u.p_ipv6 == NULL)
-    {
-        free_server_socket_memory_with_ptr_to_ptr((void **)&p_socket_t);
-        ERROR_VERBOSE_LOG("Error allocating memory for the address variable");
-        return NULL;
+    if (is_ipv4_arg) {
+        p_socket_t->addr_u.p_ipv4 = (struct sockaddr_in *)malloc(sizeof(struct sockaddr_in));
+        if (p_socket_t->addr_u.p_ipv4 == NULL)
+        {       
+            free_server_socket_memory_with_ptr_to_ptr((void **)&p_socket_t);
+            ERROR_VERBOSE_LOG("Error allocating memory for the address variable, ipv4 version");
+            return NULL;
+        }
+    }
+    else {
+        p_socket_t->addr_u.p_ipv6 = (struct sockaddr_in6 *)malloc(sizeof(struct sockaddr_in6));
+        if (p_socket_t->addr_u.p_ipv6 == NULL)
+        {       
+            free_server_socket_memory_with_ptr_to_ptr((void **)&p_socket_t);
+            ERROR_VERBOSE_LOG("Error allocating memory for the address variable, ipv6 version");
+            return NULL;
+        }
     }
     //
     p_socket_t->p_addr_len = (socklen_t *)malloc(sizeof(socklen_t));
@@ -490,19 +571,24 @@ UniSocket_t *allocate_socket_struct()
  *
  * @return A pointer to the created and initialized UniSocket_t structure on success, or NULL if any error occurs
  */
-UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg)
+UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg, char *ip_address)
 {
     UniSocket_t *p_socket_t;
-    if ((p_socket_t = allocate_socket_struct()) == NULL)
+
+    // GENERAL settings (just storing the arguments, basically)
+    p_socket_t->is_server = is_server_arg;
+    p_socket_t->port = port;
+    p_socket_t->is_ipv4 = is_ipv4_arg;
+    p_socket_t->ip_address = ip_address;
+    // p_socket_t->ip_address = (char *)malloc(MAX_ADDRESS_LENGTH); //TODO handle this
+    // strncpy(p_socket_t->ip_address, ip_address, strlen(ip_address));
+
+    if ((p_socket_t = allocate_socket_struct(is_ipv4_arg)) == NULL)
     {
         ERROR_VERBOSE_LOG("Error allocating memory for the socket struct");
         return NULL;
     }
 
-    // GENERAL settings
-    p_socket_t->is_server = is_server_arg;
-    p_socket_t->port = port;
-    p_socket_t->is_ipv4 = is_ipv4_arg;
     //
     if (assign_descriptor_to_stream_socket_t(p_socket_t) < 0)
     {
@@ -517,9 +603,8 @@ UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg
         free_server_socket_memory_with_ptr_to_ptr((void **)&p_socket_t);
         return NULL;
     }
-    //
 
-    // SERVER specific settings
+    // Start specific action for the socket 
     if (p_socket_t->is_server)
     {
         int option = 1;
@@ -527,6 +612,14 @@ UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg
         {
             ERROR_VERBOSE_LOG("Error setting up the server socket");
             free_server_socket_memory_with_ptr_to_ptr((void **)&p_socket_t);
+            return NULL;
+        }
+    }
+    else {
+        if (connect_to_server(p_socket_t) < 0)
+        {
+            ERROR_VERBOSE_LOG("Error connecting the client socket to the server socket");
+            free_server_socket_memory_with_ptr_to_ptr((void **)&p_socket_t); // useful for the client too
             return NULL;
         }
     }

@@ -1,5 +1,6 @@
 #include "net_utils_tcp.h"
 
+//! The purpose of this file is generalize some functions of the client side part of services
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -39,14 +40,14 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
     }
 
     // Get the client's IP address (for a unique identification)
-    char ip_buffer[INET_ADDRSTRLEN]; //TODO started making changes here
+    char ip_buffer[INET_ADDRSTRLEN]; //TODO use for IPv6
     if (inet_ntop(AF_INET6, (void *)&(p_client_t->p_addr), ip_buffer, INET_ADDRSTRLEN) == NULL) //TODO handle IPV6 too
     {
         ERROR_VERBOSE_LOG("Error converting IP address");
         free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
         return NULL;
     }
-    //
+    
     p_client_t->addr_info = ip_buffer;
 }
 
@@ -58,13 +59,17 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
  */
 int use_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_func) {
 
+    //TODO determine the type of socket to create from the address
+    
+
     // In this case (the client) the port will be the port 
     // that the client wants to connect to
-    UniSocket_t *p_socket_t = create_socket_struct(false, server_port, false);
+    UniSocket_t *p_socket_t = create_socket_struct(false, server_port, true, server_ip);
     if (p_socket_t == NULL) {
         perror("Error creating socket for the client for the desired service");
         return -1;
     }
+    INFO_VERBOSE_LOG("Client socket created successfully\n");
     
     ClientInfo_t *p_client_t = (ClientInfo_t *)malloc(sizeof(ClientInfo_t));
     prepare_client_structs_for_data(p_client_t);
@@ -72,6 +77,9 @@ int use_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_f
         perror("Error initializing the struct for the client information");
         return -1;
     }
+
+    // Assign the important information from the created socket
+    p_client_t->sock_FD = p_socket_t->sock_FD;
 
     // Redirect the client to the CLIENT-SIDE service function
     (*p_service_func)(p_client_t);

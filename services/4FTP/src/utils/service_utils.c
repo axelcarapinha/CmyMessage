@@ -547,7 +547,7 @@ int start_service(int port, ServiceFunctionPtr p_service_func_arg)
 {
     // Create the server socket
     UniSocket_t *p_server_t;
-    if (((p_server_t = create_socket_struct(true, port, true)) == NULL))
+    if (((p_server_t = create_socket_struct(true, port, false)) == NULL)) // last false = DUAL stack socket
     {
         ERROR_VERBOSE_LOG("Error getting the socket struct pointer");
         return -1;
