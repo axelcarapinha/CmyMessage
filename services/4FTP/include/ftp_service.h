@@ -15,11 +15,28 @@
 //
 #define SERVICE_NAME "FTP"
 
+// Utilities
+typedef enum {
+    UPLOAD,
+    DOWNLOAD,
+    HELP,
+    INVALID_OPTION
+} Options;
+
+#define CMD_UPLOAD_SHORT "-u"
+#define CMD_UPLOAD_FULL "--upload"
+//
+#define CMD_HELP_SHORT "-h"
+#define CMD_HELP_FULL "--help"
+//
+#define CMD_DOWNLOAD_SHORT "-d"
+#define CMD_DOWNLOAD_FULL "--download"
+
 //TODO place the comments in the header file
 
-int open_file();
-int send_file();
-int write_file();
+int download_file(ClientInfo_t *p_client_t);
+int upload_file(ClientInfo_t *p_client_t);
+int inform_client(ClientInfo_t *p_client_t);
 int compress_file();
 int parse_client_command_and_redirect(int command);
 int define_access_controls(ClientInfo_t *p_client_t);
@@ -27,13 +44,5 @@ int send_customized_welcome_message(ClientInfo_t *p_client_t);
 int ask_client_basic_details(ClientInfo_t *p_client_t);
 void *prepare_client_structs_for_data(ClientInfo_t *p_client_t);
 int serve_client_with_FTP(ClientInfo_t *p_client_t);
-
-
-
-
-
-
-
-
 
 #endif

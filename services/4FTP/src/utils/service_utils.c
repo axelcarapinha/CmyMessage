@@ -7,6 +7,48 @@ static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
 
 //----------------------------------------------------------------------------------------------------------
 /**
+ * @brief 
+ * 
+ * @return char* 
+ */
+int send_text_to_client_with_buffer(ClientInfo_t *p_client_t) {
+    ssize_t bytes_received;
+
+    if (send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0) < 0) {
+        perror("Error sending the content to the client");
+        return -1;
+    }
+
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    return 0;
+}
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief 
+ * 
+ * @return char* 
+ */
+int fill_cli_buffer_with_response(ClientInfo_t *p_client_t) {
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    ssize_t bytes_received;
+    if ((bytes_received = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0)) < 0)
+    {
+        ERROR_VERBOSE_LOG("Error receiving the preferred name from the client");
+        return -1;
+    }
+    else if (bytes_received == 0)
+    {
+        printf("Client terminated the connection.\n");
+        return 0;
+    }
+
+    p_client_t->buffer[bytes_received - 1] = '\0';
+}
+
+
+//----------------------------------------------------------------------------------------------------------
+/**
  * @brief Closes the service
  *
  * This function closes the service by signaling all threads to finish
