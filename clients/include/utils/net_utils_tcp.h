@@ -53,7 +53,7 @@ ClientInfo_t *accept_connection(int service_FD);
 int setup_service_socket_t(int opt, UniSocket_t *p_socket_t);
 int assign_descriptor_to_stream_socket_t(UniSocket_t *p_socket_t);
 int initialize_socket(UniSocket_t *p_socket_t);
-UniSocket_t *allocate_socket_struct(bool is_server_arg);
+UniSocket_t *allocate_socket_struct(bool is_ipv4);
 UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg, char *ip_address);
 
 #endif

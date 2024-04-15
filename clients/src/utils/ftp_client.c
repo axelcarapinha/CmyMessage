@@ -17,7 +17,7 @@
  */
 int keep_connection_with_server_cli(ClientInfo_t *p_client_t) {
 
-    while (true) { //TODO error messages when recv and more
+    while (true) { //TODO error messages when recv and amount received
         memset(p_client_t->buffer, 0, BUFFER_SIZE);
         recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0);
         printf("> %s", p_client_t->buffer);

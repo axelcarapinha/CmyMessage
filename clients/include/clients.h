@@ -89,6 +89,4 @@ struct ClientInfo_t
 int use_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_func);
 void *prepare_client_structs_for_data(ClientInfo_t *p_client_t);
 
-
-
 #endif

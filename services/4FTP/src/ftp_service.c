@@ -289,6 +289,7 @@ int serve_client_with_FTP(ClientInfo_t *p_client_t)
         exit(EXIT_FAILURE);
     }
 
+    //TODO
     // int input_command_status;
     // if (input_command_status = input_client_command(p_client_t) < 0) {
     //     ERROR_VERBOSE_LOG("Error while handling client comments");

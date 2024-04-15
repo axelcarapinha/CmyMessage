@@ -40,15 +40,15 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
     }
 
     // Get the client's IP address (for a unique identification)
-    char ip_buffer[INET_ADDRSTRLEN]; //TODO use for IPv6
-    if (inet_ntop(AF_INET6, (void *)&(p_client_t->p_addr), ip_buffer, INET_ADDRSTRLEN) == NULL) //TODO handle IPV6 too
-    {
-        ERROR_VERBOSE_LOG("Error converting IP address");
-        free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
-        return NULL;
-    }
-    
-    p_client_t->addr_info = ip_buffer;
+    // char ip_buffer[INET_ADDRSTRLEN]; //TODO use for IPv6
+    // if (inet_ntop(AF_INET6, (void *)&(p_client_t->p_addr), ip_buffer, INET_ADDRSTRLEN) == NULL) //TODO handle IPV6 too
+    // {
+    //     ERROR_VERBOSE_LOG("Error converting IP address");
+    //     free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
+    //     return NULL;
+    // }
+
+    // p_client_t->addr_info = ip_buffer;
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -64,13 +64,14 @@ int use_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_f
 
     // In this case (the client) the port will be the port 
     // that the client wants to connect to
-    UniSocket_t *p_socket_t = create_socket_struct(false, server_port, true, server_ip);
+    UniSocket_t *p_socket_t = create_socket_struct(false, server_port, false, server_ip); //TODO: change for IPv6
     if (p_socket_t == NULL) {
         perror("Error creating socket for the client for the desired service");
         return -1;
     }
     INFO_VERBOSE_LOG("Client socket created successfully\n");
     
+    // Prepare the client for the service section
     ClientInfo_t *p_client_t = (ClientInfo_t *)malloc(sizeof(ClientInfo_t));
     prepare_client_structs_for_data(p_client_t);
     if (p_client_t == NULL) {
