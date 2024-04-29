@@ -1,4 +1,4 @@
-#ifndef FTP_SERVICE_H
+#ifndef FTP_SERVICE_H // passive mode
 #define FTP_SERVICE_H
 
 #include <pthread.h>
@@ -14,6 +14,8 @@
 #define MAX_SIZE_ADDR_INFO 200
 //
 #define SERVICE_NAME "FTP"
+//
+#define CLIENT_DISCONNECTED 404
 
 // Utilities
 typedef enum {
@@ -31,6 +33,8 @@ typedef enum {
 //
 #define CMD_DOWNLOAD_SHORT "-d"
 #define CMD_DOWNLOAD_FULL "--download"
+//
+#define CMD_EXIT_FULL "--exit"
 
 //TODO place the comments in the header file
 

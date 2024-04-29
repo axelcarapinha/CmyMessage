@@ -40,10 +40,12 @@ int fill_cli_buffer_with_response(ClientInfo_t *p_client_t) {
     else if (bytes_received == 0)
     {
         printf("Client terminated the connection.\n");
-        return 0;
+        return -2; //TODO generalize this value in another define value
     }
 
     p_client_t->buffer[bytes_received - 1] = '\0';
+
+    return 0;
 }
 
 
