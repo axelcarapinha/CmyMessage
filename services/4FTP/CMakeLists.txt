@@ -41,3 +41,8 @@ set(CMAKE_BUILD_TYPE Debug)
 # target_link_libraries(${CMAKE_PROJECT_NAME} PUBLIC pthread)
 
 target_link_libraries(${CMAKE_PROJECT_NAME})
+
+
+# Copy the inputs folder to the output directory.
+file(COPY assets DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+

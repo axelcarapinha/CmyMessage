@@ -36,6 +36,8 @@ typedef enum {
 //
 #define CMD_EXIT_FULL "--exit"
 
+#define ASSETS_FOLDER_NAME "assets/"
+
 //TODO place the comments in the header file
 
 int download_file(ClientInfo_t *p_client_t);

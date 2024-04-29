@@ -40,21 +40,23 @@ int download_file(ClientInfo_t *p_client_t) {
     }
     // (the input was already parsed by the wrapper function)
     char *filename = (char *)malloc(sizeof(char) * FILENAME_MAX); //TODO check the size of this
+    p_client_t->buffer[strlen(p_client_t->buffer)] = '\0';
     strncpy(filename, p_client_t->buffer, strlen(p_client_t->buffer));
 
     // Send the file to the client
-    FILE *file_ptr;
-    file_ptr = fopen(filename, "rb");
+    memset(p_client_t->buffer, 0, BUFFER_SIZE); 
+    strcat(p_client_t->buffer, ASSETS_FOLDER_NAME);
+    strcat(p_client_t->buffer, filename);
+    FILE *file_ptr = fopen(p_client_t->buffer, "rb"); //TODO size of the file
     if (file_ptr == NULL) {
         ERROR_VERBOSE_LOG("Error creating the filename");
         //
         memset(p_client_t->buffer, 0, BUFFER_SIZE); 
-        const char *not_found_msg = "File not found. Please, try again.\n";
-        strncpy(p_client_t->buffer, not_found_msg, strlen(not_found_msg));
+        sprintf(p_client_t->buffer, "File %s not found. Please, try again.\n", filename);
         send_text_to_client_with_buffer(p_client_t);   
         return 0;
     }
-    //
+    
     memset(p_client_t->buffer, 0, BUFFER_SIZE); //TODO fazer método genérico para isto
     const char *message = "Sending file...\n";
     strncpy(p_client_t->buffer, message, strlen(message));
@@ -63,7 +65,7 @@ int download_file(ClientInfo_t *p_client_t) {
         send_text_to_client_with_buffer(p_client_t);   
         //TODO avoid path traversal vulnerabilities
     }
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); //TODO fazer método genérico para isto
+    memset(p_client_t->buffer, 0, BUFFER_SIZE); //TODO generalize this into a function
     const char *file_sent_msg = "File sent...\n";
     strncpy(p_client_t->buffer, file_sent_msg, strlen(file_sent_msg));
     send_text_to_client_with_buffer(p_client_t); 
@@ -114,8 +116,6 @@ int inform_client(ClientInfo_t *p_client_t) {
 
     return 0;
 }
-
-
 
 
 //----------------------------------------------------------------------------------------------------------
