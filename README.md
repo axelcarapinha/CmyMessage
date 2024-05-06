@@ -1,5 +1,5 @@
 # CmyMessage
-A _C_ server with multiple services.
+A server made in _C_ with multiple services.
 ⚠️ In progress!
 
 
@@ -26,7 +26,7 @@ A _C_ server with multiple services.
 
 <!-- ABOUT THE PROJECT -->
 ## About the project
-A _C_ server with multiple services, applying the knowledge of the Computer Networks' class to a considerably broader coding architecture and extension of topics.
+A server made in _C_, with multiple services, such as a BroadcastChat, FTP, and more to come! It's a way of applying the knowledge of the Computer Networks' class to a considerably broader coding architecture and extension of topics.
 
 <!-- HOW TO START IT -->
 ## Getting started
