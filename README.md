@@ -1,6 +1,6 @@
 # CmyMessage
 A _C_ server with multiple services.
-⚠️ In progress. And largely chaotic!
+⚠️ In progress!
 
 
 <!-- TABLE OF CONTENTS -->
