@@ -25,3 +25,6 @@ target_include_directories(${CMAKE_PROJECT_NAME}
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pthread")
 
 target_link_libraries(${CMAKE_PROJECT_NAME})
+
+# Copy the inputs folder to the output directory.
+file(COPY assets DESTINATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})

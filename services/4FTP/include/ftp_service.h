@@ -4,6 +4,9 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <asm-generic/socket.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 //
 #include "service_utils.h"
 #include "clients.h"
@@ -15,7 +18,7 @@
 #define MAX_SIZE_ADDR_INFO 200
 //
 //TODO use the same in the client side too
-#define MAX_FILE_SIZE (1024 * 1024 * 10 * 1000) // 10'000 megabytes
+#define MAX_FILE_SIZE (1024 * 1024 * 1000) // 1'000 megabytes
 //
 #define SERVICE_NAME "FTP"
 //
@@ -43,7 +46,7 @@ typedef enum {
 //
 #define CMD_EXIT_FULL "--exit"
 
-#define ASSETS_FOLDER_NAME "assets/"
+#define ASSETS_FOLDER_NAME "assets/" //TODO call it "path" instead of name
 
 //TODO place the comments in the header file
 

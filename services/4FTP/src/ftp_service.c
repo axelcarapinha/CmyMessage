@@ -1,8 +1,4 @@
 #include "ftp_service.h"
-#include <dirent.h>
-#include <sys/stat.h>
-
-
 
 // Got some inspiration at https://www.rfc-editor.org/rfc/rfc765
 
@@ -13,7 +9,7 @@
 // restart file transfer when error
 // FTP commandsz
 // NVT
-// NVFS 
+// NVFS
 
 // Let only a thread at a time to access the main service struct
 static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
@@ -26,22 +22,26 @@ static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
  *
  * @return
  */
-int list_files_curr_dir(ClientInfo_t *p_client_t) {
+int list_files_curr_dir(ClientInfo_t *p_client_t)
+{
     DIR *directory;
     struct dirent *entry;
     directory = opendir(".");
-    if (directory) {
+    if (directory)
+    {
         int file_idx = 0;
-        while ((entry = readdir(directory)) != NULL) {
+        while ((entry = readdir(directory)) != NULL)
+        {
             memset(p_client_t->buffer, 0, BUFFER_SIZE);
             sprintf(p_client_t->buffer, "(%d) %s\n", file_idx, entry->d_name);
-            send_text_to_client_with_buffer(p_client_t);   
+            send_text_to_client_with_buffer(p_client_t);
             file_idx++;
         }
         closedir(directory);
         return 0;
     }
-    else {
+    else
+    {
         ERROR_VERBOSE_LOG("Error opening the files directory");
         return 1;
     }
@@ -49,7 +49,6 @@ int list_files_curr_dir(ClientInfo_t *p_client_t) {
     return 0;
 }
 
-
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
@@ -59,9 +58,6 @@ int list_files_curr_dir(ClientInfo_t *p_client_t) {
  * @return
  */
 
-
-
-
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
@@ -70,115 +66,158 @@ int list_files_curr_dir(ClientInfo_t *p_client_t) {
  *
  * @return
  */
-int download_file(ClientInfo_t *p_client_t) { //TODO avoid duplication of files (CmakeLists, ...)
+int download_file(ClientInfo_t *p_client_t)
+{ // TODO avoid duplication of files (CmakeLists, ...)
 
     // ASK for the filename
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); //TODO retirar depois de funcionar
+    memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO retirar depois de funcionar
     const char *filename_msg = "Filename: ";
     strncpy(p_client_t->buffer, filename_msg, strlen(filename_msg));
     send_text_to_client_with_buffer(p_client_t);
 
     // GET filename
-    if (fill_cli_buffer_with_response(p_client_t) < 0) {
+    if (fill_cli_buffer_with_response(p_client_t) < 0)
+    {
         ERROR_VERBOSE_LOG("Error receiving the pretended filename");
         return -1;
     }
     // (the input was already parsed by the wrapper function)
-    char *filename = (char *)malloc(sizeof(char) * FILENAME_MAX); //TODO check the size of this
+    char *filename = (char *)malloc(sizeof(char) * FILENAME_MAX); // TODO check the size of this
     p_client_t->buffer[strlen(p_client_t->buffer)] = '\0';
     strncpy(filename, p_client_t->buffer, strlen(p_client_t->buffer));
 
     // Send the file to the client
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); 
-    strcat(p_client_t->buffer, ASSETS_FOLDER_NAME);
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    strcat(p_client_t->buffer, ASSETS_FOLDER_NAME); //TODO same name as the other one (from the client side)
     strcat(p_client_t->buffer, filename);
-    FILE *file_ptr = fopen(p_client_t->buffer, "rb"); //TODO size of the file
-    if (file_ptr == NULL) {
+    FILE *file_ptr = fopen(p_client_t->buffer, "rb"); // TODO size of the file
+    if (file_ptr == NULL)
+    {
         ERROR_VERBOSE_LOG("Error creating the filename");
         //
-        memset(p_client_t->buffer, 0, BUFFER_SIZE); 
+        memset(p_client_t->buffer, 0, BUFFER_SIZE);
         sprintf(p_client_t->buffer, "File %s not found. Please, try again.\n", filename);
-        send_text_to_client_with_buffer(p_client_t);   
+        send_text_to_client_with_buffer(p_client_t);
         return 0;
     }
-    
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); //TODO fazer método genérico para isto
+
+    memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO fazer método genérico para isto
     const char *message = "Sending file...\n";
     strncpy(p_client_t->buffer, message, strlen(message));
-    send_text_to_client_with_buffer(p_client_t);   
-    while (fgets(p_client_t->buffer, sizeof(p_client_t->buffer), file_ptr) != NULL) {
-        send_text_to_client_with_buffer(p_client_t);   
-        //TODO avoid path traversal vulnerabilities
+    send_text_to_client_with_buffer(p_client_t);
+    while (fgets(p_client_t->buffer, sizeof(p_client_t->buffer), file_ptr) != NULL)
+    {
+        send_text_to_client_with_buffer(p_client_t);
+        // TODO avoid path traversal vulnerabilities
     }
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); //TODO generalize this into a function
+    memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO generalize this into a function
     const char *file_sent_msg = "File sent...\n";
     strncpy(p_client_t->buffer, file_sent_msg, strlen(file_sent_msg));
-    send_text_to_client_with_buffer(p_client_t); 
+    send_text_to_client_with_buffer(p_client_t);
 
     return 0;
 }
 
-
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
-
  * @param
  *
  * @return
  */
-int upload_file(ClientInfo_t *p_client_t) {
+int upload_file(ClientInfo_t *p_client_t)
+{
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
-    // Ask the desired filename
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); 
-    const char *filename_msg = "How to name the file? ";
-    strncpy(p_client_t->buffer, filename_msg, strlen(filename_msg));
-    send_text_to_client_with_buffer(p_client_t);
-
-    // Receive filename and prepare for the transference
-    if (fill_cli_buffer_with_response(p_client_t) == CLIENT_DISCONNECTED) {
+    // Receive the filename
+    int bytes_received;
+    //
+    bytes_received = fill_cli_buffer_with_response(p_client_t);
+    if (bytes_received == 0)
+    {   
+        INFO_VERBOSE_LOG("Client disconnected");
         return 0;
     }
-    char *filename = (char *)malloc(sizeof(char) * FILENAME_MAX);
-    p_client_t->buffer[strlen(p_client_t->buffer)] = '\0';
-    strncpy(filename, p_client_t->buffer, strlen(p_client_t->buffer));
-    //
-    FILE *file_ptr = fopen(p_client_t->buffer, "wb"); 
-    if (file_ptr == NULL) {
-        ERROR_VERBOSE_LOG("Error creating the file from the server side.");
+    else if (bytes_received < 0) {
+        ERROR_VERBOSE_LOG("Error receiving the filename from the client before the upload");
+        return -1;
+    }
+    const char *filename = strdup(p_client_t->buffer);
+
+    // Receive the filesize
+    bytes_received = fill_cli_buffer_with_response(p_client_t);
+    if (bytes_received == 0)
+    {   
+        INFO_VERBOSE_LOG("Client disconnected");
+        return 0;
+    }
+    else if (bytes_received < 0) {
+        ERROR_VERBOSE_LOG("Error receiving the filesize from the client before the upload");
+        return -1;
+    }
+    const int filesize = atoi(p_client_t->buffer);
+
+    //TODO check if the file already exists
+    FILE *file_ptr = fopen(filename, "wb");
+    if (file_ptr == NULL)
+    {
+        ERROR_VERBOSE_LOG("Error creating the file from the server side");
         //
-        memset(p_client_t->buffer, 0, BUFFER_SIZE); 
+        memset(p_client_t->buffer, 0, BUFFER_SIZE);
         sprintf(p_client_t->buffer, "File '%s' may already exist.\n", filename);
         send_text_to_client_with_buffer(p_client_t);
         return 0;
     }
 
     // Receive the file content
-    //TODO include <sys/stat.h> for the file receiving
-    int bytes_limit = MAX_FILE_SIZE;
-    do {
+    // TODO include <sys/stat.h> for the file receiving
+    if (filesize > MAX_FILE_SIZE) {
+        const char *warning_about_size = "The file size exceeds the limit. Please, consider using a smaller file.";
+        strncpy(p_client_t->buffer, warning_about_size, strlen(warning_about_size));
+        send_text_to_client_with_buffer(p_client_t);
+    }
+    int remaining_to_recv = filesize;
+    do
+    {   
+        // Keep track of the needed amount to receive
+        int amount_to_recv;
+        if (remaining_to_recv - BUFFER_SIZE >= 0) {
+            amount_to_recv = BUFFER_SIZE;
+            remaining_to_recv -= BUFFER_SIZE;
+        }
+        else {
+            amount_to_recv = remaining_to_recv;
+            remaining_to_recv = 0;
+        }
+
+        // Receive the content
         memset(p_client_t->buffer, 0, BUFFER_SIZE);
-        ssize_t bytes_recv = fill_cli_buffer_with_response(p_client_t);
-        if (bytes_recv == 0) break;
-        fwrite(p_client_t->buffer, 1, bytes_recv, file_ptr); 
-        //
-        bytes_limit--;
-    } while (bytes_limit > 0);
+        off_t amount_recv;
+        if ((amount_recv = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0)) < 0)
+        {
+            ERROR_VERBOSE_LOG("Error receiving the file content from the client");
+            return -1;
+        }
+        else if (bytes_received == 0)
+        {
+            printf("Client terminated the connection.\n");
+            return -2; 
+        }
+
+        fwrite(p_client_t->buffer, 1, amount_to_recv, file_ptr);
+    } while (remaining_to_recv > 0);
 
     // Nofity about the state
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); 
-    const char *final_msg = (bytes_limit == 0) ? "File too large" : "File uploaded!";
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    const char *final_msg = "File uploaded!\n";
     strncpy(p_client_t->buffer, final_msg, strlen(final_msg));
     send_text_to_client_with_buffer(p_client_t);
-
-    free(filename);
 
     return 0;
 }
 
-
 //----------------------------------------------------------------------------------------------------------
-//TODO do figlet
+// TODO do figlet
 /**
  * @brief
 
@@ -186,20 +225,21 @@ int upload_file(ClientInfo_t *p_client_t) {
  *
  * @return
  */
-int inform_client(ClientInfo_t *p_client_t) {
+int inform_client(ClientInfo_t *p_client_t)
+{
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    sprintf(p_client_t->buffer, 
-        "\t%s (%s)\n"
-        "\t%s (%s)\n"
-        "\t%s (%s)\n"
-        "\t%s (finish the session)\n",
-        CMD_UPLOAD_SHORT, CMD_UPLOAD_FULL,
-        CMD_DOWNLOAD_SHORT, CMD_DOWNLOAD_FULL,
-        CMD_LIST_SHORT, CMD_LIST_FULL,
-        CMD_EXIT_FULL
-        );
+    sprintf(p_client_t->buffer,
+            "\t%s (%s)\n"
+            "\t%s (%s)\n"
+            "\t%s (%s)\n"
+            "\t%s (finish the session)\n",
+            CMD_UPLOAD_SHORT, CMD_UPLOAD_FULL,
+            CMD_DOWNLOAD_SHORT, CMD_DOWNLOAD_FULL,
+            CMD_LIST_SHORT, CMD_LIST_FULL,
+            CMD_EXIT_FULL);
     int send_status;
-    if ((send_status = send_text_to_client_with_buffer(p_client_t)) < 0) {
+    if ((send_status = send_text_to_client_with_buffer(p_client_t)) < 0)
+    {
         ERROR_VERBOSE_LOG("Error sending help options to the client");
         return send_status;
     }
@@ -207,7 +247,6 @@ int inform_client(ClientInfo_t *p_client_t) {
     return 0;
 }
 
-
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
@@ -216,8 +255,8 @@ int inform_client(ClientInfo_t *p_client_t) {
  *
  * @return
  */
-int compress_file() {
-    
+int compress_file()
+{
 
     return 0;
 }
@@ -230,9 +269,8 @@ int compress_file() {
  *
  * @return
  */
-int parse_client_command_and_redirect(int command) {
-   
-
+int parse_client_command_and_redirect(int command)
+{
 
     return 0;
 }
@@ -245,81 +283,91 @@ int parse_client_command_and_redirect(int command) {
  *
  * @return
  */
-int define_acess_controls(ClientInfo_t *p_client_t) {
-    
+int define_acess_controls(ClientInfo_t *p_client_t)
+{
+
     return 0;
 }
 
-
 //----------------------------------------------------------------------------------------------------------
 /**
- * @brief 
- * 
- * @param p_client_t 
- * @return int 
+ * @brief
+ *
+ * @param p_client_t
+ * @return int
  */
-int input_client_commands(ClientInfo_t *p_client_t) {
-    if (p_client_t == NULL) {
+int input_client_commands(ClientInfo_t *p_client_t)
+{
+    if (p_client_t == NULL)
+    {
         perror("Invalid pointer to client struct");
         return -1;
     }
 
     // Inform the client with the main information
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    sprintf(p_client_t->buffer, 
-        "Welcome to the uploading service, %s!\n\n"
-        "Insert the desired command after the '>'.\n"
-        "Enter '%s' (or '%s') for available commands.\n",
-        p_client_t->name, CMD_HELP_SHORT, CMD_HELP_FULL);
+    sprintf(p_client_t->buffer,
+            "Welcome to the uploading service, %s!\n\n"
+            "Insert the desired command after the '>'.\n"
+            "Enter '%s' (or '%s') for available commands.\n",
+            p_client_t->name, CMD_HELP_SHORT, CMD_HELP_FULL);
     send_text_to_client_with_buffer(p_client_t);
 
     // Interpret the option and forward
     bool clients_wants_exit = false;
-    do {
-        memset(p_client_t->buffer, 0, BUFFER_SIZE); //TODO fazer método genérico para isto
+    do
+    {
+        memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO fazer método genérico para isto
         const char *file_sent_msg = "> ";
         strncpy(p_client_t->buffer, file_sent_msg, strlen(file_sent_msg));
-        send_text_to_client_with_buffer(p_client_t); 
-        if (fill_cli_buffer_with_response(p_client_t) == CLIENT_DISCONNECTED) {
+        send_text_to_client_with_buffer(p_client_t);
+        if (fill_cli_buffer_with_response(p_client_t) == CLIENT_DISCONNECTED)
+        {
             return 0;
         }
         //
-        char *feedback_msg = NULL; //TODO define
+        char *feedback_msg = NULL; // TODO define
         //
         //
-        if (strcmp(p_client_t->buffer, CMD_HELP_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_HELP_FULL) == 0) {
+        if (strcmp(p_client_t->buffer, CMD_HELP_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_HELP_FULL) == 0)
+        {
             inform_client(p_client_t);
         }
-        else if (strcmp(p_client_t->buffer, CMD_UPLOAD_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_UPLOAD_FULL) == 0) {
+        else if (strcmp(p_client_t->buffer, CMD_UPLOAD_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_UPLOAD_FULL) == 0)
+        {
             upload_file(p_client_t);
             feedback_msg = "File uploaded.\n";
         }
-        else if (strcmp(p_client_t->buffer, CMD_DOWNLOAD_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_DOWNLOAD_FULL) == 0) {
+        else if (strcmp(p_client_t->buffer, CMD_DOWNLOAD_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_DOWNLOAD_FULL) == 0)
+        {
             download_file(p_client_t);
         }
-        else if (strcmp(p_client_t->buffer, CMD_EXIT_FULL) == 0) {
+        else if (strcmp(p_client_t->buffer, CMD_EXIT_FULL) == 0)
+        {
             feedback_msg = "'--exit' option selected. Have a nice day!\n";
             clients_wants_exit = true; // end the cycle, and finisht the server
         }
-        else if (strcmp(p_client_t->buffer, CMD_LIST_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_LIST_FULL) == 0) {
+        else if (strcmp(p_client_t->buffer, CMD_LIST_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_LIST_FULL) == 0)
+        {
             list_files_curr_dir(p_client_t);
         }
-        else {
+        else
+        {
             feedback_msg = "Invalid option. Please, try again.\n";
         }
 
         // Give feedback to the client
-        if (feedback_msg != NULL) {
+        if (feedback_msg != NULL)
+        {
             memset(p_client_t->buffer, 0, BUFFER_SIZE);
             strncpy(p_client_t->buffer, feedback_msg, strlen(feedback_msg));
             send_text_to_client_with_buffer(p_client_t);
         }
 
-    } while(clients_wants_exit == false);
-    
+    } while (clients_wants_exit == false);
+
     return 0;
 }
-
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -330,7 +378,8 @@ int input_client_commands(ClientInfo_t *p_client_t) {
  * @return
  */
 
-int ask_client_basic_details(ClientInfo_t *p_client_t) {
+int ask_client_basic_details(ClientInfo_t *p_client_t)
+{
     const char *init_msg = "This is the FTP server. How can we call you? ";
     send(p_client_t->sock_FD, init_msg, strlen(init_msg), 0);
 
@@ -359,7 +408,6 @@ int ask_client_basic_details(ClientInfo_t *p_client_t) {
 
     return 0;
 }
-
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -395,7 +443,7 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
 
     // Get the client's IP address (for a unique identification)
     char ip_buffer[INET_ADDRSTRLEN];
-    if (inet_ntop(AF_INET, (void *)&(p_client_t->p_addr), ip_buffer, INET_ADDRSTRLEN) == NULL) //TODO handle IPV6 too
+    if (inet_ntop(AF_INET, (void *)&(p_client_t->p_addr), ip_buffer, INET_ADDRSTRLEN) == NULL) // TODO handle IPV6 too
     {
         ERROR_VERBOSE_LOG("Error converting IP address");
         free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
@@ -405,7 +453,6 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
     p_client_t->addr_info = ip_buffer;
 }
 
-
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
@@ -414,9 +461,10 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
  *
  * @return
  */
-UniSocket_t* get_transference_socket() {
+UniSocket_t *get_transference_socket()
+{
 
-    //TODO usar o novo standard que tenho do lado do cliente
+    // TODO usar o novo standard que tenho do lado do cliente
     UniSocket_t *p_server_content_t;
     if (((p_server_content_t = create_socket_struct(true, CONTENT_PORT, false)) == NULL)) // last false = DUAL stack socket
     {
@@ -426,7 +474,6 @@ UniSocket_t* get_transference_socket() {
 
     return p_server_content_t;
 }
-
 
 //----------------------------------------------------------------------------------------------------------
 /**
@@ -439,7 +486,8 @@ UniSocket_t* get_transference_socket() {
 
 int serve_client_with_FTP(ClientInfo_t *p_client_t)
 {
-    if (prepare_client_structs_for_data(p_client_t) == NULL) {
+    if (prepare_client_structs_for_data(p_client_t) == NULL)
+    {
         ERROR_VERBOSE_LOG("Error preparing client struct for data");
         const char *error_msg = "There was an error preparing your connection. Sorry. Please, try again.\n";
         send(p_client_t->sock_FD, error_msg, strlen(error_msg), 0);
@@ -447,14 +495,16 @@ int serve_client_with_FTP(ClientInfo_t *p_client_t)
     }
 
     int asking_status;
-    if (asking_status = ask_client_basic_details(p_client_t) < 0) {
+    if (asking_status = ask_client_basic_details(p_client_t) < 0)
+    {
         ERROR_VERBOSE_LOG("Error asking the client's name");
         exit(EXIT_FAILURE);
         return asking_status;
     }
-  
+
     int input_command_status;
-    if (input_command_status = input_client_commands(p_client_t) < 0) {
+    if (input_command_status = input_client_commands(p_client_t) < 0)
+    {
         ERROR_VERBOSE_LOG("Error while receiving client's commands");
         return input_command_status;
     }

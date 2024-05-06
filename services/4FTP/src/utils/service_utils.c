@@ -43,7 +43,7 @@ int fill_cli_buffer_with_response(ClientInfo_t *p_client_t) {
         return -2; //TODO generalize this value in another define value
     }
 
-    p_client_t->buffer[bytes_received - 1] = '\0';
+    p_client_t->buffer[bytes_received] = '\0'; //TODO: check if the change in -1 does not make it work worst
 
     return bytes_received; //TODO cuidado com isto, caso deia error
 }
