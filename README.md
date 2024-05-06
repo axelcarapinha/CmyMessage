@@ -1,5 +1,6 @@
 # CmyMessage
-C chat application done for learning purposes. 
+⚠️ In progress. And largely chaotic!
+A _C_ server with multiple services.
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -17,22 +18,28 @@ C chat application done for learning purposes.
     </li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#results">Results</a></li>
-    <li><a href="#what-i-learned">What I learned!</a></li>
+    <li><a href="#what-i-learned">What I learned until now!</a></li>
+    <li><a href="#plan-/-roadmap">Plan / Roadmap</a></li>
   </ol>
 </details>
 
 <!-- ABOUT THE PROJECT -->
 ## About the project
-A chat application made with C.
+A _C_ server with multiple services, applying the knowledge of the Computer Networks' class to a considerably broader coding architecture and extension of topics.
 
 <!-- HOW TO START IT -->
 ## Getting started
 ### Prerequisites
-1. 
+⚠️ In progress!
 
-### Installation and usage
+### Installation 
+⚠️ In progress!
+
+## Usage
+⚠️ In progress!
 
 ## Results
+⚠️ In progress!
 
 ## What I learned until now!
 Had fun knowing more about:
@@ -43,7 +50,6 @@ Had fun knowing more about:
     * race conditions
     * thread pools with condition variables
     * I/O assync operations
-    * 
     * mutex locks
     * semaphors
 * Networking
@@ -55,22 +61,20 @@ Had fun knowing more about:
   * Forms of AUTH (and its fragilities)
   * Shadow networks
   * Hashes (its fragilities, some types, ...)
-  * 
 * Cmake (build system generator)
 * Software architecture 
-
 
 ## Plan / Roadmap 
 ✅ = implemented
 🛠️ = in process...
-🔁 = NOT implemented
+🔁 = NOT implemented yet
 
 - Plan the architecture / structure of the code ✅
 - Simple connection ✅
 - Chat between clients 🛠️ 
   - Supporting concurrency ✅
   - Generic hash table for the user's struct ✅
-  - Broadcast chat 🛠️
+  - Broadcast chat ✅
   - Direct chat 🛠️
 - Containers (probably with Docker compose) 🔁
   - Docker Swarm (ease the scalability)
@@ -91,15 +95,3 @@ Had fun knowing more about:
     - Consider using shared object files for shared code
     - Server setup and configuration (probably in an Azure VM) 🔁
     - Documentation of the code 🔁
-
-  
-  
-
-
-
-
-
-
-
-
-
