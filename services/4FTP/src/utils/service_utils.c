@@ -45,7 +45,7 @@ int fill_cli_buffer_with_response(ClientInfo_t *p_client_t) {
 
     p_client_t->buffer[bytes_received - 1] = '\0';
 
-    return 0;
+    return bytes_received; //TODO cuidado com isto, caso deia error
 }
 
 

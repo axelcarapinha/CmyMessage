@@ -4,5 +4,9 @@
         "clients.h": "c",
         "executor": "c",
         "in.h": "c"
+    },
+    "editor.tokenColorCustomizations": {
+        "comments": "",
+        "textMateRules": []
     }
 }

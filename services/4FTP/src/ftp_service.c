@@ -1,7 +1,10 @@
 #include "ftp_service.h"
+#include <dirent.h>
+#include <sys/stat.h>
+
+
 
 // Got some inspiration at https://www.rfc-editor.org/rfc/rfc765
-
 
 // 8 bits of byte size
 // passive data port, and active one
@@ -11,10 +14,40 @@
 // FTP commandsz
 // NVT
 // NVFS 
-// 
 
 // Let only a thread at a time to access the main service struct
 static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief
+
+ * @param
+ *
+ * @return
+ */
+int list_files_curr_dir(ClientInfo_t *p_client_t) {
+    DIR *directory;
+    struct dirent *entry;
+    directory = opendir(".");
+    if (directory) {
+        int file_idx = 0;
+        while ((entry = readdir(directory)) != NULL) {
+            memset(p_client_t->buffer, 0, BUFFER_SIZE);
+            sprintf(p_client_t->buffer, "(%d) %s\n", file_idx, entry->d_name);
+            send_text_to_client_with_buffer(p_client_t);   
+            file_idx++;
+        }
+        closedir(directory);
+        return 0;
+    }
+    else {
+        ERROR_VERBOSE_LOG("Error opening the files directory");
+        return 1;
+    }
+
+    return 0;
+}
 
 
 //----------------------------------------------------------------------------------------------------------
@@ -25,7 +58,19 @@ static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
  *
  * @return
  */
-int download_file(ClientInfo_t *p_client_t) {
+
+
+
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief
+
+ * @param
+ *
+ * @return
+ */
+int download_file(ClientInfo_t *p_client_t) { //TODO avoid duplication of files (CmakeLists, ...)
 
     // ASK for the filename
     memset(p_client_t->buffer, 0, BUFFER_SIZE); //TODO retirar depois de funcionar
@@ -83,7 +128,50 @@ int download_file(ClientInfo_t *p_client_t) {
  * @return
  */
 int upload_file(ClientInfo_t *p_client_t) {
-  
+
+    // Ask the desired filename
+    memset(p_client_t->buffer, 0, BUFFER_SIZE); 
+    const char *filename_msg = "How to name the file? ";
+    strncpy(p_client_t->buffer, filename_msg, strlen(filename_msg));
+    send_text_to_client_with_buffer(p_client_t);
+
+    // Receive filename and prepare for the transference
+    if (fill_cli_buffer_with_response(p_client_t) == CLIENT_DISCONNECTED) {
+        return 0;
+    }
+    char *filename = (char *)malloc(sizeof(char) * FILENAME_MAX);
+    p_client_t->buffer[strlen(p_client_t->buffer)] = '\0';
+    strncpy(filename, p_client_t->buffer, strlen(p_client_t->buffer));
+    //
+    FILE *file_ptr = fopen(p_client_t->buffer, "wb"); 
+    if (file_ptr == NULL) {
+        ERROR_VERBOSE_LOG("Error creating the file from the server side.");
+        //
+        memset(p_client_t->buffer, 0, BUFFER_SIZE); 
+        sprintf(p_client_t->buffer, "File '%s' may already exist.\n", filename);
+        send_text_to_client_with_buffer(p_client_t);
+        return 0;
+    }
+
+    // Receive the file content
+    //TODO include <sys/stat.h> for the file receiving
+    int bytes_limit = MAX_FILE_SIZE;
+    do {
+        memset(p_client_t->buffer, 0, BUFFER_SIZE);
+        ssize_t bytes_recv = fill_cli_buffer_with_response(p_client_t);
+        if (bytes_recv == 0) break;
+        fwrite(p_client_t->buffer, 1, bytes_recv, file_ptr); 
+        //
+        bytes_limit--;
+    } while (bytes_limit > 0);
+
+    // Nofity about the state
+    memset(p_client_t->buffer, 0, BUFFER_SIZE); 
+    const char *final_msg = (bytes_limit == 0) ? "File too large" : "File uploaded!";
+    strncpy(p_client_t->buffer, final_msg, strlen(final_msg));
+    send_text_to_client_with_buffer(p_client_t);
+
+    free(filename);
 
     return 0;
 }
@@ -103,9 +191,11 @@ int inform_client(ClientInfo_t *p_client_t) {
     sprintf(p_client_t->buffer, 
         "\t%s (%s)\n"
         "\t%s (%s)\n"
+        "\t%s (%s)\n"
         "\t%s (finish the session)\n",
         CMD_UPLOAD_SHORT, CMD_UPLOAD_FULL,
         CMD_DOWNLOAD_SHORT, CMD_DOWNLOAD_FULL,
+        CMD_LIST_SHORT, CMD_LIST_FULL,
         CMD_EXIT_FULL
         );
     int send_status;
@@ -210,6 +300,9 @@ int input_client_commands(ClientInfo_t *p_client_t) {
         else if (strcmp(p_client_t->buffer, CMD_EXIT_FULL) == 0) {
             feedback_msg = "'--exit' option selected. Have a nice day!\n";
             clients_wants_exit = true; // end the cycle, and finisht the server
+        }
+        else if (strcmp(p_client_t->buffer, CMD_LIST_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_LIST_FULL) == 0) {
+            list_files_curr_dir(p_client_t);
         }
         else {
             feedback_msg = "Invalid option. Please, try again.\n";
@@ -321,6 +414,28 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
  *
  * @return
  */
+UniSocket_t* get_transference_socket() {
+
+    //TODO usar o novo standard que tenho do lado do cliente
+    UniSocket_t *p_server_content_t;
+    if (((p_server_content_t = create_socket_struct(true, CONTENT_PORT, false)) == NULL)) // last false = DUAL stack socket
+    {
+        ERROR_VERBOSE_LOG("Error getting the socket struct pointer");
+        return NULL;
+    }
+
+    return p_server_content_t;
+}
+
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief
+
+ * @param
+ *
+ * @return
+ */
 
 int serve_client_with_FTP(ClientInfo_t *p_client_t)
 {
@@ -337,7 +452,7 @@ int serve_client_with_FTP(ClientInfo_t *p_client_t)
         exit(EXIT_FAILURE);
         return asking_status;
     }
-
+  
     int input_command_status;
     if (input_command_status = input_client_commands(p_client_t) < 0) {
         ERROR_VERBOSE_LOG("Error while receiving client's commands");

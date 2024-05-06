@@ -9,9 +9,13 @@
 #include "clients.h"
 
 // Settings
-#define DEFAULT_PORT 8021
+#define SERVICE_PORT 8021
+#define CONTENT_PORT 8021
 #define MAX_SIZE_USER_OPTION 1 // a single number (for the option)
 #define MAX_SIZE_ADDR_INFO 200
+//
+//TODO use the same in the client side too
+#define MAX_FILE_SIZE (1024 * 1024 * 10 * 1000) // 10'000 megabytes
 //
 #define SERVICE_NAME "FTP"
 //
@@ -33,6 +37,9 @@ typedef enum {
 //
 #define CMD_DOWNLOAD_SHORT "-d"
 #define CMD_DOWNLOAD_FULL "--download"
+//
+#define CMD_LIST_SHORT "-l"
+#define CMD_LIST_FULL "--list"
 //
 #define CMD_EXIT_FULL "--exit"
 

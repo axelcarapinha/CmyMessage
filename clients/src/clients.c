@@ -51,6 +51,7 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
     // p_client_t->addr_info = ip_buffer;
 }
 
+
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief 
@@ -61,7 +62,6 @@ int use_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_f
 
     //TODO determine the type of socket to create from the address
     
-
     // In this case (the client) the port will be the port 
     // that the client wants to connect to
     UniSocket_t *p_socket_t = create_socket_struct(false, server_port, false, server_ip); //TODO: change for IPv6
