@@ -15,6 +15,12 @@
 
 #define CMD_UPLOAD_SHORT "-u"
 #define CMD_UPLOAD_FULL "--upload"
+//
+#define CMD_DOWNLOAD_SHORT "-d"
+#define CMD_DOWNLOAD_FULL "--download"
+//
+#define CMD_LIST_SHORT "-l"
+#define CMD_LIST_FULL "--list"
 
 int keep_connection_with_server_cli(ClientInfo_t *p_client_t);
 int upload_file(ClientInfo_t *p_client_t);

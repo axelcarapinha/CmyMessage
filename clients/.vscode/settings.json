@@ -3,7 +3,8 @@
         "net_utils_tcp.h": "c",
         "clients.h": "c",
         "executor": "c",
-        "in.h": "c"
+        "in.h": "c",
+        "errno.h": "c"
     },
     "editor.tokenColorCustomizations": {
         "comments": "",

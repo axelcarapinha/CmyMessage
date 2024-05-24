@@ -46,7 +46,7 @@ typedef enum {
 //
 #define CMD_EXIT_FULL "--exit"
 
-#define ASSETS_FOLDER_NAME "assets/" //TODO call it "path" instead of name
+#define PATH_ASSETS_FOLDER "assets/" //TODO call it "path" instead of name
 
 //TODO place the comments in the header file
 

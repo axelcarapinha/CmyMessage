@@ -1,12 +1,5 @@
 #include "ftp_client.h"
 
-// regex_t exit_regex;
-//     if (regcomp(&exit_regex, "([eE][xX][iI][tT])", REG_EXTENDED) != 0)
-//     {
-//         fprintf(stderr, "Failed to compile regex\n");
-//         exit(EXIT_FAILURE);
-//     }
-
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
@@ -16,8 +9,7 @@
  * @return
  */
 int keep_connection_with_server_cli(ClientInfo_t *p_client_t)
-{ //! TODO make this a generalized function (more used)
-
+{ 
     //  Prepare the structure to maintain the client-server interaction
     fd_set comm_sets;
     FD_ZERO(&comm_sets);
@@ -48,13 +40,17 @@ int keep_connection_with_server_cli(ClientInfo_t *p_client_t)
                 p_client_t->buffer[len_str - 1] = '\0';
             }
 
+            // Interpretate commands to anticipate needs from the client side
             if (strcmp(p_client_t->buffer, CMD_UPLOAD_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_UPLOAD_FULL) == 0)
-            { // Recognize server instructions for the client side
-                send(p_client_t->sock_FD, CMD_UPLOAD_FULL, strlen(CMD_UPLOAD_FULL), 0);
+            { 
                 upload_file(p_client_t);
             }
+            else if (strcmp(p_client_t->buffer, CMD_DOWNLOAD_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_DOWNLOAD_FULL) == 0)
+            { 
+                download_file(p_client_t);
+            }
             else
-            { // Respond to the server
+            { // Normally respond to the server
                 send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0);
             }
         }
@@ -81,6 +77,98 @@ int keep_connection_with_server_cli(ClientInfo_t *p_client_t)
     return 0;
 }
 
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief
+
+ * @param
+ *
+ * @return
+ */
+int download_file(ClientInfo_t *p_client_t) 
+{
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+
+    // Allow a smoother UX 
+    printf("\nAvailable files:\n");
+    send(p_client_t->sock_FD, CMD_LIST_FULL, strlen(CMD_LIST_FULL), 0);
+
+
+    //TODO problem with sending two commands in one, must read the '>' before the new command
+    for (int i = 0; i < 2; i++) {
+        int num_bytes = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0);
+        if (num_bytes == 0)
+        {
+            printf("Server disconnected\n");
+            return -3;
+        }
+        else if (num_bytes < 0) {
+            printf("Error receiving response from the server."); 
+        }
+        printf("%s", p_client_t->buffer); // print the list of files
+        memset(p_client_t->buffer, 0, BUFFER_SIZE);    
+    }
+
+    // ONLY NOW, prompt the server to download the file
+    send(p_client_t->sock_FD, CMD_DOWNLOAD_FULL, strlen(CMD_DOWNLOAD_FULL), 0);
+
+    int num_bytes = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0);
+    if (num_bytes == 0)
+    {
+        printf("Server disconnected\n");
+        return -3;
+    }
+    else if (num_bytes < 0) {
+        printf("Error receiving response from the server."); 
+    }
+    printf("%s", p_client_t->buffer); // print the list of files
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);    
+
+
+
+
+
+
+
+    printf("Filename: ");
+    fgets(p_client_t->buffer, BUFFER_SIZE, stdin);
+    const char *filename = strdup(p_client_t->buffer);
+    send(p_client_t->sock_FD, filename, strlen(filename), 0);
+
+    FILE *p_file = fopen(filename, "wb");
+    if (p_file == NULL)
+    {
+        ERROR_VERBOSE_LOG("Error creating the file from the server side");
+        printf("File '%s' may already exist.\n", filename);
+        return 0;
+    }
+
+    printf("Downloading the file...");
+    int amount_recv;
+    while((amount_recv = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0)) > 0) {
+        fwrite(p_client_t->buffer, 1, amount_recv, p_file);
+    }
+
+    // Interpretate the ending of the connection
+    if (amount_recv == 0)
+    {
+        printf("Server disconnected\n");
+        return -3;
+    }
+    else if (amount_recv < 0) {
+        printf("Error receiving response from the server."); 
+    }
+    printf("File downloaded!");
+
+    // Ensure the changes to the file get written
+    fclose(p_file);
+
+    free((void *)filename);
+    return 0;
+}
+
+
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
@@ -91,7 +179,9 @@ int keep_connection_with_server_cli(ClientInfo_t *p_client_t)
  */
 int upload_file(ClientInfo_t *p_client_t)
 {
-    list_available_files();
+    send(p_client_t->sock_FD, CMD_UPLOAD_FULL, strlen(CMD_UPLOAD_FULL), 0);
+
+    list_available_files(); // on this host
 
     printf("File to upload: ");
     if (fgets(p_client_t->buffer, BUFFER_SIZE, stdin) == NULL)
@@ -125,7 +215,7 @@ int upload_file(ClientInfo_t *p_client_t)
     }
 
     // Send the commands to the server side 
-    // (it will prepare a file with the same name knowing this)
+    // (it will prepare a file with the same name)
     send(p_client_t->sock_FD, filename, strlen(filename), 0);
     //
     char filesize_str[MAX_NUM_ALGS_FILESIZE]; //TODO define a maximum and test this

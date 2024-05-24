@@ -26,7 +26,7 @@ int list_files_curr_dir(ClientInfo_t *p_client_t)
 {
     DIR *directory;
     struct dirent *entry;
-    directory = opendir(".");
+    directory = opendir(PATH_ASSETS_FOLDER);
     if (directory)
     {
         int file_idx = 0;
@@ -58,6 +58,9 @@ int list_files_curr_dir(ClientInfo_t *p_client_t)
  * @return
  */
 
+
+
+
 //----------------------------------------------------------------------------------------------------------
 /**
  * @brief
@@ -67,69 +70,15 @@ int list_files_curr_dir(ClientInfo_t *p_client_t)
  * @return
  */
 int download_file(ClientInfo_t *p_client_t)
-{ // TODO avoid duplication of files (CmakeLists, ...)
+{ 
+    // memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
-    // ASK for the filename
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO retirar depois de funcionar
-    const char *filename_msg = "Filename: ";
-    strncpy(p_client_t->buffer, filename_msg, strlen(filename_msg));
-    send_text_to_client_with_buffer(p_client_t);
-
-    // GET filename
-    if (fill_cli_buffer_with_response(p_client_t) < 0)
-    {
-        ERROR_VERBOSE_LOG("Error receiving the pretended filename");
-        return -1;
-    }
-    // (the input was already parsed by the wrapper function)
-    char *filename = (char *)malloc(sizeof(char) * FILENAME_MAX); // TODO check the size of this
-    p_client_t->buffer[strlen(p_client_t->buffer)] = '\0';
-    strncpy(filename, p_client_t->buffer, strlen(p_client_t->buffer));
-
-    // Send the file to the client
+    //TODO this
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    strcat(p_client_t->buffer, ASSETS_FOLDER_NAME); //TODO same name as the other one (from the client side)
-    strcat(p_client_t->buffer, filename);
-    FILE *file_ptr = fopen(p_client_t->buffer, "rb"); // TODO size of the file
-    if (file_ptr == NULL)
-    {
-        ERROR_VERBOSE_LOG("Error creating the filename");
-        //
-        memset(p_client_t->buffer, 0, BUFFER_SIZE);
-        sprintf(p_client_t->buffer, "File %s not found. Please, try again.\n", filename);
-        send_text_to_client_with_buffer(p_client_t);
-        return 0;
-    }
-
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO fazer método genérico para isto
-    const char *message = "Sending file...\n";
-    strncpy(p_client_t->buffer, message, strlen(message));
-    send_text_to_client_with_buffer(p_client_t);
-    while (fgets(p_client_t->buffer, sizeof(p_client_t->buffer), file_ptr) != NULL)
-    {
-        send_text_to_client_with_buffer(p_client_t);
-        // TODO avoid path traversal vulnerabilities
-    }
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO generalize this into a function
-    const char *file_sent_msg = "File sent...\n";
-    strncpy(p_client_t->buffer, file_sent_msg, strlen(file_sent_msg));
+    sprintf(p_client_t->buffer, "FILENAMEEEE\n");
     send_text_to_client_with_buffer(p_client_t);
 
-    return 0;
-}
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
- * @param
- *
- * @return
- */
-int upload_file(ClientInfo_t *p_client_t)
-{
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
-
-    // Receive the filename
+    // Receive the FILENAME
     int bytes_received;
     //
     bytes_received = fill_cli_buffer_with_response(p_client_t);
@@ -144,7 +93,68 @@ int upload_file(ClientInfo_t *p_client_t)
     }
     const char *filename = strdup(p_client_t->buffer);
 
-    // Receive the filesize
+    // Send the file to the client
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    strcat(p_client_t->buffer, PATH_ASSETS_FOLDER);
+    strcat(p_client_t->buffer, filename);
+    FILE *p_file = fopen(p_client_t->buffer, "rb");
+    if (p_file == NULL)
+    {
+        ERROR_VERBOSE_LOG("Error creating the filename");
+        //
+        memset(p_client_t->buffer, 0, BUFFER_SIZE);
+        sprintf(p_client_t->buffer, "File %s not found. Please, try again.\n", filename);
+        send_text_to_client_with_buffer(p_client_t);
+        return 0;
+    }
+
+    memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO fazer método genérico para isto
+    const char *message = "Sending file...\n";
+    strncpy(p_client_t->buffer, message, strlen(message));
+    send_text_to_client_with_buffer(p_client_t);
+    while (fgets(p_client_t->buffer, BUFFER_SIZE, p_file) != NULL)
+    {
+        send_text_to_client_with_buffer(p_client_t);
+        // TODO avoid path traversal vulnerabilities
+    }
+
+    fclose(p_file);
+
+    memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO generalize this into a function
+    const char *file_sent_msg = "File sent...\n";
+    strncpy(p_client_t->buffer, file_sent_msg, strlen(file_sent_msg));
+    send_text_to_client_with_buffer(p_client_t);
+
+    return 0;
+}
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief Based on the order of implementation (from the client side too)
+ * @param
+ *
+ * @return
+ */
+int upload_file(ClientInfo_t *p_client_t) // this is the receiving perspective
+{
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+
+    // Receive the FILENAME
+    int bytes_received;
+    //
+    bytes_received = fill_cli_buffer_with_response(p_client_t);
+    if (bytes_received == 0)
+    {   
+        INFO_VERBOSE_LOG("Client disconnected");
+        return 0;
+    }
+    else if (bytes_received < 0) {
+        ERROR_VERBOSE_LOG("Error receiving the filename from the client before the upload");
+        return -1;
+    }
+    const char *filename = strdup(p_client_t->buffer);
+
+    // Receive the FILESIZE
     bytes_received = fill_cli_buffer_with_response(p_client_t);
     if (bytes_received == 0)
     {   
@@ -157,9 +167,8 @@ int upload_file(ClientInfo_t *p_client_t)
     }
     const int filesize = atoi(p_client_t->buffer);
 
-    //TODO check if the file already exists
-    FILE *file_ptr = fopen(filename, "wb");
-    if (file_ptr == NULL)
+    FILE *p_file = fopen(filename, "wb");
+    if (p_file == NULL)
     {
         ERROR_VERBOSE_LOG("Error creating the file from the server side");
         //
@@ -169,17 +178,19 @@ int upload_file(ClientInfo_t *p_client_t)
         return 0;
     }
 
-    // Receive the file content
-    // TODO include <sys/stat.h> for the file receiving
+    // Filter the filesize
     if (filesize > MAX_FILE_SIZE) {
         const char *warning_about_size = "The file size exceeds the limit. Please, consider using a smaller file.";
         strncpy(p_client_t->buffer, warning_about_size, strlen(warning_about_size));
         send_text_to_client_with_buffer(p_client_t);
+        return 0;
     }
+
+    // Receive the content of the file
     int remaining_to_recv = filesize;
     do
     {   
-        // Keep track of the needed amount to receive
+        // Keep track of the amount received
         int amount_to_recv;
         if (remaining_to_recv - BUFFER_SIZE >= 0) {
             amount_to_recv = BUFFER_SIZE;
@@ -190,7 +201,7 @@ int upload_file(ClientInfo_t *p_client_t)
             remaining_to_recv = 0;
         }
 
-        // Receive the content
+        // Read the content from the socket
         memset(p_client_t->buffer, 0, BUFFER_SIZE);
         off_t amount_recv;
         if ((amount_recv = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0)) < 0)
@@ -204,15 +215,20 @@ int upload_file(ClientInfo_t *p_client_t)
             return -2; 
         }
 
-        fwrite(p_client_t->buffer, 1, amount_to_recv, file_ptr);
+        fwrite(p_client_t->buffer, 1, amount_recv, p_file);
+
     } while (remaining_to_recv > 0);
 
-    // Nofity about the state
+    // Ensure the changes to the file get written
+    fclose(p_file);
+
+    // Nofity the user about the state
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
     const char *final_msg = "File uploaded!\n";
     strncpy(p_client_t->buffer, final_msg, strlen(final_msg));
     send_text_to_client_with_buffer(p_client_t);
 
+    free((void *)filename);
     return 0;
 }
 
@@ -336,7 +352,6 @@ int input_client_commands(ClientInfo_t *p_client_t)
         else if (strcmp(p_client_t->buffer, CMD_UPLOAD_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_UPLOAD_FULL) == 0)
         {
             upload_file(p_client_t);
-            feedback_msg = "File uploaded.\n";
         }
         else if (strcmp(p_client_t->buffer, CMD_DOWNLOAD_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_DOWNLOAD_FULL) == 0)
         {
@@ -345,7 +360,7 @@ int input_client_commands(ClientInfo_t *p_client_t)
         else if (strcmp(p_client_t->buffer, CMD_EXIT_FULL) == 0)
         {
             feedback_msg = "'--exit' option selected. Have a nice day!\n";
-            clients_wants_exit = true; // end the cycle, and finisht the server
+            clients_wants_exit = true; // end the cycle, and finisht the service
         }
         else if (strcmp(p_client_t->buffer, CMD_LIST_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_LIST_FULL) == 0)
         {
