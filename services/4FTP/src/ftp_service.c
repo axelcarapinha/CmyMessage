@@ -86,14 +86,13 @@ int download_file(ClientInfo_t *p_client_t)
         ERROR_VERBOSE_LOG("Error receiving the filename from the client before the upload");
         return -1;
     }
-    const char *filename = strdup(p_client_t->buffer);
+    char *filename = strdup(p_client_t->buffer);
+    filename[strlen(filename) - 1] = '\0';
 
     // Send the FILESIZE to the client
     char *file_complete_path = (char *)malloc(MAX_LEN_FILE_PATH);
-    strcpy(file_complete_path, "/"); //TODO This gets overwritten, why does it stay here?
     strcpy(file_complete_path, PATH_ASSETS_FOLDER);
     strcat(file_complete_path, filename);
-    file_complete_path[strlen(file_complete_path) - 1] = '\0';
     //
     off_t filesize = get_file_size(file_complete_path);
     if (filesize < 0) {
@@ -112,22 +111,38 @@ int download_file(ClientInfo_t *p_client_t)
     if (p_file == NULL)
     {
         ERROR_VERBOSE_LOG("Error creating the filename");
-        //
         memset(p_client_t->buffer, 0, BUFFER_SIZE);
         sprintf(p_client_t->buffer, "File %s not found. Please, try again.\n", filename);
         send_text_to_client_with_buffer(p_client_t);
         return 0;
     }
 
+    INFO_VERBOSE_LOG("Sending file.");
     memset(p_client_t->buffer, 0, BUFFER_SIZE); 
-    while (fgets(p_client_t->buffer, BUFFER_SIZE, p_file) != NULL)
-    {
-        send_text_to_client_with_buffer(p_client_t);
-        // TODO avoid path traversal vulnerabilities
-    }
+    off_t remaining_to_recv = filesize;
+    do
+    {   
+        // Keep track of the amount received
+        off_t amount_to_recv;
+        if (remaining_to_recv - BUFFER_SIZE >= 0) {
+            amount_to_recv = BUFFER_SIZE;
+            remaining_to_recv -= BUFFER_SIZE;
+        }
+        else {
+            amount_to_recv = remaining_to_recv;
+            remaining_to_recv = 0;
+        }
+
+        fread(p_client_t->buffer, 1, amount_to_recv, p_file);
+        if (send(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0) < 0) {
+            ERROR_VERBOSE_LOG("Error sendind the file");
+        }
+
+    } while (remaining_to_recv > 0);
+    INFO_VERBOSE_LOG("File sent.");
 
     fclose(p_file);
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO generalize this into a function
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
     return 0;
 }
@@ -144,34 +159,26 @@ int upload_file(ClientInfo_t *p_client_t) // this is the receiving perspective
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
     // Receive the FILENAME
-    int bytes_received;
+    off_t bytes_received;
     //
-    bytes_received = fill_cli_buffer_with_response(p_client_t);
-    if (bytes_received == 0)
-    {   
-        INFO_VERBOSE_LOG("Client disconnected");
-        return 0;
-    }
-    else if (bytes_received < 0) {
-        ERROR_VERBOSE_LOG("Error receiving the filename from the client before the upload");
+    if (fill_cli_buffer_with_response(p_client_t) < 0) {
+        ERROR_VERBOSE_LOG("Error receiving the FILENAME from the client");
         return -1;
     }
     const char *filename = strdup(p_client_t->buffer);
 
     // Receive the FILESIZE
-    bytes_received = fill_cli_buffer_with_response(p_client_t);
-    if (bytes_received == 0)
-    {   
-        INFO_VERBOSE_LOG("Client disconnected");
-        return 0;
-    }
-    else if (bytes_received < 0) {
-        ERROR_VERBOSE_LOG("Error receiving the filesize from the client before the upload");
-        return -1;
+    if (fill_cli_buffer_with_response(p_client_t) < 0) {
+        ERROR_VERBOSE_LOG("Error receiving the FILESIZE from the client");
+        return -2;
     }
     const int filesize = atoi(p_client_t->buffer);
 
-    FILE *p_file = fopen(filename, "wb");
+    char *file_complete_path = (char *)malloc(MAX_LEN_FILE_PATH);
+    strcpy(file_complete_path, PATH_ASSETS_FOLDER);
+    strcat(file_complete_path, filename);
+    
+    FILE *p_file = fopen(file_complete_path, "wb");
     if (p_file == NULL)
     {
         ERROR_VERBOSE_LOG("Error creating the file from the server side");
@@ -184,8 +191,7 @@ int upload_file(ClientInfo_t *p_client_t) // this is the receiving perspective
 
     // Filter the filesize
     if (filesize > MAX_FILE_SIZE) {
-        const char *warning_about_size = "The file size exceeds the limit. Please, consider using a smaller file.";
-        strncpy(p_client_t->buffer, warning_about_size, strlen(warning_about_size));
+        sprintf(p_client_t->buffer, "The file size exceeds the limit. Please, consider using a smaller file.\n");
         send_text_to_client_with_buffer(p_client_t);
         return 0;
     }
@@ -195,7 +201,7 @@ int upload_file(ClientInfo_t *p_client_t) // this is the receiving perspective
     do
     {   
         // Keep track of the amount received
-        int amount_to_recv;
+        off_t amount_to_recv;
         if (remaining_to_recv - BUFFER_SIZE >= 0) {
             amount_to_recv = BUFFER_SIZE;
             remaining_to_recv -= BUFFER_SIZE;
@@ -206,20 +212,11 @@ int upload_file(ClientInfo_t *p_client_t) // this is the receiving perspective
         }
 
         // Read the content from the socket
-        memset(p_client_t->buffer, 0, BUFFER_SIZE);
-        off_t amount_recv;
-        if ((amount_recv = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0)) < 0)
-        {
-            ERROR_VERBOSE_LOG("Error receiving the file content from the client");
-            return -1;
+        if (fill_cli_buffer_with_response(p_client_t) < 0) {
+            ERROR_VERBOSE_LOG("Error receiving the file from the client. Terminating...");
+            return -3;
         }
-        else if (bytes_received == 0)
-        {
-            printf("Client terminated the connection.\n");
-            return -2; 
-        }
-
-        fwrite(p_client_t->buffer, 1, amount_recv, p_file);
+        fwrite(p_client_t->buffer, 1, amount_to_recv, p_file);
 
     } while (remaining_to_recv > 0);
 

@@ -89,8 +89,8 @@ int keep_connection_with_server_cli(ClientInfo_t *p_client_t)
 int download_file(ClientInfo_t *p_client_t) 
 {
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
-
     send(p_client_t->sock_FD, CMD_DOWNLOAD_FULL, strlen(CMD_DOWNLOAD_FULL), 0);
+
     printf("Filename: ");
     fgets(p_client_t->buffer, BUFFER_SIZE, stdin);
     const char *filename = strdup(p_client_t->buffer);
@@ -106,25 +106,15 @@ int download_file(ClientInfo_t *p_client_t)
     }
 
     // Receive the FILESIZE
-    int num_bytes = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0);
-    if (num_bytes == 0)
-    {
-        printf("Server disconnected\n");
-        return -3;
-    }
-    else if (num_bytes < 0) {
-        printf("Error receiving response from the server."); //TODO use colors for diff types of messages
-    }
+    fill_buffer_with_response(p_client_t);
+    const int filesize = atoi(p_client_t->buffer);
 
     printf("Downloading the file...\n");
-    const int filesize = atoi(p_client_t->buffer);
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    int bytes_received = 0;
-    int remaining_to_recv = filesize;
+    off_t remaining_to_recv = filesize;
     do
     {   
         // Keep track of the amount received
-        int amount_to_recv;
+        off_t amount_to_recv;
         if (remaining_to_recv - BUFFER_SIZE >= 0) {
             amount_to_recv = BUFFER_SIZE;
             remaining_to_recv -= BUFFER_SIZE;
@@ -135,31 +125,19 @@ int download_file(ClientInfo_t *p_client_t)
         }
 
         // Read the content from the socket
-        memset(p_client_t->buffer, 0, BUFFER_SIZE);
-        off_t amount_recv;
-        if ((amount_recv = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0)) < 0)
-        {
-            ERROR_VERBOSE_LOG("Error receiving the file content from the client");
-            return -1;
+        if (fill_buffer_with_response(p_client_t) < 0) {
+            printf("Error while dowloading the remaining part of the file");
         }
-        else if (amount_recv == 0)
-        {
-            printf("Client terminated the connection.\n");
-            return -2; 
-        }
-
-        fwrite(p_client_t->buffer, 1, amount_recv, p_file);
+        fwrite(p_client_t->buffer, 1, amount_to_recv, p_file);
 
     } while (remaining_to_recv > 0);
-
     printf("File downloaded!\n");    
-    //TODO calculate the size of the file to ensure a propper receiving!
 
     // Ensure the changes to the file get written
     fclose(p_file);
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
     free((void *)filename);
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
     return 0;
 }
 
@@ -174,6 +152,7 @@ int download_file(ClientInfo_t *p_client_t)
  */
 int upload_file(ClientInfo_t *p_client_t)
 {
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
     send(p_client_t->sock_FD, CMD_UPLOAD_FULL, strlen(CMD_UPLOAD_FULL), 0);
 
     list_available_files(); // on this host
@@ -189,12 +168,11 @@ int upload_file(ClientInfo_t *p_client_t)
     if (strlen(filename) > MAX_LEN_FILE_PATH) {
         printf("File path is too long. Please, provide a shorter one.");
     }
+    filename[strlen(filename) - 1] = '\0'; // remove the newline
 
     char *file_complete_path = (char *)malloc(MAX_LEN_FILE_PATH);
-    strcpy(file_complete_path, "/"); //TODO Now it works, but why did I need this here?
     strcpy(file_complete_path, PATH_ASSETS_FOLDER);
     strcat(file_complete_path, filename);
-    file_complete_path[strlen(file_complete_path) - 1] = '\0';
 
     long filesize = get_file_size(file_complete_path);
     if (filesize < 0) {
@@ -209,15 +187,14 @@ int upload_file(ClientInfo_t *p_client_t)
         return 0;
     }
 
-    // Send the commands to the server side 
-    // (it will prepare a file with the same name)
+    // Allow the server to prepare the receiving file
     send(p_client_t->sock_FD, filename, strlen(filename), 0);
     //
-    char filesize_str[MAX_NUM_ALGS_FILESIZE]; //TODO define a maximum and test this
-    snprintf(filesize_str, sizeof(filesize_str), "%d", filesize); // more robust than (char) tupecaster
+    char filesize_str[MAX_NUM_ALGS_FILESIZE]; 
+    snprintf(filesize_str, sizeof(filesize_str), "%d", filesize); // more robust than (char) typecaster
     send(p_client_t->sock_FD, filesize_str, strlen(filesize_str), 0);
     
-    printf("Sending the file...\n");
+    printf("Uploading...\n");
     FILE *p_file = fopen(file_complete_path, "rb"); 
     if (p_file == NULL) {
         ERROR_VERBOSE_LOG("Invalid file pointer");
@@ -228,18 +205,9 @@ int upload_file(ClientInfo_t *p_client_t)
         send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0);
     }
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    printf("File sent.\n");
 
     // Confirm the success of the transference
-    int num_bytes = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0);
-    if (num_bytes == 0)
-    {
-        printf("Server disconnected\n");
-        return -3;
-    }
-    else if (num_bytes < 0) {
-        printf("Error receiving response from the server."); //TODO use colors for diff types of messages
-    }
+    fill_buffer_with_response(p_client_t);
     printf("%s", p_client_t->buffer);
 
     return 0;
@@ -253,8 +221,7 @@ int upload_file(ClientInfo_t *p_client_t)
  *
  * @return
  */
-// TODO reuse this with common code for the server
-int list_available_files() //TODO check if writing to the client socket preserves the thing
+int list_available_files() 
 { 
     printf("Assets' folder structure:\n");
 
@@ -314,7 +281,7 @@ off_t get_file_size(const char *file_complete_path) // Support all systems (NOT 
     }
     fseek(p_file, 0, SEEK_END); 
     size = ftell(p_file); 
-    fclose(p_file); //TODO make sure the file pointer is closed on more code (valgrind, ...)
+    fclose(p_file); //TODO valgrind testing
     
     return size;
 }

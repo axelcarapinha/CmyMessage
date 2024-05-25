@@ -3,6 +3,27 @@
 //! The purpose of this file is generalize some functions of the client side part of services
 
 //----------------------------------------------------------------------------------------------------------
+int fill_buffer_with_response(ClientInfo_t *p_client_t) {
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    ssize_t bytes_received;
+    if ((bytes_received = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0)) < 0)
+    {
+        ERROR_VERBOSE_LOG("Error receiving the preferred name from the client");
+        return -1;
+    }
+    else if (bytes_received == 0)
+    {
+        printf("Client terminated the connection.\n");
+        return -2; //TODO generalize this value in another define value
+    }
+
+    p_client_t->buffer[bytes_received] = '\0'; //TODO: check if the change in -1 does not make it work worst
+
+    return bytes_received; //TODO cuidado com isto, caso deia error
+}
+
+
+//----------------------------------------------------------------------------------------------------------
 /**
  * @brief Allocate SOCKET structure
  *
