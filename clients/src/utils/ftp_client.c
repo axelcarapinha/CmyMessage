@@ -90,52 +90,13 @@ int download_file(ClientInfo_t *p_client_t)
 {
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
-    // Allow a smoother UX 
-    printf("\nAvailable files:\n");
-    send(p_client_t->sock_FD, CMD_LIST_FULL, strlen(CMD_LIST_FULL), 0);
-
-
-    //TODO problem with sending two commands in one, must read the '>' before the new command
-    for (int i = 0; i < 2; i++) {
-        int num_bytes = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0);
-        if (num_bytes == 0)
-        {
-            printf("Server disconnected\n");
-            return -3;
-        }
-        else if (num_bytes < 0) {
-            printf("Error receiving response from the server."); 
-        }
-        printf("%s", p_client_t->buffer); // print the list of files
-        memset(p_client_t->buffer, 0, BUFFER_SIZE);    
-    }
-
-    // ONLY NOW, prompt the server to download the file
     send(p_client_t->sock_FD, CMD_DOWNLOAD_FULL, strlen(CMD_DOWNLOAD_FULL), 0);
-
-    int num_bytes = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0);
-    if (num_bytes == 0)
-    {
-        printf("Server disconnected\n");
-        return -3;
-    }
-    else if (num_bytes < 0) {
-        printf("Error receiving response from the server."); 
-    }
-    printf("%s", p_client_t->buffer); // print the list of files
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);    
-
-
-
-
-
-
-
     printf("Filename: ");
     fgets(p_client_t->buffer, BUFFER_SIZE, stdin);
     const char *filename = strdup(p_client_t->buffer);
     send(p_client_t->sock_FD, filename, strlen(filename), 0);
 
+    // Create the file at the same time (a bit more efficient, avoids one waiting for the other)
     FILE *p_file = fopen(filename, "wb");
     if (p_file == NULL)
     {
@@ -144,25 +105,59 @@ int download_file(ClientInfo_t *p_client_t)
         return 0;
     }
 
-    printf("Downloading the file...");
-    int amount_recv;
-    while((amount_recv = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0)) > 0) {
-        fwrite(p_client_t->buffer, 1, amount_recv, p_file);
-    }
-
-    // Interpretate the ending of the connection
-    if (amount_recv == 0)
+    // Receive the FILESIZE
+    int num_bytes = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0);
+    if (num_bytes == 0)
     {
         printf("Server disconnected\n");
         return -3;
     }
-    else if (amount_recv < 0) {
-        printf("Error receiving response from the server."); 
+    else if (num_bytes < 0) {
+        printf("Error receiving response from the server."); //TODO use colors for diff types of messages
     }
-    printf("File downloaded!");
+
+    printf("Downloading the file...\n");
+    const int filesize = atoi(p_client_t->buffer);
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    int bytes_received = 0;
+    int remaining_to_recv = filesize;
+    do
+    {   
+        // Keep track of the amount received
+        int amount_to_recv;
+        if (remaining_to_recv - BUFFER_SIZE >= 0) {
+            amount_to_recv = BUFFER_SIZE;
+            remaining_to_recv -= BUFFER_SIZE;
+        }
+        else {
+            amount_to_recv = remaining_to_recv;
+            remaining_to_recv = 0;
+        }
+
+        // Read the content from the socket
+        memset(p_client_t->buffer, 0, BUFFER_SIZE);
+        off_t amount_recv;
+        if ((amount_recv = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0)) < 0)
+        {
+            ERROR_VERBOSE_LOG("Error receiving the file content from the client");
+            return -1;
+        }
+        else if (amount_recv == 0)
+        {
+            printf("Client terminated the connection.\n");
+            return -2; 
+        }
+
+        fwrite(p_client_t->buffer, 1, amount_recv, p_file);
+
+    } while (remaining_to_recv > 0);
+
+    printf("File downloaded!\n");    
+    //TODO calculate the size of the file to ensure a propper receiving!
 
     // Ensure the changes to the file get written
     fclose(p_file);
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
     free((void *)filename);
     return 0;
@@ -232,6 +227,7 @@ int upload_file(ClientInfo_t *p_client_t)
     while (fgets(p_client_t->buffer, BUFFER_SIZE, p_file) != NULL) {
         send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0);
     }
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
     printf("File sent.\n");
 
     // Confirm the success of the transference

@@ -16,6 +16,10 @@
 #define CONTENT_PORT 8021
 #define MAX_SIZE_USER_OPTION 1 // a single number (for the option)
 #define MAX_SIZE_ADDR_INFO 200
+#define MAX_LEN_FILE_PATH 1000 
+#define MAX_NUM_ALGS_FILESIZE 20
+
+
 //
 //TODO use the same in the client side too
 #define MAX_FILE_SIZE (1024 * 1024 * 1000) // 1'000 megabytes
@@ -49,14 +53,12 @@ typedef enum {
 #define PATH_ASSETS_FOLDER "assets/" //TODO call it "path" instead of name
 
 //TODO place the comments in the header file
-
+int list_files_curr_dir(ClientInfo_t *p_client_t);
 int download_file(ClientInfo_t *p_client_t);
 int upload_file(ClientInfo_t *p_client_t);
 int inform_client(ClientInfo_t *p_client_t);
-int compress_file();
-int parse_client_command_and_redirect(int command);
-int define_access_controls(ClientInfo_t *p_client_t);
-int send_customized_welcome_message(ClientInfo_t *p_client_t);
+off_t get_file_size(const char *file_complete_path);
+int input_client_commands(ClientInfo_t *p_client_t);
 int ask_client_basic_details(ClientInfo_t *p_client_t);
 void *prepare_client_structs_for_data(ClientInfo_t *p_client_t);
 int serve_client_with_FTP(ClientInfo_t *p_client_t);

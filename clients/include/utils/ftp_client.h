@@ -10,7 +10,7 @@
 //TODO sync with the server too (with config file, consider)
 #define MAX_FILE_SIZE (1024 * 1024 * 10 * 1000) // 10'000 megabytes
 #define PATH_ASSETS_FOLDER "assets/"
-#define MAX_LEN_FILE_PATH 1000 //TODO make the same in the other
+#define MAX_LEN_FILE_PATH 1000 
 #define MAX_NUM_ALGS_FILESIZE 20
 
 #define CMD_UPLOAD_SHORT "-u"

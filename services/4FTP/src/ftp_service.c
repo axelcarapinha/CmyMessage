@@ -71,12 +71,7 @@ int list_files_curr_dir(ClientInfo_t *p_client_t)
  */
 int download_file(ClientInfo_t *p_client_t)
 { 
-    // memset(p_client_t->buffer, 0, BUFFER_SIZE);
-
-    //TODO this
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    sprintf(p_client_t->buffer, "FILENAMEEEE\n");
-    send_text_to_client_with_buffer(p_client_t);
 
     // Receive the FILENAME
     int bytes_received;
@@ -93,11 +88,27 @@ int download_file(ClientInfo_t *p_client_t)
     }
     const char *filename = strdup(p_client_t->buffer);
 
-    // Send the file to the client
+    // Send the FILESIZE to the client
+    char *file_complete_path = (char *)malloc(MAX_LEN_FILE_PATH);
+    strcpy(file_complete_path, "/"); //TODO This gets overwritten, why does it stay here?
+    strcpy(file_complete_path, PATH_ASSETS_FOLDER);
+    strcat(file_complete_path, filename);
+    file_complete_path[strlen(file_complete_path) - 1] = '\0';
+    //
+    off_t filesize = get_file_size(file_complete_path);
+    if (filesize < 0) {
+        printf("Error calculating the file's size.\n");
+        printf("Please, try again.\n");
+        return 0;
+    }
+    //
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    strcat(p_client_t->buffer, PATH_ASSETS_FOLDER);
-    strcat(p_client_t->buffer, filename);
-    FILE *p_file = fopen(p_client_t->buffer, "rb");
+    char filesize_str[MAX_NUM_ALGS_FILESIZE]; 
+    snprintf(p_client_t->buffer, sizeof(filesize_str), "%ld", filesize); // more robust than (char) typecaster
+    send_text_to_client_with_buffer(p_client_t);
+    
+    // Send the file to the client
+    FILE *p_file = fopen(file_complete_path, "rb");
     if (p_file == NULL)
     {
         ERROR_VERBOSE_LOG("Error creating the filename");
@@ -108,10 +119,7 @@ int download_file(ClientInfo_t *p_client_t)
         return 0;
     }
 
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO fazer método genérico para isto
-    const char *message = "Sending file...\n";
-    strncpy(p_client_t->buffer, message, strlen(message));
-    send_text_to_client_with_buffer(p_client_t);
+    memset(p_client_t->buffer, 0, BUFFER_SIZE); 
     while (fgets(p_client_t->buffer, BUFFER_SIZE, p_file) != NULL)
     {
         send_text_to_client_with_buffer(p_client_t);
@@ -119,11 +127,7 @@ int download_file(ClientInfo_t *p_client_t)
     }
 
     fclose(p_file);
-
     memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO generalize this into a function
-    const char *file_sent_msg = "File sent...\n";
-    strncpy(p_client_t->buffer, file_sent_msg, strlen(file_sent_msg));
-    send_text_to_client_with_buffer(p_client_t);
 
     return 0;
 }
@@ -303,6 +307,46 @@ int define_acess_controls(ClientInfo_t *p_client_t)
 {
 
     return 0;
+}
+
+
+//----------------------------------------------------------------------------------------------------------
+/**
+ * @brief
+
+ * @param
+ *
+ * @return
+ */
+off_t get_file_size(const char *file_complete_path) // Support all systems (NOT only POSIX respecting ones)
+{
+    struct stat file_stat; // file's status
+    off_t size;
+
+    if (access(file_complete_path, F_OK) != 0) {
+        printf("File %s does NOT exist.\n", file_complete_path);
+        return -1;
+    }
+    else if (strlen(file_complete_path) > (MAX_LEN_FILE_PATH - strlen(PATH_ASSETS_FOLDER) - 1)) {
+        printf("File path is too long\n");
+        return -2;
+    }
+    else if (stat(file_complete_path, &file_stat) == -1)
+    {
+        printf("Invalid path for the file\n");
+        return -3; 
+    }
+
+    FILE *p_file = fopen(file_complete_path, "rb"); //TODO name the file pointers this way everywhere
+    if (p_file == NULL) {
+        ERROR_VERBOSE_LOG("Error opening the file");
+        return -1;
+    }
+    fseek(p_file, 0, SEEK_END); 
+    size = ftell(p_file); 
+    fclose(p_file); //TODO make sure the file pointer is closed on more code (valgrind, ...)
+    
+    return size;
 }
 
 //----------------------------------------------------------------------------------------------------------
