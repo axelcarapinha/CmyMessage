@@ -6,7 +6,8 @@
         "in.h": "c",
         "errno.h": "c",
         "ftp_client.h": "c",
-        "stat.h": "c"
+        "stat.h": "c",
+        "dirent.h": "c"
     },
     "editor.tokenColorCustomizations": {
         "comments": "",

@@ -28,6 +28,8 @@ A server made in _C_ with multiple services.
 ## About the project
 A server made in _C_, with multiple services, such as a BroadcastChat, FTP, and more to come! It's a way of applying the knowledge of the Computer Networks' class to a considerably broader coding architecture and extension of topics.
 
+▶️ Curious? Click <a href="#video-guide-and-results">HERE</a> for video demonstrations!
+
 <!-- HOW TO START IT -->
 ## Getting started
 ### Prerequisites
@@ -40,7 +42,7 @@ A server made in _C_, with multiple services, such as a BroadcastChat, FTP, and 
 ⚠️ In progress!
 
 ## Results
-⚠️ In progress!
+<a href="https://youtu.be/v7n3sTKgzqM">FTP concurrent service (simple implementation)</a>
 
 ## What I learned until now!
 Had fun knowing more about:

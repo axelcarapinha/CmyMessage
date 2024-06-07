@@ -23,7 +23,7 @@ int download_file(ClientInfo_t *p_client_t)
     fill_buffer_with_response(p_client_t);
     const int filesize = atoi(p_client_t->buffer);
 
-    printf("Downloading the file...\n"); //TODO reuse this part of code!
+    printf("Downloading the file...\n"); //TODO reuse this
     int remaining_to_recv = filesize;
     while (remaining_to_recv > 0) {
         size_t amount_to_recv = remaining_to_recv > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_recv;

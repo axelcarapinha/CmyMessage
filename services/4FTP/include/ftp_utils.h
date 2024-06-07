@@ -10,6 +10,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <zlib.h>
 //
 #include "net_utils_tcp.h"
 
@@ -49,23 +50,42 @@
 off_t get_file_size(const char *filename);
 
 /**
- * @brief 
- * @param 
- * @return 
+ * @brief RECEIVES the content of the file
+ * controlling the amount RECEIVED with its size
+ * 
+ * Thought of implementing a few 'if' statements
+ * in order to merge with the send_file(),
+ * BUT this is more:
+ *  - explicit
+ *  - efficient
+ *  - potentially mantainable (if needing to add more features in the future)
+ * 
+ * @param p_client_t 
+ * @param p_file 
+ * @param filename 
+ * @param filesize 
+ * @return int 
  */
-int receive_content();
+int receive_file(ClientInfo_t *p_client_t, FILE *p_file, char *filename, int filesize);
 
 /**
- * @brief 
- * @param 
- * @return 
+ * @brief SENDS the content of the file
+ * controlling the amount SENT with its size
+ * 
+ * Thought of implementing a few 'if' statements
+ * in order to merge with the receive_file(),
+ * BUT this is more:
+ *  - explicit
+ *  - efficient
+ *  - potentially mantainable (if needing to add more features in the future)
+ * 
+ * @param p_client_t 
+ * @param p_file 
+ * @param filename 
+ * @param filesize 
+ * @return int 
  */
-int send_content();
+int send_file(ClientInfo_t *p_client_t, FILE *p_file, char *filename, int filesize);
 
-/**
- * @brief
- * @return
- */
-int compact_file(); //TODO
 
 #endif

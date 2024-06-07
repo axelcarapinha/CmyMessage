@@ -78,21 +78,7 @@ int download_file(ClientInfo_t *p_client_t)
     }
     //
     INFO_VERBOSE_LOG("Sending the file.");
-    off_t remaining_to_send = filesize;
-    while (remaining_to_send > 0)
-    {
-        size_t amount_to_send = remaining_to_send > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_send;
-        size_t bytes_read = fread(p_client_t->buffer, 1, amount_to_send, p_file);
-        if (bytes_read <= 0) {
-            ERROR_VERBOSE_LOG("Error reading content from the file to upload\n");
-            fclose(p_file);
-            free(filename);
-            return -1;
-        }
-        send(p_client_t->sock_FD, p_client_t->buffer, bytes_read, 0);
-        remaining_to_send -= bytes_read;
-    }
-    fclose(p_file);
+    send_file(p_client_t, p_file, filename, filesize);
     INFO_VERBOSE_LOG("File sent.");
 
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
@@ -149,21 +135,7 @@ int upload_file(ClientInfo_t *p_client_t) {
         return -5;
     }
 
-    int remaining_to_recv = filesize;
-    while (remaining_to_recv > 0) {
-        size_t amount_to_recv = remaining_to_recv > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_recv;
-        ssize_t bytes_received = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0);
-        if (bytes_received < 0) {
-            ERROR_VERBOSE_LOG("Error receiving content from the client\n");
-            fclose(p_file);
-            free(filename);
-            return -1;
-        }
-        fwrite(p_client_t->buffer, 1, bytes_received, p_file);
-        remaining_to_recv -= bytes_received;
-    }
-
-    fclose(p_file);
+    receive_file(p_client_t, p_file, filename, filesize);
 
     // Notify the user about the state
     const char *final_msg = "File uploaded!\n";
@@ -204,10 +176,10 @@ int input_client_commands(ClientInfo_t *p_client_t)
     // Inform the client with the main information
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
     sprintf(p_client_t->buffer,
-            "Welcome to the uploading service, %s!\n\n"
+            "Welcome to the uploading service, %s%s%s!\n\n"
             "Insert the desired command after the '>'.\n"
             "Enter '%s' (or '%s') for available commands.\n",
-            p_client_t->name, CMD_HELP_SHORT, CMD_HELP_FULL);
+            GREEN, p_client_t->name, RESET, CMD_HELP_SHORT, CMD_HELP_FULL);
     
     if (send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0) < 0) {
         ERROR_VERBOSE_LOG("Error sending the available options to the client");
@@ -299,7 +271,7 @@ int ask_client_basic_details(ClientInfo_t *p_client_t)
     // Sanitize the input (and allow for a correct comparison of names)
     if (bytes_received <= BUFFER_SIZE)
     {
-        p_client_t->buffer[bytes_received - 1] = '\0';
+        p_client_t->buffer[bytes_received] = '\0'; //TODO changed this
     }
 
     // Store the username in the client struct
