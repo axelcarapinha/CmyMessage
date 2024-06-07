@@ -87,6 +87,7 @@ int keep_connection_with_server_cli(ClientInfo_t *p_client_t)
  *
  * @return
  */
+
 int download_file(ClientInfo_t *p_client_t) 
 {
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
@@ -110,40 +111,20 @@ int download_file(ClientInfo_t *p_client_t)
     fill_buffer_with_response(p_client_t);
     const int filesize = atoi(p_client_t->buffer);
 
-    printf("Downloading the file...\n");
-    off_t remaining_to_recv = filesize;
-    do
-    {   
-        // Keep track of the amount received
-        off_t amount_to_recv;
-        if (remaining_to_recv - BUFFER_SIZE >= 0) {
-            amount_to_recv = BUFFER_SIZE;
-            remaining_to_recv -= BUFFER_SIZE;
-        }
-        else {
-            amount_to_recv = remaining_to_recv;
-            remaining_to_recv = 0;
-        }
-
-        // Receive only the needed amount of file content
-        memset(p_client_t->buffer, 0, BUFFER_SIZE);
-        ssize_t bytes_received;
-        if ((bytes_received = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0)) < 0) 
-        {
-            ERROR_VERBOSE_LOG("Error receiving the preferred name from the client");
+    printf("Downloading the file...\n"); //TODO reuse this part of code!
+    int remaining_to_recv = filesize;
+    while (remaining_to_recv > 0) {
+        size_t amount_to_recv = remaining_to_recv > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_recv;
+        ssize_t bytes_received = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0);
+        if (bytes_received < 0) {
+            ERROR_VERBOSE_LOG("Error receiving content from the server\n");
+            fclose(p_file);
+            free(filename);
             return -1;
         }
-        else if (bytes_received == 0)
-        {
-            printf("Client terminated the connection.\n");
-            return -2;
-        }
-        p_client_t->buffer[bytes_received] = '\0';
-
-        // Write the content to the file
-        fwrite(p_client_t->buffer, 1, amount_to_recv, p_file);
-
-    } while (remaining_to_recv > 0);
+        fwrite(p_client_t->buffer, 1, bytes_received, p_file);
+        remaining_to_recv -= bytes_received;
+    }
     printf("File downloaded!\n");    
 
     // Ensure the changes to the file get written
@@ -173,58 +154,81 @@ int upload_file(ClientInfo_t *p_client_t)
     printf("File to upload: ");
     if (fgets(p_client_t->buffer, BUFFER_SIZE, stdin) == NULL)
     {
-        ERROR_VERBOSE_LOG("Error getting the pretended filename to upload");
+        ERROR_VERBOSE_LOG("Error getting the intended filename to upload\n");
         return -1;
     }
 
     char *filename = strdup(p_client_t->buffer);
-    if (strlen(filename) > MAX_LEN_FILE_PATH) {
-        printf("File path is too long. Please, provide a shorter one.");
+    if (filename == NULL) {
+        ERROR_VERBOSE_LOG("Memory allocation error\n");
+        return -1;
     }
-    filename[strlen(filename) - 1] = '\0'; // remove the newline
 
-    char *file_complete_path = (char *)malloc(MAX_LEN_FILE_PATH);
-    strcpy(file_complete_path, PATH_ASSETS_FOLDER);
-    strcat(file_complete_path, filename);
+    // Remove newline character
+    size_t len = strlen(filename);
+    if (len > 0 && filename[len - 1] == '\n') {
+        filename[len - 1] = '\0';
+    }
+
+    char file_complete_path[MAX_LEN_FILE_PATH];
+    snprintf(file_complete_path, sizeof(file_complete_path), "%s%s", PATH_ASSETS_FOLDER, filename);
 
     long filesize = get_file_size(file_complete_path);
     if (filesize < 0) {
         printf("Error calculating the file's size.\n");
         printf("Please, try again.\n");
+        free(filename);
         return 0;
     }
     else if (filesize > MAX_FILE_SIZE)
     {
-        printf("That file is enormous! This server cannot handle it for now\n");
+        printf("That file is enormous! This server cannot handle it (for now).\n");
         printf("Sorry. Please, try another one\n");
+        free(filename);
         return 0;
     }
 
-    // Allow the server to prepare the receiving file
+    // Allow the server to prepare to receive the file
     send(p_client_t->sock_FD, filename, strlen(filename), 0);
-    //
+
     char filesize_str[MAX_NUM_ALGS_FILESIZE]; 
-    snprintf(filesize_str, sizeof(filesize_str), "%d", filesize); // more robust than (char) typecaster
+    snprintf(filesize_str, sizeof(filesize_str), "%ld", filesize);
     send(p_client_t->sock_FD, filesize_str, strlen(filesize_str), 0);
     
     printf("Uploading...\n");
     FILE *p_file = fopen(file_complete_path, "rb"); 
     if (p_file == NULL) {
-        ERROR_VERBOSE_LOG("Invalid file pointer");
+        ERROR_VERBOSE_LOG("Invalid file pointer\n");
+        free(filename);
+        return -1;
     }
-    off_t amount_sent;
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    while (fgets(p_client_t->buffer, BUFFER_SIZE, p_file) != NULL) {
-        send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0);
-    }
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
-    // Confirm the success of the transference
+    off_t remaining_to_send = filesize;
+    while (remaining_to_send > 0)
+    {
+        size_t amount_to_send = remaining_to_send > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_send;
+        size_t bytes_read = fread(p_client_t->buffer, 1, amount_to_send, p_file);
+        if (bytes_read <= 0) {
+            ERROR_VERBOSE_LOG("Error reading content from the file to upload\n");
+            fclose(p_file);
+            free(filename);
+            return -1;
+        }
+        send(p_client_t->sock_FD, p_client_t->buffer, bytes_read, 0);
+        remaining_to_send -= bytes_read;
+    }
+
+    fclose(p_file);
+
+    // Receive the server confirmation of the file transference success
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
     fill_buffer_with_response(p_client_t);
     printf("%s", p_client_t->buffer);
 
+    free(filename);
     return 0;
 }
+
 
 //----------------------------------------------------------------------------------------------------------
 /**

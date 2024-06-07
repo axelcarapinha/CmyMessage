@@ -69,23 +69,13 @@ int list_files_curr_dir(ClientInfo_t *p_client_t)
  *
  * @return
  */
+
 int download_file(ClientInfo_t *p_client_t)
 { 
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
     // Receive the FILENAME
-    int bytes_received;
-    //
-    bytes_received = fill_cli_buffer_with_response(p_client_t);
-    if (bytes_received == 0)
-    {   
-        INFO_VERBOSE_LOG("Client disconnected");
-        return 0;
-    }
-    else if (bytes_received < 0) {
-        ERROR_VERBOSE_LOG("Error receiving the filename from the client before the upload");
-        return -1;
-    }
+    fill_cli_buffer_with_response(p_client_t);
     char *filename = strdup(p_client_t->buffer);
     filename[strlen(filename) - 1] = '\0';
 
@@ -108,43 +98,35 @@ int download_file(ClientInfo_t *p_client_t)
     send_text_to_client_with_buffer(p_client_t);
     
     // Send the file to the client
-    FILE *p_file = fopen(file_complete_path, "rb");
-    if (p_file == NULL)
-    {
-        ERROR_VERBOSE_LOG("Error creating the filename");
+    FILE *p_file = fopen(file_complete_path, "rb"); 
+    if (p_file == NULL) {
+        ERROR_VERBOSE_LOG("Invalid file pointer\n");
         memset(p_client_t->buffer, 0, BUFFER_SIZE);
         sprintf(p_client_t->buffer, "File %s not found. Please, try again.\n", filename);
         send_text_to_client_with_buffer(p_client_t);
-        return 0;
+        free(filename);
+        return -1;
     }
-
-    INFO_VERBOSE_LOG("Sending file.");
-    memset(p_client_t->buffer, 0, BUFFER_SIZE); 
-    off_t remaining_to_recv = filesize;
-    do
-    {   
-        // Keep track of the amount received
-        off_t amount_to_recv;
-        if (remaining_to_recv - BUFFER_SIZE >= 0) {
-            amount_to_recv = BUFFER_SIZE;
-            remaining_to_recv -= BUFFER_SIZE;
+    //
+    INFO_VERBOSE_LOG("Sending the file.");
+    off_t remaining_to_send = filesize;
+    while (remaining_to_send > 0)
+    {
+        size_t amount_to_send = remaining_to_send > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_send;
+        size_t bytes_read = fread(p_client_t->buffer, 1, amount_to_send, p_file);
+        if (bytes_read <= 0) {
+            ERROR_VERBOSE_LOG("Error reading content from the file to upload\n");
+            fclose(p_file);
+            free(filename);
+            return -1;
         }
-        else {
-            amount_to_recv = remaining_to_recv;
-            remaining_to_recv = 0;
-        }
-
-        fread(p_client_t->buffer, 1, amount_to_recv, p_file);
-        if (send(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0) < 0) {
-            ERROR_VERBOSE_LOG("Error sendind the file");
-        }
-
-    } while (remaining_to_recv > 0);
+        send(p_client_t->sock_FD, p_client_t->buffer, bytes_read, 0);
+        remaining_to_send -= bytes_read;
+    }
+    fclose(p_file);
     INFO_VERBOSE_LOG("File sent.");
 
-    fclose(p_file);
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
-
     return 0;
 }
 
@@ -155,9 +137,7 @@ int download_file(ClientInfo_t *p_client_t)
  *
  * @return
  */
-
-int upload_file(ClientInfo_t *p_client_t) // this is the receiving perspective
-{
+int upload_file(ClientInfo_t *p_client_t) {
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
     // Receive the FILENAME
@@ -169,6 +149,12 @@ int upload_file(ClientInfo_t *p_client_t) // this is the receiving perspective
     if (filename == NULL) {
         ERROR_VERBOSE_LOG("Memory allocation error\n");
         return -1;
+    }
+
+    // Remove newline character from filename
+    size_t len = strlen(filename);
+    if (len > 0 && filename[len - 1] == '\n') {
+        filename[len - 1] = '\0';
     }
 
     // Receive the FILESIZE
@@ -199,8 +185,7 @@ int upload_file(ClientInfo_t *p_client_t) // this is the receiving perspective
     }
 
     int remaining_to_recv = filesize;
-    while (remaining_to_recv > 0)
-    {
+    while (remaining_to_recv > 0) {
         size_t amount_to_recv = remaining_to_recv > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_recv;
         ssize_t bytes_received = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0);
         if (bytes_received < 0) {
