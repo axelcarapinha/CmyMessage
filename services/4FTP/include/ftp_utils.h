@@ -15,10 +15,9 @@
 
 // Configurations
 #define SERVICE_NAME "FTP"
-
 #define FTP_ADDR_IPV4 "127.0.0.1" 
 #define FTP_ADDR_IPV6 "::1"
-
+//
 #define DATA_PORT 8020
 #define CONTROL_PORT 8021
 //
@@ -41,6 +40,13 @@
 //
 #define CMD_EXIT_FULL "--exit"
 
+/**
+ * @brief Calculates the size of the file in bytes
+ * @param file_complete_path (path to the file, considering the one
+ * to the assets folder)
+ * @return off_t (filesize, in bytes)
+ */
+off_t get_file_size(const char *filename);
 
 /**
  * @brief 
@@ -48,7 +54,6 @@
  * @return 
  */
 int receive_content();
-
 
 /**
  * @brief 
@@ -62,19 +67,5 @@ int send_content();
  * @return
  */
 int compact_file(); //TODO
-
-/**
- * @brief Lists the files of the 'assets' folder
- * @return int (exit status)
- */
-int list_available_files();
-
-/**
- * @brief Calculates the size of the file in bytes
- * @param file_complete_path (path to the file, considering the one
- * to the assets folder)
- * @return off_t (filesize, in bytes)
- */
-off_t get_file_size(const char *filename);
 
 #endif

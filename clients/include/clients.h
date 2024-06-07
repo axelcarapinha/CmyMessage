@@ -52,13 +52,18 @@
 // Function Macros and others
 #define ERROR_VERBOSE_LOG(string) \
     if (VERBOSE) { \
-        perror(string); \
+        perror(RED string RESET); \
     } \
 //
 #define INFO_VERBOSE_LOG(string) \
     if (VERBOSE) { \
-        printf(string); \
-    } \
+        printf(YELLOW "[INFO] %s" RESET, string); \
+    }
+//
+#define DEBUG_VERBOSE_LOG(string) \
+    if (VERBOSE) { \
+        printf(MAGENTA "[DEBUG] %s" RESET, string); \
+    }
 
 // Forward-declared to avoid circular dependencies
 typedef struct ClientInfo_t ClientInfo_t;

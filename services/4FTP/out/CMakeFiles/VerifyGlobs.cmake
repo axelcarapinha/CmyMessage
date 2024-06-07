@@ -6,6 +6,7 @@ cmake_policy(SET CMP0009 NEW)
 file(GLOB_RECURSE NEW_GLOB LIST_DIRECTORIES false "/home/heyuser/Desktop/CmyMessage/services/4FTP/src/*.c")
 set(OLD_GLOB
   "/home/heyuser/Desktop/CmyMessage/services/4FTP/src/ftp_service.c"
+  "/home/heyuser/Desktop/CmyMessage/services/4FTP/src/ftp_utils.c"
   "/home/heyuser/Desktop/CmyMessage/services/4FTP/src/main.c"
   "/home/heyuser/Desktop/CmyMessage/services/4FTP/src/utils/hash_table.c"
   "/home/heyuser/Desktop/CmyMessage/services/4FTP/src/utils/net_utils_tcp.c"

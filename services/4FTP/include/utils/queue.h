@@ -12,9 +12,28 @@ struct node
 };
 typedef struct node node_t;
 
-// Functions
+/**
+ * @brief 
+ * 
+ * @return ClientInfo_t* 
+ */
 ClientInfo_t* dequeue();
+
+/**
+ * @brief Adds an element to the queue,
+ * if it has space for it
+ * 
+ * @param p_client_t 
+ * @return int 
+ */
 int enqueue(ClientInfo_t *client_struct_ptr);
+
+/**
+ * @brief Checks if the queue is empty or not
+ * 
+ * @return true 
+ * @return false 
+ */
 bool isEmptyQueue();
 
 

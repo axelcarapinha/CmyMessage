@@ -2,9 +2,7 @@
 
 int main(int argc, char *argv[])
 {
-    if (VERBOSE) {
-        printf(YELLOW "Powering up the service %s!\n" RESET, SERVICE_NAME);
-    }
+    INFO_VERBOSE_LOG("Powering up the FTP service!");
 
     // Starts the function sent by argument in the SERVICE_PORT
     int exit_status;

@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/ftp_service.dir/src/ftp_service.c.o"
   "CMakeFiles/ftp_service.dir/src/ftp_service.c.o.d"
+  "CMakeFiles/ftp_service.dir/src/ftp_utils.c.o"
+  "CMakeFiles/ftp_service.dir/src/ftp_utils.c.o.d"
   "CMakeFiles/ftp_service.dir/src/main.c.o"
   "CMakeFiles/ftp_service.dir/src/main.c.o.d"
   "CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o"

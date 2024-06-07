@@ -33,7 +33,6 @@ int list_files_curr_dir(ClientInfo_t *p_client_t)
     return 0;
 }
 
-
 int download_file(ClientInfo_t *p_client_t)
 { 
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
@@ -194,38 +193,6 @@ int inform_client(ClientInfo_t *p_client_t)
     return 0;
 }
 
-off_t get_file_size(const char *file_complete_path) // Support all systems (NOT only POSIX respecting ones)
-{
-    struct stat file_stat; // file's status
-    off_t size;
-
-    if (access(file_complete_path, F_OK) != 0) {
-        printf("File %s does NOT exist.\n", file_complete_path);
-        return -1;
-    }
-    else if (strlen(file_complete_path) > (MAX_LEN_FILE_PATH - strlen(PATH_ASSETS_FOLDER) - 1)) {
-        printf("File path is too long\n");
-        return -2;
-    }
-    else if (stat(file_complete_path, &file_stat) == -1)
-    {
-        printf("Invalid path for the file\n");
-        return -3; 
-    }
-
-    FILE *p_file = fopen(file_complete_path, "rb"); //TODO name the file pointers this way everywhere
-    if (p_file == NULL) {
-        ERROR_VERBOSE_LOG("Error opening the file");
-        return -1;
-    }
-    fseek(p_file, 0, SEEK_END); 
-    size = ftell(p_file); 
-    fclose(p_file); //TODO make sure the file pointer is closed on more code (valgrind, ...)
-    
-    return size;
-}
-
-
 int input_client_commands(ClientInfo_t *p_client_t)
 {
     if (p_client_t == NULL)
@@ -282,7 +249,7 @@ int input_client_commands(ClientInfo_t *p_client_t)
         else if (strcmp(p_client_t->buffer, CMD_EXIT_FULL) == 0)
         {
             feedback_msg = "'--exit' option selected. Have a nice day!\n";
-            clients_wants_exit = true; // end the cycle, and finisht the service
+            clients_wants_exit = true; // end the cycle, and finish the service
         }
         else if (strcmp(p_client_t->buffer, CMD_LIST_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_LIST_FULL) == 0)
         {
@@ -394,6 +361,10 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
 
 int serve_client_with_FTP(ClientInfo_t *p_client_t)
 {
+    // Allows the server to continue, 
+    // even when client disconnects abruptely
+    signal(SIGPIPE, SIG_IGN); 
+
     if (prepare_client_structs_for_data(p_client_t) == NULL)
     {
         ERROR_VERBOSE_LOG("Error preparing client struct for data");

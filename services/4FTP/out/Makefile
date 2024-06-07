@@ -154,6 +154,30 @@ src/ftp_service.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftp_service.dir/build.make CMakeFiles/ftp_service.dir/src/ftp_service.c.s
 .PHONY : src/ftp_service.c.s
 
+src/ftp_utils.o: src/ftp_utils.c.o
+.PHONY : src/ftp_utils.o
+
+# target to build an object file
+src/ftp_utils.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftp_service.dir/build.make CMakeFiles/ftp_service.dir/src/ftp_utils.c.o
+.PHONY : src/ftp_utils.c.o
+
+src/ftp_utils.i: src/ftp_utils.c.i
+.PHONY : src/ftp_utils.i
+
+# target to preprocess a source file
+src/ftp_utils.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftp_service.dir/build.make CMakeFiles/ftp_service.dir/src/ftp_utils.c.i
+.PHONY : src/ftp_utils.c.i
+
+src/ftp_utils.s: src/ftp_utils.c.s
+.PHONY : src/ftp_utils.s
+
+# target to generate assembly for a file
+src/ftp_utils.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/ftp_service.dir/build.make CMakeFiles/ftp_service.dir/src/ftp_utils.c.s
+.PHONY : src/ftp_utils.c.s
+
 src/main.o: src/main.c.o
 .PHONY : src/main.o
 
@@ -286,6 +310,9 @@ help:
 	@echo "... src/ftp_service.o"
 	@echo "... src/ftp_service.i"
 	@echo "... src/ftp_service.s"
+	@echo "... src/ftp_utils.o"
+	@echo "... src/ftp_utils.i"
+	@echo "... src/ftp_utils.s"
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
