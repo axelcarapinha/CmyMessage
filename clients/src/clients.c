@@ -1,8 +1,5 @@
 #include "net_utils_tcp.h"
 
-//! The purpose of this file is generalize some functions of the client side part of services
-
-//----------------------------------------------------------------------------------------------------------
 int fill_buffer_with_response(ClientInfo_t *p_client_t) {
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
     ssize_t bytes_received;
@@ -14,28 +11,20 @@ int fill_buffer_with_response(ClientInfo_t *p_client_t) {
     else if (bytes_received == 0)
     {
         printf("Client terminated the connection.\n");
-        return -2; //TODO generalize this value in another define value
+        return -2; 
     }
 
     p_client_t->buffer[bytes_received] = '\0'; //TODO: check if the change in -1 does not make it work worst
 
-    return bytes_received; //TODO cuidado com isto, caso deia error
+    return bytes_received; //TODO cuidado com isto, caso deia erro
 }
 
+int is_ipv4(char *address) {
+    struct in_addr ipv4_addr;
+    int result = inet_pton(AF_INET, address, &ipv4_addr); // tries the conversion
+    return result == 1; // 1 if it's IPv4
+}
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief Allocate SOCKET structure
- *
- * This function allocates memory for a UniSocket_t structure along with its associated address
- * structure and length variable. Additionally, it allocates memory for a service function pointer.
- *
- * If memory allocation fails at any point during the process, it frees the previously allocated
- * memory and prints an error message using perror(), indicating the specific allocation failure.
- *
- * @return A pointer to the allocated UniSocket_t structure on success with allocation, otherwise NULL
- */
-//TODO consider using this in a library
 void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
 {
     if (p_client_t == NULL)
@@ -72,20 +61,11 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
     // p_client_t->addr_info = ip_buffer;
 }
 
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief 
- * 
- * @return int 
- */
 int use_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_func) {
-
-    //TODO determine the type of socket to create from the address
     
     // In this case (the client) the port will be the port 
     // that the client wants to connect to
-    UniSocket_t *p_socket_t = create_socket_struct(false, server_port, false, server_ip); //TODO: change for IPv6
+    UniSocket_t *p_socket_t = create_socket_struct(false, server_port, is_ipv4(server_ip), server_ip);
     if (p_socket_t == NULL) {
         perror("Error creating socket for the client for the desired service");
         return -1;

@@ -4,11 +4,17 @@
 // Settings
 #define VERBOSE true
 //
-#define SIZE_THREAD_POOL 3
-#define BUFFER_SIZE 1500 // widely used in LANs (size of ethernet packets)
+#define SIZE_THREAD_POOL 2
+#define BUFFER_SIZE 1500            // widely used in LANs (size of ethernet packets)
 #define MAX_NUM_CLIENTS 2
-#define MAX_USERNAME_LENGTH 20 // 20 chars, 20 bytes
+#define MAX_USERNAME_LENGTH 20      // 20 chars, 20 bytes
 #define USERNAMES_HASH_SEED 23
+#define MAX_ADDRESS_LENGTH (32 + 7) // considering IPv6 addresses, the longest
+//
+#define FTP_COMMANDS_PORT 8021
+#define FTP_DATA_PORT 8020
+#define FTP_ADDR_IPV4 "127.0.0.1" 
+#define FTP_ADDR_IPV6 "::1" 
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,6 +23,7 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <asm-generic/socket.h>
 #include <unistd.h>
 #include <time.h>
 #include <errno.h>
@@ -24,6 +31,7 @@
 #include <ctype.h>
 #include <arpa/inet.h>
 #include <signal.h>
+#include <regex.h>
 
 // Colors for stdout text
 #define RESET "\x1B[0m"
@@ -38,13 +46,18 @@
 // Function Macros and others
 #define ERROR_VERBOSE_LOG(string) \
     if (VERBOSE) { \
-        perror(string); \
+        perror(RED string RESET); \
     } \
 //
 #define INFO_VERBOSE_LOG(string) \
     if (VERBOSE) { \
-        printf(string); \
-    } \
+        printf(YELLOW "[INFO] %s" RESET, string); \
+    }
+//
+#define DEBUG_VERBOSE_LOG(string) \
+    if (VERBOSE) { \
+        printf(MAGENTA "[DEBUG] %s" RESET, string); \
+    }
 
 // Forward-declared to avoid circular dependencies
 typedef struct ClientInfo_t ClientInfo_t;

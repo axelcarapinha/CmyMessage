@@ -7,6 +7,12 @@
 },
 {
   "directory": "/home/heyuser/Desktop/CmyMessage/services/4FTP/out",
+  "command": "/usr/bin/cc  -I/home/heyuser/Desktop/CmyMessage/services/4FTP/include -I/home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils -g -g -o CMakeFiles/ftp_service.dir/src/ftp_utils.c.o -c /home/heyuser/Desktop/CmyMessage/services/4FTP/src/ftp_utils.c",
+  "file": "/home/heyuser/Desktop/CmyMessage/services/4FTP/src/ftp_utils.c",
+  "output": "CMakeFiles/ftp_service.dir/src/ftp_utils.c.o"
+},
+{
+  "directory": "/home/heyuser/Desktop/CmyMessage/services/4FTP/out",
   "command": "/usr/bin/cc  -I/home/heyuser/Desktop/CmyMessage/services/4FTP/include -I/home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils -g -g -o CMakeFiles/ftp_service.dir/src/main.c.o -c /home/heyuser/Desktop/CmyMessage/services/4FTP/src/main.c",
   "file": "/home/heyuser/Desktop/CmyMessage/services/4FTP/src/main.c",
   "output": "CMakeFiles/ftp_service.dir/src/main.c.o"

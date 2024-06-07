@@ -83,10 +83,24 @@ CMakeFiles/ftp_service.dir/src/ftp_service.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/ftp_service.dir/src/ftp_service.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/heyuser/Desktop/CmyMessage/services/4FTP/src/ftp_service.c -o CMakeFiles/ftp_service.dir/src/ftp_service.c.s
 
+CMakeFiles/ftp_service.dir/src/ftp_utils.c.o: CMakeFiles/ftp_service.dir/flags.make
+CMakeFiles/ftp_service.dir/src/ftp_utils.c.o: /home/heyuser/Desktop/CmyMessage/services/4FTP/src/ftp_utils.c
+CMakeFiles/ftp_service.dir/src/ftp_utils.c.o: CMakeFiles/ftp_service.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/ftp_service.dir/src/ftp_utils.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/ftp_service.dir/src/ftp_utils.c.o -MF CMakeFiles/ftp_service.dir/src/ftp_utils.c.o.d -o CMakeFiles/ftp_service.dir/src/ftp_utils.c.o -c /home/heyuser/Desktop/CmyMessage/services/4FTP/src/ftp_utils.c
+
+CMakeFiles/ftp_service.dir/src/ftp_utils.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/ftp_service.dir/src/ftp_utils.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/heyuser/Desktop/CmyMessage/services/4FTP/src/ftp_utils.c > CMakeFiles/ftp_service.dir/src/ftp_utils.c.i
+
+CMakeFiles/ftp_service.dir/src/ftp_utils.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/ftp_service.dir/src/ftp_utils.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/heyuser/Desktop/CmyMessage/services/4FTP/src/ftp_utils.c -o CMakeFiles/ftp_service.dir/src/ftp_utils.c.s
+
 CMakeFiles/ftp_service.dir/src/main.c.o: CMakeFiles/ftp_service.dir/flags.make
 CMakeFiles/ftp_service.dir/src/main.c.o: /home/heyuser/Desktop/CmyMessage/services/4FTP/src/main.c
 CMakeFiles/ftp_service.dir/src/main.c.o: CMakeFiles/ftp_service.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building C object CMakeFiles/ftp_service.dir/src/main.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/ftp_service.dir/src/main.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/ftp_service.dir/src/main.c.o -MF CMakeFiles/ftp_service.dir/src/main.c.o.d -o CMakeFiles/ftp_service.dir/src/main.c.o -c /home/heyuser/Desktop/CmyMessage/services/4FTP/src/main.c
 
 CMakeFiles/ftp_service.dir/src/main.c.i: cmake_force
@@ -100,7 +114,7 @@ CMakeFiles/ftp_service.dir/src/main.c.s: cmake_force
 CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o: CMakeFiles/ftp_service.dir/flags.make
 CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o: /home/heyuser/Desktop/CmyMessage/services/4FTP/src/utils/hash_table.c
 CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o: CMakeFiles/ftp_service.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building C object CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o -MF CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o.d -o CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o -c /home/heyuser/Desktop/CmyMessage/services/4FTP/src/utils/hash_table.c
 
 CMakeFiles/ftp_service.dir/src/utils/hash_table.c.i: cmake_force
@@ -114,7 +128,7 @@ CMakeFiles/ftp_service.dir/src/utils/hash_table.c.s: cmake_force
 CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.o: CMakeFiles/ftp_service.dir/flags.make
 CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.o: /home/heyuser/Desktop/CmyMessage/services/4FTP/src/utils/net_utils_tcp.c
 CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.o: CMakeFiles/ftp_service.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building C object CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.o -MF CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.o.d -o CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.o -c /home/heyuser/Desktop/CmyMessage/services/4FTP/src/utils/net_utils_tcp.c
 
 CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.i: cmake_force
@@ -128,7 +142,7 @@ CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.s: cmake_force
 CMakeFiles/ftp_service.dir/src/utils/queue.c.o: CMakeFiles/ftp_service.dir/flags.make
 CMakeFiles/ftp_service.dir/src/utils/queue.c.o: /home/heyuser/Desktop/CmyMessage/services/4FTP/src/utils/queue.c
 CMakeFiles/ftp_service.dir/src/utils/queue.c.o: CMakeFiles/ftp_service.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building C object CMakeFiles/ftp_service.dir/src/utils/queue.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/ftp_service.dir/src/utils/queue.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/ftp_service.dir/src/utils/queue.c.o -MF CMakeFiles/ftp_service.dir/src/utils/queue.c.o.d -o CMakeFiles/ftp_service.dir/src/utils/queue.c.o -c /home/heyuser/Desktop/CmyMessage/services/4FTP/src/utils/queue.c
 
 CMakeFiles/ftp_service.dir/src/utils/queue.c.i: cmake_force
@@ -142,7 +156,7 @@ CMakeFiles/ftp_service.dir/src/utils/queue.c.s: cmake_force
 CMakeFiles/ftp_service.dir/src/utils/service_utils.c.o: CMakeFiles/ftp_service.dir/flags.make
 CMakeFiles/ftp_service.dir/src/utils/service_utils.c.o: /home/heyuser/Desktop/CmyMessage/services/4FTP/src/utils/service_utils.c
 CMakeFiles/ftp_service.dir/src/utils/service_utils.c.o: CMakeFiles/ftp_service.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building C object CMakeFiles/ftp_service.dir/src/utils/service_utils.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building C object CMakeFiles/ftp_service.dir/src/utils/service_utils.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/ftp_service.dir/src/utils/service_utils.c.o -MF CMakeFiles/ftp_service.dir/src/utils/service_utils.c.o.d -o CMakeFiles/ftp_service.dir/src/utils/service_utils.c.o -c /home/heyuser/Desktop/CmyMessage/services/4FTP/src/utils/service_utils.c
 
 CMakeFiles/ftp_service.dir/src/utils/service_utils.c.i: cmake_force
@@ -156,6 +170,7 @@ CMakeFiles/ftp_service.dir/src/utils/service_utils.c.s: cmake_force
 # Object files for target ftp_service
 ftp_service_OBJECTS = \
 "CMakeFiles/ftp_service.dir/src/ftp_service.c.o" \
+"CMakeFiles/ftp_service.dir/src/ftp_utils.c.o" \
 "CMakeFiles/ftp_service.dir/src/main.c.o" \
 "CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o" \
 "CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.o" \
@@ -166,6 +181,7 @@ ftp_service_OBJECTS = \
 ftp_service_EXTERNAL_OBJECTS =
 
 ftp_service/ftp_service: CMakeFiles/ftp_service.dir/src/ftp_service.c.o
+ftp_service/ftp_service: CMakeFiles/ftp_service.dir/src/ftp_utils.c.o
 ftp_service/ftp_service: CMakeFiles/ftp_service.dir/src/main.c.o
 ftp_service/ftp_service: CMakeFiles/ftp_service.dir/src/utils/hash_table.c.o
 ftp_service/ftp_service: CMakeFiles/ftp_service.dir/src/utils/net_utils_tcp.c.o
@@ -173,7 +189,7 @@ ftp_service/ftp_service: CMakeFiles/ftp_service.dir/src/utils/queue.c.o
 ftp_service/ftp_service: CMakeFiles/ftp_service.dir/src/utils/service_utils.c.o
 ftp_service/ftp_service: CMakeFiles/ftp_service.dir/build.make
 ftp_service/ftp_service: CMakeFiles/ftp_service.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking C executable ftp_service/ftp_service"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Linking C executable ftp_service/ftp_service"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/ftp_service.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

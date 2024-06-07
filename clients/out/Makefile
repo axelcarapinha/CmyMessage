@@ -202,6 +202,30 @@ src/utils/ftp_client.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/clients.dir/build.make CMakeFiles/clients.dir/src/utils/ftp_client.c.s
 .PHONY : src/utils/ftp_client.c.s
 
+src/utils/ftp_utils.o: src/utils/ftp_utils.c.o
+.PHONY : src/utils/ftp_utils.o
+
+# target to build an object file
+src/utils/ftp_utils.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/clients.dir/build.make CMakeFiles/clients.dir/src/utils/ftp_utils.c.o
+.PHONY : src/utils/ftp_utils.c.o
+
+src/utils/ftp_utils.i: src/utils/ftp_utils.c.i
+.PHONY : src/utils/ftp_utils.i
+
+# target to preprocess a source file
+src/utils/ftp_utils.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/clients.dir/build.make CMakeFiles/clients.dir/src/utils/ftp_utils.c.i
+.PHONY : src/utils/ftp_utils.c.i
+
+src/utils/ftp_utils.s: src/utils/ftp_utils.c.s
+.PHONY : src/utils/ftp_utils.s
+
+# target to generate assembly for a file
+src/utils/ftp_utils.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/clients.dir/build.make CMakeFiles/clients.dir/src/utils/ftp_utils.c.s
+.PHONY : src/utils/ftp_utils.c.s
+
 src/utils/net_utils_tcp.o: src/utils/net_utils_tcp.c.o
 .PHONY : src/utils/net_utils_tcp.o
 
@@ -244,6 +268,9 @@ help:
 	@echo "... src/utils/ftp_client.o"
 	@echo "... src/utils/ftp_client.i"
 	@echo "... src/utils/ftp_client.s"
+	@echo "... src/utils/ftp_utils.o"
+	@echo "... src/utils/ftp_utils.i"
+	@echo "... src/utils/ftp_utils.s"
 	@echo "... src/utils/net_utils_tcp.o"
 	@echo "... src/utils/net_utils_tcp.i"
 	@echo "... src/utils/net_utils_tcp.s"

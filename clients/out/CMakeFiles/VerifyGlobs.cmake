@@ -8,6 +8,7 @@ set(OLD_GLOB
   "/home/heyuser/Desktop/CmyMessage/clients/src/clients.c"
   "/home/heyuser/Desktop/CmyMessage/clients/src/main.c"
   "/home/heyuser/Desktop/CmyMessage/clients/src/utils/ftp_client.c"
+  "/home/heyuser/Desktop/CmyMessage/clients/src/utils/ftp_utils.c"
   "/home/heyuser/Desktop/CmyMessage/clients/src/utils/net_utils_tcp.c"
   )
 if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")

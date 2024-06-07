@@ -1,35 +1,11 @@
 #include "service_utils.h"
-#include <sys/select.h>
 
-// Global variable to support concurrency in the access
-// of the server structure
+// Global variable to support concurrency in the access of the server structure
 static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief 
- * 
- * @return char* 
- */
-int send_text_to_client_with_buffer(ClientInfo_t *p_client_t) {
-    ssize_t bytes_received;
-
-    if (send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0) < 0) {
-        perror("Error sending the content to the client");
-        return -1;
-    }
-
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    return 0;
-}
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief 
- * 
- * @return char* 
- */
-int fill_cli_buffer_with_response(ClientInfo_t *p_client_t) {
+//! Equal to the implementation in client.c
+//! but not enough similarities for now to make a separate file
+int fill_buffer_with_response(ClientInfo_t *p_client_t) {
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
     ssize_t bytes_received;
     if ((bytes_received = recv(p_client_t->sock_FD, p_client_t->buffer, BUFFER_SIZE, 0)) < 0)
@@ -40,29 +16,22 @@ int fill_cli_buffer_with_response(ClientInfo_t *p_client_t) {
     else if (bytes_received == 0)
     {
         printf("Client terminated the connection.\n");
-        return -2; //TODO generalize this value in another define value
+        return -2; 
     }
 
-    p_client_t->buffer[bytes_received] = '\0'; //TODO: check if the change in -1 does not make it work worst
+    p_client_t->buffer[bytes_received] = '\0'; 
 
-    return bytes_received; //TODO cuidado com isto, caso deia error
+    return bytes_received; 
 }
 
+//! Equal to the implementation in client.c
+//! but not enough similarities for now to make a separate file
+int is_ipv4(char *address) {
+    struct in_addr ipv4_addr;
+    int result = inet_pton(AF_INET, address, &ipv4_addr); // tries the conversion
+    return result == 1; // 1 if it's IPv4
+}
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief Closes the service
- *
- * This function closes the service by signaling all threads to finish
- * and then closing the server socket.
- * In more detail: it sets the quit signal to indicate
- * that the server is closing, releases resources associated with the server socket,
- * and prints a message indicating that the service has been closed.
- *
- * @param p_server_t Pointer to the UniSocket_t structure representing the server
- *
- * @return None
- */
 void close_service(UniSocket_t *p_server_t)
 {
     // Signal all the threads to finish
@@ -78,23 +47,7 @@ void close_service(UniSocket_t *p_server_t)
     close_server_socket(p_server_t);
     INFO_VERBOSE_LOG("Service closed.\n");
 }
-// TODO consider using a cleanup handler for the threads
-// TODO to dispose already connected clients
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief Joins a thread and handles errors
- *
- * This function joins the specified thread and handles any errors that may occur during joining.
- * It checks if the thread join was successful and whether memory allocation for the thread return value failed.
- * If the thread join fails, it prints an error message and returns the join status.
- * If memory allocation for the thread RETURN value fails, it prints an error message and returns -1.
- * Otherwise, it returns the return value of the joined thread.
- *
- * @param p_thread_ID Pointer to the ID of the thread to join
- *
- * @return 0 on success, or a negative value indicating an error
- */
 int join_thread_and_handle_errors(pthread_t *p_thread_ID)
 {
     void *p_thread_return_val;
@@ -120,23 +73,6 @@ int join_thread_and_handle_errors(pthread_t *p_thread_ID)
         return thread_return_val;
     }
 }
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief Searches for thread work
- *
- * This function searches for work to be done by the thread.
- * At first, it retrieves necessary values from the server structure shared by threads,
- * such as mutexes, condition variables, and quit signals.
- * After that, it continuously checks for pending client requests in the queue,
- * dequeues clients for processing, and forwards them to the desired service function.
- * It also checks for signals to close the service, and if requested, terminates its execution
- * freeing allocated resources first.
- *
- * @param p_server_t_arg Pointer to the UniSocket_t structure representing the server
- *
- * @return None
- */
 
 // TODO consider allocating memory for the expected number of clients, and reusing
 // TODO instead of allocating every time
@@ -208,22 +144,6 @@ void *search_for_thread_work(void *p_server_t_arg)
     } while (!quit_signal_val);
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief Gracefully detaches clients from the connection
- *
- * This function gracefully detaches PENDING clients from the connection by sending them
- * a service quit message and freeing their memory. It locks the queue mutex to
- * safely access and manipulate the client queue. It iterates through the queue,
- * dequeues each client, sends them the quit message, and frees their memory.
- * If any error occurs during dequeuing, it prints an error message.
- *
- * @param p_client_t Pointer to the ClientInfo_t structure representing the client
- * @param p_queue_mutex Pointer to the mutex for the client queue
- *
- * @return None
- */
-
 void gracefully_reject_pending_clients(ClientInfo_t *p_client_t, pthread_mutex_t *p_queue_mutex)
 {
     pthread_mutex_lock(p_queue_mutex);
@@ -246,22 +166,6 @@ void gracefully_reject_pending_clients(ClientInfo_t *p_client_t, pthread_mutex_t
     pthread_mutex_unlock(p_queue_mutex);
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief Accepts incoming connections
- *
- * This function accepts incoming connections on the server socket.
- * It retrieves necessary values from the server structure shared by threads,
- * such as mutexes, condition variables, the server socket descriptor, and the service function pointer.
- * It continuously accepts connections, assigns the service function to the client,
- * enqueues the client for processing, and checks for signals to close the service.
- * If the service is requested to close, it empties the queue of PENDING connection requests
- * using the gracefully_reject_pending_clients function.
- *
- * @param p_server_t_arg Pointer to the UniSocket_t structure representing the server
- *
- * @return None
- */
 void *accept_incoming_connections(void *p_server_t_arg)
 {
     UniSocket_t *p_server_t = (UniSocket_t *)p_server_t_arg;
@@ -306,22 +210,8 @@ void *accept_incoming_connections(void *p_server_t_arg)
     gracefully_reject_pending_clients(p_client_t, p_queue_mutex);
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief Initializes server concurrency and thread pool
- *
- * This function initializes concurrency mechanisms and a thread pool for the server.
- * It sets up a thread pool array, condition variables, mutexes, and a volatile quit signal
- * for handling graceful thread termination. Additionally, it creates threads for the thread pool
- * and assigns work using the search_for_thread_work function.
- *
- * @param p_server_t Pointer to the UniSocket_t structure representing the server
- *
- * @return None
- */
 void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
 {
-
     // Thread pool
     pthread_t *p_thread_pool = malloc(SIZE_THREAD_POOL * sizeof(pthread_t));
     if (p_thread_pool == NULL)
@@ -443,15 +333,6 @@ void initialize_server_concurrency_and_thread_pool(UniSocket_t *p_server_t)
     }
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
- *
- *
- * @param
- *
- * @return
- */
 hash_table *get_usernames_hash_table_ptr()
 {
     hash_table *p_usernames_ht;
@@ -470,15 +351,6 @@ hash_table *get_usernames_hash_table_ptr()
     return p_usernames_ht;
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
- *
- *
- * @param
- *
- * @return
- */
 fd_set *get_set_of_clients_descriptors()
 {
     fd_set *p_online_clients_set = malloc(sizeof(fd_set));
@@ -492,15 +364,6 @@ fd_set *get_set_of_clients_descriptors()
     return p_online_clients_set;
 }
 
-//----------------------------------------------------------------------------------------------------------
-
-/**
- * @brief
- *
- * @param
- *
- * @return
- */
 int listen_for_connections_on_separate_thread(UniSocket_t *p_server_t)
 {
     pthread_t listening_thread;
@@ -521,17 +384,6 @@ int listen_for_connections_on_separate_thread(UniSocket_t *p_server_t)
     return 0;
 }
 
-//----------------------------------------------------------------------------------------------------------
-
-/**
- * @brief
-
- *
- * @param
- * @param
- *
- * @return
- */
 int start_accepting_incoming_connections(UniSocket_t *p_server_t)
 {
     // For the client's structs, to allow data sharing between threads
@@ -552,7 +404,7 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
     }
     p_server_t->p_online_clients_set = p_online_clients_set;
     //
-    int *p_max_socket_so_far = (int *)malloc(sizeof(int)); // TODO use to improve perfomance
+    int *p_max_socket_so_far = (int *)malloc(sizeof(int)); // TODO use to improve perfomance when selecting active file descriptors
     p_server_t->p_max_socket_so_far = p_max_socket_so_far;
 
     // Prepare the buffer for the common messages 
@@ -569,33 +421,19 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
         ERROR_VERBOSE_LOG("Error creating or executing the listening thread");
         return listen_exit_status;
     }
+
+    return 0;
 }
 
-//----------------------------------------------------------------------------------------------------------
-
-/**
- * @brief Starts the service
- *
- * This function starts the service on the specified port by creating a server socket,
- * assigning the service function, and initiating the process of accepting incoming connections.
- * It handles any errors that may occur during the creation of the socket or the start of accepting connections.
- * After the service has been started, it calls close_service to clean up resources when the service ends
- * or is requested to end.
- *
- * @param port The port number for the service
- * @param p_service_func_arg Pointer to the function that implements the service functionality
- *
- * @return 0 on success, or a negative value indicating an error
- */
-int start_service(int port, ServiceFunctionPtr p_service_func_arg)
+int start_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_func_arg)
 {
     // Create the server socket
-    UniSocket_t *p_server_t;
-    if (((p_server_t = create_socket_struct(true, port, false)) == NULL)) // last false = DUAL stack socket
-    {
-        ERROR_VERBOSE_LOG("Error getting the socket struct pointer");
+    UniSocket_t *p_server_t = create_socket_struct(true, server_port, is_ipv4(server_ip), server_ip);
+    if (p_server_t == NULL) {
+        perror("Error creating socket for the client for the desired service");
         return -1;
     }
+    INFO_VERBOSE_LOG("Client socket created successfully\n");
 
     // Assign the service function
     p_server_t->p_service_func = p_service_func_arg;

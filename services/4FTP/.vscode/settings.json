@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "hash_table.h": "c",
+        "queue.h": "c",
+        "net_utils_tcp.h": "c"
+    }
+}
