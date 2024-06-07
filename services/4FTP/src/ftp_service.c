@@ -98,6 +98,7 @@ int download_file(ClientInfo_t *p_client_t)
     if (filesize < 0) {
         printf("Error calculating the file's size.\n");
         printf("Please, try again.\n");
+        //TODO send this message to the client
         return 0;
     }
     //

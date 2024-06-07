@@ -26,8 +26,9 @@ int keep_connection_with_server_cli(ClientInfo_t *p_client_t)
             return -1;
         }
 
-        if (FD_ISSET(0, &curr_set))
+        if (FD_ISSET(0, &curr_set)) // the client sent something
         {
+            
             if (fgets(p_client_t->buffer, BUFFER_SIZE, stdin) == NULL)
             {
                 ERROR_VERBOSE_LOG("Error reading input from the client (stdin)");
@@ -40,7 +41,7 @@ int keep_connection_with_server_cli(ClientInfo_t *p_client_t)
                 p_client_t->buffer[len_str - 1] = '\0';
             }
 
-            // Interpretate commands to anticipate needs from the client side
+            // Interpret commands to anticipate needs from the client side
             if (strcmp(p_client_t->buffer, CMD_UPLOAD_SHORT) == 0 || strcmp(p_client_t->buffer, CMD_UPLOAD_FULL) == 0)
             { 
                 upload_file(p_client_t);

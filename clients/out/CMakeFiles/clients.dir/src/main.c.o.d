@@ -1,7 +1,7 @@
 CMakeFiles/clients.dir/src/main.c.o: \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/src/main.c \
+ /home/heyuser/Desktop/CmyMessage/clients/src/main.c \
  /usr/include/stdc-predef.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/include/clients.h \
+ /home/heyuser/Desktop/CmyMessage/clients/include/clients.h \
  /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -115,7 +115,7 @@ CMakeFiles/clients.dir/src/main.c.o: \
  /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
  /usr/include/x86_64-linux-gnu/bits/sigthread.h \
  /usr/include/x86_64-linux-gnu/bits/signal_ext.h /usr/include/regex.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/include/utils/ftp_client.h \
+ /home/heyuser/Desktop/CmyMessage/clients/include/utils/ftp_client.h \
  /usr/include/dirent.h /usr/include/x86_64-linux-gnu/bits/dirent.h \
  /usr/include/x86_64-linux-gnu/bits/posix1_lim.h \
  /usr/include/x86_64-linux-gnu/bits/local_lim.h \

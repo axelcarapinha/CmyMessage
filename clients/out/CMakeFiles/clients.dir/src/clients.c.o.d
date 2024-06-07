@@ -1,8 +1,8 @@
 CMakeFiles/clients.dir/src/clients.c.o: \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/src/clients.c \
+ /home/heyuser/Desktop/CmyMessage/clients/src/clients.c \
  /usr/include/stdc-predef.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/include/utils/net_utils_tcp.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/include/clients.h \
+ /home/heyuser/Desktop/CmyMessage/clients/include/utils/net_utils_tcp.h \
+ /home/heyuser/Desktop/CmyMessage/clients/include/clients.h \
  /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \

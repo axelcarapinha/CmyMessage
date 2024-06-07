@@ -4,7 +4,7 @@
 # compile C with /usr/bin/cc
 C_DEFINES = 
 
-C_INCLUDES = -I/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/include -I/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/include/utils
+C_INCLUDES = -I/home/heyuser/Desktop/CmyMessage/clients/include -I/home/heyuser/Desktop/CmyMessage/clients/include/utils
 
 C_FLAGS =  -pthread
 

@@ -1,7 +1,7 @@
 CMakeFiles/ftp_service.dir/src/ftp_service.c.o: \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/src/ftp_service.c \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/src/ftp_service.c \
  /usr/include/stdc-predef.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/ftp_service.h \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/ftp_service.h \
  /usr/include/pthread.h /usr/include/features.h \
  /usr/include/features-time64.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -66,9 +66,9 @@ CMakeFiles/ftp_service.dir/src/ftp_service.c.o: \
  /usr/include/x86_64-linux-gnu/sys/stat.h \
  /usr/include/x86_64-linux-gnu/bits/stat.h \
  /usr/include/x86_64-linux-gnu/bits/struct_stat.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils/service_utils.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils/net_utils_tcp.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils/clients.h \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/service_utils.h \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/net_utils_tcp.h \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/clients.h \
  /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/lib/gcc/x86_64-linux-gnu/13/include/stdarg.h \
@@ -127,9 +127,9 @@ CMakeFiles/ftp_service.dir/src/ftp_service.c.o: \
  /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
  /usr/include/x86_64-linux-gnu/bits/sigthread.h \
  /usr/include/x86_64-linux-gnu/bits/signal_ext.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils/hash_table.h \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/hash_table.h \
  /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h /usr/include/stdint.h \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils/queue.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils/clients.h
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/queue.h \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/clients.h

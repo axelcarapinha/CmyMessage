@@ -1,3 +1,3 @@
-/home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/out/CMakeFiles/ftp_service.dir
-/home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/out/CMakeFiles/edit_cache.dir
-/home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/out/CMakeFiles/rebuild_cache.dir
+/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles/ftp_service.dir
+/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles/edit_cache.dir
+/home/heyuser/Desktop/CmyMessage/services/4FTP/out/CMakeFiles/rebuild_cache.dir

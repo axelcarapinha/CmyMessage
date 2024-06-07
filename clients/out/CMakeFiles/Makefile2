@@ -54,10 +54,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients
+CMAKE_SOURCE_DIR = /home/heyuser/Desktop/CmyMessage/clients
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/out
+CMAKE_BINARY_DIR = /home/heyuser/Desktop/CmyMessage/clients/out
 
 #=============================================================================
 # Directory level rules for the build root directory
@@ -81,14 +81,14 @@ clean: CMakeFiles/clients.dir/clean
 CMakeFiles/clients.dir/all:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/clients.dir/build.make CMakeFiles/clients.dir/depend
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/clients.dir/build.make CMakeFiles/clients.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/out/CMakeFiles --progress-num=1,2,3,4,5 "Built target clients"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --progress-dir=/home/heyuser/Desktop/CmyMessage/clients/out/CMakeFiles --progress-num=1,2,3,4,5 "Built target clients"
 .PHONY : CMakeFiles/clients.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/clients.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/out/CMakeFiles 5
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/heyuser/Desktop/CmyMessage/clients/out/CMakeFiles 5
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 CMakeFiles/clients.dir/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/out/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/heyuser/Desktop/CmyMessage/clients/out/CMakeFiles 0
 .PHONY : CMakeFiles/clients.dir/rule
 
 # Convenience name for target.
@@ -107,7 +107,7 @@ CMakeFiles/clients.dir/clean:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	$(CMAKE_COMMAND) -P /home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/out/CMakeFiles/VerifyGlobs.cmake
+	$(CMAKE_COMMAND) -P /home/heyuser/Desktop/CmyMessage/clients/out/CMakeFiles/VerifyGlobs.cmake
 	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

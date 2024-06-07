@@ -1,9 +1,9 @@
 CMakeFiles/ftp_service.dir/src/utils/queue.c.o: \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/src/utils/queue.c \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/src/utils/queue.c \
  /usr/include/stdc-predef.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils/queue.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils/net_utils_tcp.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils/clients.h \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/queue.h \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/net_utils_tcp.h \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/clients.h \
  /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/features-time64.h \
@@ -117,8 +117,8 @@ CMakeFiles/ftp_service.dir/src/utils/queue.c.o: \
  /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
  /usr/include/x86_64-linux-gnu/bits/sigthread.h \
  /usr/include/x86_64-linux-gnu/bits/signal_ext.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils/hash_table.h \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/hash_table.h \
  /usr/lib/gcc/x86_64-linux-gnu/13/include/stdint.h /usr/include/stdint.h \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
- /home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils/queue.h
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/queue.h

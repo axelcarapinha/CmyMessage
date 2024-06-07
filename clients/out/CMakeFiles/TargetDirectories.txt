@@ -1,3 +1,3 @@
-/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/out/CMakeFiles/clients.dir
-/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/out/CMakeFiles/edit_cache.dir
-/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/out/CMakeFiles/rebuild_cache.dir
+/home/heyuser/Desktop/CmyMessage/clients/out/CMakeFiles/clients.dir
+/home/heyuser/Desktop/CmyMessage/clients/out/CMakeFiles/edit_cache.dir
+/home/heyuser/Desktop/CmyMessage/clients/out/CMakeFiles/rebuild_cache.dir

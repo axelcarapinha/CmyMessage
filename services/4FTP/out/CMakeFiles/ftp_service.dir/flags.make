@@ -4,7 +4,7 @@
 # compile C with /usr/bin/cc
 C_DEFINES = 
 
-C_INCLUDES = -I/home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include -I/home/heyuser/Desktop/TaskDemolisher/CmyMessage/services/4FTP/include/utils
+C_INCLUDES = -I/home/heyuser/Desktop/CmyMessage/services/4FTP/include -I/home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils
 
 C_FLAGS = -g -g
 

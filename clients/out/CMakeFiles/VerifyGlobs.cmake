@@ -3,14 +3,14 @@
 cmake_policy(SET CMP0009 NEW)
 
 # MY_SOURCES at CMakeLists.txt:8 (file)
-file(GLOB_RECURSE NEW_GLOB LIST_DIRECTORIES false "/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/src/*.c")
+file(GLOB_RECURSE NEW_GLOB LIST_DIRECTORIES false "/home/heyuser/Desktop/CmyMessage/clients/src/*.c")
 set(OLD_GLOB
-  "/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/src/clients.c"
-  "/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/src/main.c"
-  "/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/src/utils/ftp_client.c"
-  "/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/src/utils/net_utils_tcp.c"
+  "/home/heyuser/Desktop/CmyMessage/clients/src/clients.c"
+  "/home/heyuser/Desktop/CmyMessage/clients/src/main.c"
+  "/home/heyuser/Desktop/CmyMessage/clients/src/utils/ftp_client.c"
+  "/home/heyuser/Desktop/CmyMessage/clients/src/utils/net_utils_tcp.c"
   )
 if(NOT "${NEW_GLOB}" STREQUAL "${OLD_GLOB}")
   message("-- GLOB mismatch!")
-  file(TOUCH_NOCREATE "/home/heyuser/Desktop/TaskDemolisher/CmyMessage/clients/out/CMakeFiles/cmake.verify_globs")
+  file(TOUCH_NOCREATE "/home/heyuser/Desktop/CmyMessage/clients/out/CMakeFiles/cmake.verify_globs")
 endif()
