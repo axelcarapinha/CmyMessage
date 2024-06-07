@@ -1,4 +1,9 @@
-#ifndef FTP_SERVICE_H // passive mode (the client connects to the server for the file transference)
+/*
+ * Purpose: FTP abstractions for the SERVER side,
+ * for an FTP-like server, in passive mode
+ */
+
+#ifndef FTP_SERVICE_H 
 #define FTP_SERVICE_H
 
 #include <pthread.h>
@@ -9,57 +14,20 @@
 #include <sys/types.h>
 //
 #include "service_utils.h"
+#include "ftp_utils.h"
 #include "clients.h"
 
+// Settings
 #define VERBOSE true
 
-// Settings
-#define DATA_PORT 8020
-#define CONTROL_PORT 8021
-
-#define MAX_SIZE_USER_OPTION 1 // a single number (for the option)
-#define MAX_SIZE_ADDR_INFO 200
-#define MAX_LEN_FILE_PATH 1000 
-#define MAX_NUM_ALGS_FILESIZE 20
-//
-//TODO use the same in the client side too
-#define MAX_FILE_SIZE (1024 * 1024 * 1000) // 1'000 megabytes
-#define SERVICE_NAME "FTP"
-#define CLIENT_DISCONNECTED 404
-
-// Utilities
-typedef enum {
-    UPLOAD,
-    DOWNLOAD,
-    HELP,
-    INVALID_OPTION
-} Options;
-
-#define PATH_ASSETS_FOLDER "assets/" 
-
-
-
-#define CMD_UPLOAD_SHORT "-u"
-#define CMD_UPLOAD_FULL "--upload"
-//
-#define CMD_HELP_SHORT "-h"
-#define CMD_HELP_FULL "--help"
-//
-#define CMD_DOWNLOAD_SHORT "-d"
-#define CMD_DOWNLOAD_FULL "--download"
-//
-#define CMD_LIST_SHORT "-l"
-#define CMD_LIST_FULL "--list"
-//
-#define CMD_EXIT_FULL "--exit"
-
+#define PATH_ASSETS_FOLDER "assets/" // SERVER side (may be different from the CLIENT side)
+// #define MAX_NUM_CLIENTS (SIZE_THREAD_POOL)
 
 /**
  * @brief Outputs the files of the asset's folder
  * @param p_client_t (struct with the data of the client)
  */
 int list_files_curr_dir(ClientInfo_t *p_client_t);
-
 
 /**
  * @brief Outputs the files of the asset's folder
@@ -74,6 +42,11 @@ int download_file(ClientInfo_t *p_client_t);
  * @return int (exit status)
  */
 int upload_file(ClientInfo_t *p_client_t);
+
+/**
+ * @brief Output the available commands 
+ * @param p_client_t (struct with the data of the client)
+ */
 int inform_client(ClientInfo_t *p_client_t);
 
 /**
@@ -82,7 +55,6 @@ int inform_client(ClientInfo_t *p_client_t);
  * @return off_t (size of the file)
  */
 off_t get_file_size(const char *file_complete_path);
-
 
 /**
  * @brief Presents the FTP service

@@ -492,15 +492,6 @@ fd_set *get_set_of_clients_descriptors()
     return p_online_clients_set;
 }
 
-//----------------------------------------------------------------------------------------------------------
-
-/**
- * @brief
- *
- * @param
- *
- * @return
- */
 int listen_for_connections_on_separate_thread(UniSocket_t *p_server_t)
 {
     pthread_t listening_thread;
@@ -521,17 +512,6 @@ int listen_for_connections_on_separate_thread(UniSocket_t *p_server_t)
     return 0;
 }
 
-//----------------------------------------------------------------------------------------------------------
-
-/**
- * @brief
-
- *
- * @param
- * @param
- *
- * @return
- */
 int start_accepting_incoming_connections(UniSocket_t *p_server_t)
 {
     // For the client's structs, to allow data sharing between threads
@@ -571,22 +551,6 @@ int start_accepting_incoming_connections(UniSocket_t *p_server_t)
     }
 }
 
-//----------------------------------------------------------------------------------------------------------
-
-/**
- * @brief Starts the service
- *
- * This function starts the service on the specified port by creating a server socket,
- * assigning the service function, and initiating the process of accepting incoming connections.
- * It handles any errors that may occur during the creation of the socket or the start of accepting connections.
- * After the service has been started, it calls close_service to clean up resources when the service ends
- * or is requested to end.
- *
- * @param port The port number for the service
- * @param p_service_func_arg Pointer to the function that implements the service functionality
- *
- * @return 0 on success, or a negative value indicating an error
- */
 int start_service(int port, ServiceFunctionPtr p_service_func_arg)
 {
     // Create the server socket

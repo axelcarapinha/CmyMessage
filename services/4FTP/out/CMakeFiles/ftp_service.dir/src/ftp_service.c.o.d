@@ -132,4 +132,5 @@ CMakeFiles/ftp_service.dir/src/ftp_service.c.o: \
  /usr/include/x86_64-linux-gnu/bits/wchar.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
  /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/queue.h \
+ /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/ftp_utils.h \
  /home/heyuser/Desktop/CmyMessage/services/4FTP/include/utils/clients.h

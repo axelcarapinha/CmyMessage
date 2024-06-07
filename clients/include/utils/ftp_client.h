@@ -1,39 +1,14 @@
 /*
- * Purpose: Allow to configure the service behaviour and settings,
- * while supplying the implmentation of an "FTP-like" server
- * (please, reference the README.md for more details)
+ * Purpose: FTP abstractions for the CLIENT side
  */
 
 #ifndef FTP_CLIENT_H
 #define FTP_CLIENT_H
 
-#include "net_utils_tcp.h"
-#include <dirent.h>
-#include <sys/stat.h>
-#include <sys/types.h>
+#include "ftp_utils.h"
 
-#define PATH_ASSETS_FOLDER "assets/"
+#define PATH_ASSETS_FOLDER "assets/" // CLIENT side (may be different from the SERVER side)
 
-
-#define DATA_PORT 8020
-#define CONTROL_PORT 8021
-
-
-
-#define MAX_FILE_SIZE (1024 * 1024 * 10 * 1000LL) // 10'000 megabytes
-#define MAX_LEN_FILE_PATH 1000 
-#define MAX_NUM_ALGS_FILESIZE 20
-
-
-
-#define CMD_UPLOAD_SHORT "-u"
-#define CMD_UPLOAD_FULL "--upload"
-//
-#define CMD_DOWNLOAD_SHORT "-d"
-#define CMD_DOWNLOAD_FULL "--download"
-//
-#define CMD_LIST_SHORT "-l"
-#define CMD_LIST_FULL "--list"
 
 /**
  * @brief Download the desired file,
@@ -52,24 +27,10 @@ int download_file(ClientInfo_t *p_client_t);
 int upload_file(ClientInfo_t *p_client_t);
 
 /**
- * @brief
- * @return
- */
-int compact_file(); //TODO
-
-/**
  * @brief Lists the files of the 'assets' folder
  * @return int (exit status)
  */
 int list_available_files();
-
-/**
- * @brief Calculates the size of the file in bytes
- * @param file_complete_path (path to the file, considering the one
- * to the assets folder)
- * @return off_t (filesize, in bytes)
- */
-off_t get_file_size(const char *filename);
 
 /**
  * @brief Reads content from the sockets when possible,
