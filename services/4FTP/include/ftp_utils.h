@@ -7,22 +7,25 @@
 #ifndef FTP_UTILS_H
 #define FTP_UTILS_H
 
-#include "net_utils_tcp.h"
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+//
+#include "net_utils_tcp.h"
 
 // Configurations
+#define SERVICE_NAME "FTP"
+
+#define FTP_ADDR_IPV4 "127.0.0.1" 
+#define FTP_ADDR_IPV6 "::1"
+
 #define DATA_PORT 8020
 #define CONTROL_PORT 8021
 //
 #define MAX_FILE_SIZE (1024 * 1024 * 10 * 1000LL) // 10'000 megabytes
 #define MAX_LEN_FILE_PATH 1000 
 #define MAX_NUM_ALGS_FILESIZE 20
-#define MAX_SIZE_ADDR_INFO 200
 #define CLIENT_DISCONNECTED 404
-
-#define SERVICE_NAME "FTP"
 //
 #define CMD_UPLOAD_SHORT "-u"
 #define CMD_UPLOAD_FULL "--upload"
@@ -45,6 +48,7 @@
  * @return 
  */
 int receive_content();
+
 
 /**
  * @brief 

@@ -1,9 +1,4 @@
-/*
- * Purpose: FTP abstractions for the SERVER side,
- * for an FTP-like server, in passive mode
- */
-
-#ifndef FTP_SERVICE_H 
+#ifndef FTP_SERVICE_H // passive mode (the client connects to the server for the file transference)
 #define FTP_SERVICE_H
 
 #include <pthread.h>
@@ -13,21 +8,21 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 //
-#include "service_utils.h"
 #include "ftp_utils.h"
+#include "service_utils.h"
 #include "clients.h"
 
-// Settings
 #define VERBOSE true
 
-#define PATH_ASSETS_FOLDER "assets/" // SERVER side (may be different from the CLIENT side)
-// #define MAX_NUM_CLIENTS (SIZE_THREAD_POOL)
+#define PATH_ASSETS_FOLDER "assets/" 
+
 
 /**
  * @brief Outputs the files of the asset's folder
  * @param p_client_t (struct with the data of the client)
  */
 int list_files_curr_dir(ClientInfo_t *p_client_t);
+
 
 /**
  * @brief Outputs the files of the asset's folder
@@ -44,8 +39,9 @@ int download_file(ClientInfo_t *p_client_t);
 int upload_file(ClientInfo_t *p_client_t);
 
 /**
- * @brief Output the available commands 
+ * @brief Sends the available "FTP-like" commands to the client
  * @param p_client_t (struct with the data of the client)
+ * @return int (exit status)
  */
 int inform_client(ClientInfo_t *p_client_t);
 
@@ -55,6 +51,7 @@ int inform_client(ClientInfo_t *p_client_t);
  * @return off_t (size of the file)
  */
 off_t get_file_size(const char *file_complete_path);
+
 
 /**
  * @brief Presents the FTP service

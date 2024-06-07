@@ -3,7 +3,6 @@
 // Let only a thread at a time to access the main service struct
 static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
 
-//TODO consider generalizing
 int list_files_curr_dir(ClientInfo_t *p_client_t)
 {
     DIR *directory;
@@ -16,7 +15,10 @@ int list_files_curr_dir(ClientInfo_t *p_client_t)
         {
             memset(p_client_t->buffer, 0, BUFFER_SIZE);
             sprintf(p_client_t->buffer, "(%d) %s\n", file_idx, entry->d_name);
-            send_text_to_client_with_buffer(p_client_t);
+            if (send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0) < 0) {
+                ERROR_VERBOSE_LOG("Error sending filename to the client");
+                return -1;
+            }
             file_idx++;
         }
         closedir(directory);
@@ -31,12 +33,13 @@ int list_files_curr_dir(ClientInfo_t *p_client_t)
     return 0;
 }
 
+
 int download_file(ClientInfo_t *p_client_t)
 { 
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
     // Receive the FILENAME
-    fill_cli_buffer_with_response(p_client_t);
+    fill_buffer_with_response(p_client_t);
     char *filename = strdup(p_client_t->buffer);
     filename[strlen(filename) - 1] = '\0';
 
@@ -55,8 +58,11 @@ int download_file(ClientInfo_t *p_client_t)
     //
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
     char filesize_str[MAX_NUM_ALGS_FILESIZE]; 
-    snprintf(p_client_t->buffer, sizeof(filesize_str), "%ld", filesize); // more robust than (char) typecaster
-    send_text_to_client_with_buffer(p_client_t);
+    snprintf(p_client_t->buffer, sizeof(filesize_str), "%ld", filesize); // more robust than (char) typecaste
+    if (send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0) < 0) { //TODO: considerar bem esta PARTEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
+        ERROR_VERBOSE_LOG("Error sending content to the client");
+        return -1;
+    }
     
     // Send the file to the client
     FILE *p_file = fopen(file_complete_path, "rb"); 
@@ -64,7 +70,10 @@ int download_file(ClientInfo_t *p_client_t)
         ERROR_VERBOSE_LOG("Invalid file pointer\n");
         memset(p_client_t->buffer, 0, BUFFER_SIZE);
         sprintf(p_client_t->buffer, "File %s not found. Please, try again.\n", filename);
-        send_text_to_client_with_buffer(p_client_t);
+        if (send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0) < 0) {
+            ERROR_VERBOSE_LOG("Error sending the filesize to the client");
+            return -2;
+        }
         free(filename);
         return -1;
     }
@@ -95,7 +104,7 @@ int upload_file(ClientInfo_t *p_client_t) {
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
     // Receive the FILENAME
-    if (fill_cli_buffer_with_response(p_client_t) < 0) {
+    if (fill_buffer_with_response(p_client_t) < 0) {
         ERROR_VERBOSE_LOG("Error receiving the FILENAME from the client\n");
         return -1;
     }
@@ -112,7 +121,7 @@ int upload_file(ClientInfo_t *p_client_t) {
     }
 
     // Receive the FILESIZE
-    if (fill_cli_buffer_with_response(p_client_t) < 0) {
+    if (fill_buffer_with_response(p_client_t) < 0) {
         ERROR_VERBOSE_LOG("Error receiving the FILESIZE from the client\n");
         free(filename);
         return -2;
@@ -122,7 +131,7 @@ int upload_file(ClientInfo_t *p_client_t) {
     if (filesize > MAX_FILE_SIZE) {
         ERROR_VERBOSE_LOG("The file size exceeds the limit. Please, consider using a smaller file.\n");
         free(filename);
-        return -2;
+        return -3;
     }
 
     char file_complete_path[MAX_LEN_FILE_PATH];
@@ -133,9 +142,12 @@ int upload_file(ClientInfo_t *p_client_t) {
         ERROR_VERBOSE_LOG("Error creating the file from the server side\n");
         memset(p_client_t->buffer, 0, BUFFER_SIZE);
         snprintf(p_client_t->buffer, BUFFER_SIZE, "File '%s' may already exist.\n", filename);
-        send_text_to_client_with_buffer(p_client_t);
+        if (send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0) < 0) {
+            ERROR_VERBOSE_LOG("Error sending the filesize to the client");
+            return -4;
+        }
         free(filename);
-        return -1;
+        return -5;
     }
 
     int remaining_to_recv = filesize;
@@ -174,15 +186,45 @@ int inform_client(ClientInfo_t *p_client_t)
             CMD_DOWNLOAD_SHORT, CMD_DOWNLOAD_FULL,
             CMD_LIST_SHORT, CMD_LIST_FULL,
             CMD_EXIT_FULL);
-    int send_status;
-    if ((send_status = send_text_to_client_with_buffer(p_client_t)) < 0)
-    {
+    if (send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0) < 0) {
         ERROR_VERBOSE_LOG("Error sending help options to the client");
-        return send_status;
+        return -1;
     }
 
     return 0;
 }
+
+off_t get_file_size(const char *file_complete_path) // Support all systems (NOT only POSIX respecting ones)
+{
+    struct stat file_stat; // file's status
+    off_t size;
+
+    if (access(file_complete_path, F_OK) != 0) {
+        printf("File %s does NOT exist.\n", file_complete_path);
+        return -1;
+    }
+    else if (strlen(file_complete_path) > (MAX_LEN_FILE_PATH - strlen(PATH_ASSETS_FOLDER) - 1)) {
+        printf("File path is too long\n");
+        return -2;
+    }
+    else if (stat(file_complete_path, &file_stat) == -1)
+    {
+        printf("Invalid path for the file\n");
+        return -3; 
+    }
+
+    FILE *p_file = fopen(file_complete_path, "rb"); //TODO name the file pointers this way everywhere
+    if (p_file == NULL) {
+        ERROR_VERBOSE_LOG("Error opening the file");
+        return -1;
+    }
+    fseek(p_file, 0, SEEK_END); 
+    size = ftell(p_file); 
+    fclose(p_file); //TODO make sure the file pointer is closed on more code (valgrind, ...)
+    
+    return size;
+}
+
 
 int input_client_commands(ClientInfo_t *p_client_t)
 {
@@ -199,7 +241,11 @@ int input_client_commands(ClientInfo_t *p_client_t)
             "Insert the desired command after the '>'.\n"
             "Enter '%s' (or '%s') for available commands.\n",
             p_client_t->name, CMD_HELP_SHORT, CMD_HELP_FULL);
-    send_text_to_client_with_buffer(p_client_t);
+    
+    if (send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0) < 0) {
+        ERROR_VERBOSE_LOG("Error sending the available options to the client");
+        return -2;
+    }
 
     // Interpret the option and forward
     bool clients_wants_exit = false;
@@ -208,8 +254,12 @@ int input_client_commands(ClientInfo_t *p_client_t)
         memset(p_client_t->buffer, 0, BUFFER_SIZE); // TODO fazer método genérico para isto
         const char *file_sent_msg = "> ";
         strncpy(p_client_t->buffer, file_sent_msg, strlen(file_sent_msg));
-        send_text_to_client_with_buffer(p_client_t);
-        if (fill_cli_buffer_with_response(p_client_t) == CLIENT_DISCONNECTED)
+        if (send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0) < 0) {
+            ERROR_VERBOSE_LOG("Error sending the available options to the client");
+            return -3;
+        }
+
+        if (fill_buffer_with_response(p_client_t) == CLIENT_DISCONNECTED)
         {
             return 0;
         }
@@ -248,7 +298,10 @@ int input_client_commands(ClientInfo_t *p_client_t)
         {
             memset(p_client_t->buffer, 0, BUFFER_SIZE);
             strncpy(p_client_t->buffer, feedback_msg, strlen(feedback_msg));
-            send_text_to_client_with_buffer(p_client_t);
+            if (send(p_client_t->sock_FD, p_client_t->buffer, strlen(p_client_t->buffer), 0) < 0) {
+                ERROR_VERBOSE_LOG("Error sending the feedback msg of the option to the client");
+                return -2;
+            }
         }
 
     } while (clients_wants_exit == false);
@@ -325,19 +378,19 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
     p_client_t->addr_info = ip_buffer;
 }
 
-UniSocket_t *get_transference_socket()
-{
+// UniSocket_t *get_transference_socket()
+// {
 
-    // TODO usar o novo standard que tenho do lado do cliente
-    UniSocket_t *p_server_content_t;
-    if (((p_server_content_t = create_socket_struct(true, DATA_PORT, false)) == NULL)) // last false = DUAL stack socket
-    {
-        ERROR_VERBOSE_LOG("Error getting the socket struct pointer");
-        return NULL;
-    }
+//     // TODO usar o novo standard que tenho do lado do cliente
+//     UniSocket_t *p_server_content_t;
+//     if (((p_server_content_t = create_socket_struct(true, DATA_PORT, false)) == NULL)) // last false = DUAL stack socket
+//     {
+//         ERROR_VERBOSE_LOG("Error getting the socket struct pointer");
+//         return NULL;
+//     }
 
-    return p_server_content_t;
-}
+//     return p_server_content_t;
+// }
 
 int serve_client_with_FTP(ClientInfo_t *p_client_t)
 {
