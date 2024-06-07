@@ -155,84 +155,74 @@ int download_file(ClientInfo_t *p_client_t)
  *
  * @return
  */
+
 int upload_file(ClientInfo_t *p_client_t) // this is the receiving perspective
 {
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
     // Receive the FILENAME
-    off_t bytes_received;
-    //
     if (fill_cli_buffer_with_response(p_client_t) < 0) {
-        ERROR_VERBOSE_LOG("Error receiving the FILENAME from the client");
+        ERROR_VERBOSE_LOG("Error receiving the FILENAME from the client\n");
         return -1;
     }
-    const char *filename = strdup(p_client_t->buffer);
+    char *filename = strdup(p_client_t->buffer);
+    if (filename == NULL) {
+        ERROR_VERBOSE_LOG("Memory allocation error\n");
+        return -1;
+    }
 
     // Receive the FILESIZE
     if (fill_cli_buffer_with_response(p_client_t) < 0) {
-        ERROR_VERBOSE_LOG("Error receiving the FILESIZE from the client");
+        ERROR_VERBOSE_LOG("Error receiving the FILESIZE from the client\n");
+        free(filename);
         return -2;
     }
-    const int filesize = atoi(p_client_t->buffer);
+    int filesize = atoi(p_client_t->buffer);
 
-    char *file_complete_path = (char *)malloc(MAX_LEN_FILE_PATH);
-    strcpy(file_complete_path, PATH_ASSETS_FOLDER);
-    strcat(file_complete_path, filename);
-    
-    FILE *p_file = fopen(file_complete_path, "wb");
-    if (p_file == NULL)
-    {
-        ERROR_VERBOSE_LOG("Error creating the file from the server side");
-        //
-        memset(p_client_t->buffer, 0, BUFFER_SIZE);
-        sprintf(p_client_t->buffer, "File '%s' may already exist.\n", filename);
-        send_text_to_client_with_buffer(p_client_t);
-        return 0;
-    }
-
-    // Filter the filesize
     if (filesize > MAX_FILE_SIZE) {
-        sprintf(p_client_t->buffer, "The file size exceeds the limit. Please, consider using a smaller file.\n");
-        send_text_to_client_with_buffer(p_client_t);
-        return 0;
+        ERROR_VERBOSE_LOG("The file size exceeds the limit. Please, consider using a smaller file.\n");
+        free(filename);
+        return -2;
     }
 
-    // Receive the content of the file
+    char file_complete_path[MAX_LEN_FILE_PATH];
+    snprintf(file_complete_path, sizeof(file_complete_path), "%s%s", PATH_ASSETS_FOLDER, filename);
+
+    FILE *p_file = fopen(file_complete_path, "wb");
+    if (p_file == NULL) {
+        ERROR_VERBOSE_LOG("Error creating the file from the server side\n");
+        memset(p_client_t->buffer, 0, BUFFER_SIZE);
+        snprintf(p_client_t->buffer, BUFFER_SIZE, "File '%s' may already exist.\n", filename);
+        send_text_to_client_with_buffer(p_client_t);
+        free(filename);
+        return -1;
+    }
+
     int remaining_to_recv = filesize;
-    do
-    {   
-        // Keep track of the amount received
-        off_t amount_to_recv;
-        if (remaining_to_recv - BUFFER_SIZE >= 0) {
-            amount_to_recv = BUFFER_SIZE;
-            remaining_to_recv -= BUFFER_SIZE;
+    while (remaining_to_recv > 0)
+    {
+        size_t amount_to_recv = remaining_to_recv > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_recv;
+        ssize_t bytes_received = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0);
+        if (bytes_received < 0) {
+            ERROR_VERBOSE_LOG("Error receiving content from the client\n");
+            fclose(p_file);
+            free(filename);
+            return -1;
         }
-        else {
-            amount_to_recv = remaining_to_recv;
-            remaining_to_recv = 0;
-        }
+        fwrite(p_client_t->buffer, 1, bytes_received, p_file);
+        remaining_to_recv -= bytes_received;
+    }
 
-        // Read the content from the socket
-        if (fill_cli_buffer_with_response(p_client_t) < 0) {
-            ERROR_VERBOSE_LOG("Error receiving the file from the client. Terminating...");
-            return -3;
-        }
-        fwrite(p_client_t->buffer, 1, amount_to_recv, p_file);
-
-    } while (remaining_to_recv > 0);
-
-    // Ensure the changes to the file get written
     fclose(p_file);
 
-    // Nofity the user about the state
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    // Notify the user about the state
     const char *final_msg = "File uploaded!\n";
-    strncpy(p_client_t->buffer, final_msg, strlen(final_msg));
-    send_text_to_client_with_buffer(p_client_t);
+    send(p_client_t->sock_FD, final_msg, strlen(final_msg), 0);
 
-    free((void *)filename);
+    free(filename);
     return 0;
 }
+
 
 //----------------------------------------------------------------------------------------------------------
 // TODO do figlet
