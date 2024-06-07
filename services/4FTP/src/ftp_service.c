@@ -1,27 +1,8 @@
 #include "ftp_service.h"
 
-// Got some inspiration at https://www.rfc-editor.org/rfc/rfc765
-
-// 8 bits of byte size
-// passive data port, and active one
-// EOF
-// EOR
-// restart file transfer when error
-// FTP commandsz
-// NVT
-// NVFS
-
 // Let only a thread at a time to access the main service struct
 static pthread_mutex_t g_mutex_server = PTHREAD_MUTEX_INITIALIZER;
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
 int list_files_curr_dir(ClientInfo_t *p_client_t)
 {
     DIR *directory;
@@ -49,26 +30,6 @@ int list_files_curr_dir(ClientInfo_t *p_client_t)
     return 0;
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
-
-
-
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
 
 int download_file(ClientInfo_t *p_client_t)
 { 
@@ -130,13 +91,6 @@ int download_file(ClientInfo_t *p_client_t)
     return 0;
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief Based on the order of implementation (from the client side too)
- * @param
- *
- * @return
- */
 int upload_file(ClientInfo_t *p_client_t) {
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
 
@@ -208,16 +162,6 @@ int upload_file(ClientInfo_t *p_client_t) {
     return 0;
 }
 
-
-//----------------------------------------------------------------------------------------------------------
-// TODO do figlet
-/**
- * @brief
-
- * @param
- *
- * @return
- */
 int inform_client(ClientInfo_t *p_client_t)
 {
     memset(p_client_t->buffer, 0, BUFFER_SIZE);
@@ -240,57 +184,6 @@ int inform_client(ClientInfo_t *p_client_t)
     return 0;
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
-int compress_file()
-{
-
-    return 0;
-}
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
-int parse_client_command_and_redirect(int command)
-{
-
-    return 0;
-}
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
-int define_acess_controls(ClientInfo_t *p_client_t)
-{
-
-    return 0;
-}
-
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
 off_t get_file_size(const char *file_complete_path) // Support all systems (NOT only POSIX respecting ones)
 {
     struct stat file_stat; // file's status
@@ -322,13 +215,7 @@ off_t get_file_size(const char *file_complete_path) // Support all systems (NOT 
     return size;
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
- *
- * @param p_client_t
- * @return int
- */
+
 int input_client_commands(ClientInfo_t *p_client_t)
 {
     if (p_client_t == NULL)
@@ -401,14 +288,6 @@ int input_client_commands(ClientInfo_t *p_client_t)
     return 0;
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
 
 int ask_client_basic_details(ClientInfo_t *p_client_t)
 {
@@ -441,14 +320,7 @@ int ask_client_basic_details(ClientInfo_t *p_client_t)
     return 0;
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
 
- * @param
- *
- * @return
- */
 void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
 {
     if (p_client_t == NULL)
@@ -485,14 +357,6 @@ void *prepare_client_structs_for_data(ClientInfo_t *p_client_t)
     p_client_t->addr_info = ip_buffer;
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
 UniSocket_t *get_transference_socket()
 {
 
@@ -506,15 +370,6 @@ UniSocket_t *get_transference_socket()
 
     return p_server_content_t;
 }
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
 
 int serve_client_with_FTP(ClientInfo_t *p_client_t)
 {
