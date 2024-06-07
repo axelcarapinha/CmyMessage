@@ -1,12 +1,5 @@
 #include "net_utils_tcp.h"
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
- *
- *
- * @param
- */
 void close_socket_with_ptr_if_open(int *p_socket_descriptor)
 {
     if (*p_socket_descriptor != -1)
@@ -21,15 +14,6 @@ void close_socket_with_ptr_if_open(int *p_socket_descriptor)
     }
 }
 
-//----------------------------------------------------------------------------------------------------------
-
-/**
- * @brief
- *
-
- *
- * @param
- */
 void close_server_socket(UniSocket_t *p_socket_t)
 {
     shutdown(p_socket_t->sock_FD, SHUT_RDWR);
@@ -39,26 +23,10 @@ void close_server_socket(UniSocket_t *p_socket_t)
     INFO_VERBOSE_LOG(YELLOW "Server closed." RESET);    
 }
 
-
-//----------------------------------------------------------------------------------------------------------
-/**
-* @brief
-*
-*
-* @param
-*/
 void sigsegv_handler(int signum) {
     ERROR_VERBOSE_LOG(RED "Ignored SEGFAULT possibly originated by freeing memory more than once. Continuing the execution..." RESET);
     return;
 }
-
-//----------------------------------------------------------------------------------------------------------
-/**
-* @brief
-*
-*
-* @param
-*/
 
 void free_server_socket_memory_with_ptr_to_ptr(void **p_p_socket_t_arg)
 {
@@ -96,17 +64,11 @@ void free_server_socket_memory_with_ptr_to_ptr(void **p_p_socket_t_arg)
     }
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief 
- * 
- * @param p_p_client_t_arg 
- */
-
 void free_client_memory_with_ptr_to_ptr(void **p_p_client_t_arg)
 {
-    // Avoid shutdown of the server because of trying to deallocated memory repeatedly
-    // even though there are measures to avoid that in this function
+    // This detection of the SIGSEV avoids the shutdown of the server 
+    // because of it trying to deallocate memory repeatedly
+    // (even though there are measures to avoid that in this function)
     signal(SIGSEGV, sigsegv_handler);
 
     // Allow compatibility with hash generalization
@@ -150,48 +112,6 @@ void free_client_memory_with_ptr_to_ptr(void **p_p_client_t_arg)
     }
 }
 
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief 
- * 
- * @return ClientInfo_t* 
- */
-ClientInfo_t *allocate_client_info_struct()
-{
-    ClientInfo_t *p_client_t = (ClientInfo_t *)malloc(sizeof(ClientInfo_t));
-    if (p_client_t == NULL)
-    {
-        ERROR_VERBOSE_LOG("Error allocating memory for the client struct");
-        return NULL;
-    }
-    //
-    p_client_t->p_addr = (struct sockaddr *)malloc(sizeof(struct sockaddr));
-    if (p_client_t->p_addr == NULL)
-    {
-        free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
-        ERROR_VERBOSE_LOG("Error allocating memory for the client address on the struct");
-        return NULL;
-    }
-    //
-    p_client_t->p_addr_len = (socklen_t *)malloc(sizeof(socklen_t));
-    if (p_client_t->p_addr_len == NULL)
-    {
-        free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
-        ERROR_VERBOSE_LOG("Error allocating memory for the client's address length");
-        return NULL;
-    }
-
-    return p_client_t;
-}
-
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief 
- *
- * @return 
- */
 //TODO use in the code for the server (allowing file transfering between servers, ...)
 int connect_to_server(UniSocket_t *p_socket_t) {
 
@@ -217,14 +137,6 @@ int connect_to_server(UniSocket_t *p_socket_t) {
     return 0;
 }
 
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief 
- * 
- * @param service_FD 
- * @return ClientInfo_t* 
- */
 ClientInfo_t *accept_connection(int service_FD)
 {
     ClientInfo_t *p_client_t = allocate_client_info_struct();
@@ -246,15 +158,6 @@ ClientInfo_t *accept_connection(int service_FD)
     return p_client_t;
 }
 
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief Set the up service socket t object
- * 
- * @param opt 
- * @param p_socket_t 
- * @return int 
- */
 int setup_service_socket_t(int opt, UniSocket_t *p_socket_t)
 {
     // Forcefully attaching socket to the port
@@ -303,67 +206,32 @@ int setup_service_socket_t(int opt, UniSocket_t *p_socket_t)
     return 0;
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief 
- * 
- * @param p_socket_t 
- * @return int 
- */
-int assign_descriptor_to_stream_socket_t(UniSocket_t *p_socket_t)
-{
-    const int ADDR_FAMILY = (p_socket_t->is_ipv4) ? AF_INET : AF_INET6;
-
-    int socket_descriptor;
-    if ((socket_descriptor = socket(ADDR_FAMILY, SOCK_STREAM, 0)) < 0)
-    {
-        ERROR_VERBOSE_LOG("Error creating socket descriptor");   
-        int error_value = socket_descriptor;
-        return error_value;
-    }
-
-    // Assign the file descriptor
-    p_socket_t->sock_FD = socket_descriptor;
-    INFO_VERBOSE_LOG(YELLOW "Stream socket created SUCCESSFULY\n" RESET);
-
-    return 0;
-}
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief 
- * 
- * @param p_socket_t 
- * @return int 
- */
 int initialize_socket(UniSocket_t *p_socket_t)
 {
+    //! Consider reading the description in the header file,
+    //! for the recommended choice of protocol when creating the socket
     if (p_socket_t->is_ipv4)
     {
-        // If the system or network configs does NOT support dual-stack sockets,
-        // this approach, while NOT recommended, allows the server to accept only IPv4 connections.
-        // Noteworthy, if the server has IPv4 and IPv6 sockets,
-        // please, consider changing opt to 1, for a more controlled flow of the connections
-        memset(p_socket_t->addr_u.p_ipv4, 0, sizeof(struct sockaddr_in)); // Zero out the structure //TODO acrescentie isto
+        memset(p_socket_t->addr_u.p_ipv4, 0, sizeof(struct sockaddr_in)); // Clean the allocated memory for the structure
         p_socket_t->addr_u.p_ipv4->sin_family = AF_INET;
         *(p_socket_t->p_addr_len) = sizeof(*(p_socket_t->addr_u.p_ipv4));
         p_socket_t->addr_u.p_ipv4->sin_port = htons(p_socket_t->port);
 
         // Specify the pretended address
         if (p_socket_t->ip_address != NULL) {
-            // if (inet_pton(AF_INET, p_socket_t->ip_address, (struct sockaddr *)p_socket_t->addr_u.p_ipv4) <= 0) {
             if (inet_pton(AF_INET, p_socket_t->ip_address, &(p_socket_t->addr_u.p_ipv4->sin_addr)) <= 0) {
                 
-                perror("Error, invalid address");
+                ERROR_VERBOSE_LOG("Error, invalid address for the client to connet with IPv4");
                 return -1;
             }
         }
         else if (p_socket_t->is_server) {
-            //TODO consider specifying socket options
             p_socket_t->addr_u.p_ipv4->sin_addr.s_addr = INADDR_ANY;
+            //TODO consider specifying socket options
         }
         else {
-            ERROR_VERBOSE_LOG("Error, invalid address for the client to connect");
+            ERROR_VERBOSE_LOG("Error, invalid address for the client to connect with IPv6");
+            return -2;
         }
     }
     else // Dual-stack socket
@@ -400,14 +268,53 @@ int initialize_socket(UniSocket_t *p_socket_t)
     return 0;
 }
 
+int assign_descriptor_to_stream_socket_t(UniSocket_t *p_socket_t)
+{
+    const int ADDR_FAMILY = (p_socket_t->is_ipv4) ? AF_INET : AF_INET6;
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief 
- * 
- * @param is_ipv4_arg 
- * @return UniSocket_t* 
- */
+    int socket_descriptor;
+    if ((socket_descriptor = socket(ADDR_FAMILY, SOCK_STREAM, 0)) < 0)
+    {
+        ERROR_VERBOSE_LOG("Error creating socket descriptor");   
+        int error_value = socket_descriptor;
+        return error_value;
+    }
+
+    // Assign the file descriptor
+    p_socket_t->sock_FD = socket_descriptor;
+    INFO_VERBOSE_LOG(YELLOW "Stream socket created SUCCESSFULY\n" RESET);
+
+    return 0;
+}
+
+ClientInfo_t *allocate_client_info_struct()
+{
+    ClientInfo_t *p_client_t = (ClientInfo_t *)malloc(sizeof(ClientInfo_t));
+    if (p_client_t == NULL)
+    {
+        ERROR_VERBOSE_LOG("Error allocating memory for the client struct");
+        return NULL;
+    }
+    //
+    p_client_t->p_addr = (struct sockaddr *)malloc(sizeof(struct sockaddr));
+    if (p_client_t->p_addr == NULL)
+    {
+        free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
+        ERROR_VERBOSE_LOG("Error allocating memory for the client address on the struct");
+        return NULL;
+    }
+    //
+    p_client_t->p_addr_len = (socklen_t *)malloc(sizeof(socklen_t));
+    if (p_client_t->p_addr_len == NULL)
+    {
+        free_client_memory_with_ptr_to_ptr((void **)&p_client_t);
+        ERROR_VERBOSE_LOG("Error allocating memory for the client's address length");
+        return NULL;
+    }
+
+    return p_client_t;
+}
+
 UniSocket_t *allocate_socket_struct(bool is_ipv4_arg)
 {
     UniSocket_t *p_socket_t = (UniSocket_t *)malloc(sizeof(UniSocket_t));
@@ -457,16 +364,6 @@ UniSocket_t *allocate_socket_struct(bool is_ipv4_arg)
     return p_socket_t;
 }
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief Create a socket struct object
- * 
- * @param is_server_arg 
- * @param port 
- * @param is_ipv4_arg 
- * @param ip_address
- * @return UniSocket_t* 
- */
 UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg, char *ip_address)
 {
     UniSocket_t *p_socket_t;
@@ -480,7 +377,7 @@ UniSocket_t *create_socket_struct(bool is_server_arg, int port, bool is_ipv4_arg
     p_socket_t->is_server = is_server_arg;
     p_socket_t->port = port;
     p_socket_t->is_ipv4 = is_ipv4_arg;
-    p_socket_t->ip_address = (char *)malloc(MAX_ADDRESS_LENGTH); //TODO handle this
+    p_socket_t->ip_address = (char *)malloc(MAX_ADDRESS_LENGTH);
     strncpy(p_socket_t->ip_address, ip_address, strlen(ip_address));
 
     if (assign_descriptor_to_stream_socket_t(p_socket_t) < 0)

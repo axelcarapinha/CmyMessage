@@ -1,3 +1,9 @@
+/*
+ * Purpose: Implements auxiliar functions for services related to clients,
+ * providing abstractions for content exchange 
+ * between the server and the client
+ */
+
 #ifndef CLIENTS_H
 #define CLIENTS_H
 
@@ -5,7 +11,7 @@
 #define VERBOSE true
 //
 #define SIZE_THREAD_POOL 3
-#define BUFFER_SIZE 1500 // widely used in LANs (size of ethernet packets)
+#define BUFFER_SIZE 1500       // widely used in LANs (size of ethernet packets)
 #define MAX_NUM_CLIENTS 2
 #define MAX_USERNAME_LENGTH 20 // 20 chars, 20 bytes
 #define USERNAMES_HASH_SEED 23
@@ -86,7 +92,45 @@ struct ClientInfo_t
     char *p_common_msg_buffer;
 };
 
-int use_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_func);
+/**
+ * @brief Receives the content (if available) on the client socket,
+ * and identifies possible drops and errors of the connection
+ * with the returning value of recv()
+ *
+ * @return int (number of bytes received on the client socket)
+ */
+int fill_buffer_with_response(ClientInfo_t *p_client_t);
+
+/**
+ * @brief Tries to convert the address to the IPv6 version, 
+ * allowing to confirm it's version, 
+ * and a propper socket creation in other parts of this code
+ * 
+ * @return 1 if the address is a valid IPv6 address, 0 otherwise
+ */
+int is_ipv4(char *address);
+
+/**
+ * @brief Allocates memory for the client struct, 
+ * concerning the use of the pretende service
+ * (avoiding to allocate more than needed when 
+ * the corresponding socket is made, in net_utils_tcp.c)
+ *
+ * @return A pointer to the allocated UniSocket_t structure on success with allocation, otherwise NULL
+ */
 void *prepare_client_structs_for_data(ClientInfo_t *p_client_t);
+
+/**
+ * @brief Prompts the memory allocation needed for the client struct
+ * redirects to the desired service 
+ * when dereferencing the pointer of its starting function
+ * 
+ * @param p_service_func (pointer to the starting function of
+ * the pretended service)
+ *
+ * @return int (exit status)
+ */
+int use_service(int server_port, char *server_ip, ServiceFunctionPtr p_service_func);
+
 
 #endif

@@ -362,7 +362,7 @@ UniSocket_t *get_transference_socket()
 
     // TODO usar o novo standard que tenho do lado do cliente
     UniSocket_t *p_server_content_t;
-    if (((p_server_content_t = create_socket_struct(true, CONTENT_PORT, false)) == NULL)) // last false = DUAL stack socket
+    if (((p_server_content_t = create_socket_struct(true, DATA_PORT, false)) == NULL)) // last false = DUAL stack socket
     {
         ERROR_VERBOSE_LOG("Error getting the socket struct pointer");
         return NULL;

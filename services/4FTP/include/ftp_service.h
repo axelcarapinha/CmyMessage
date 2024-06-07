@@ -14,8 +14,9 @@
 #define VERBOSE true
 
 // Settings
-#define SERVICE_PORT 8021
-#define CONTENT_PORT 8021
+#define DATA_PORT 8020
+#define CONTROL_PORT 8021
+
 #define MAX_SIZE_USER_OPTION 1 // a single number (for the option)
 #define MAX_SIZE_ADDR_INFO 200
 #define MAX_LEN_FILE_PATH 1000 
@@ -34,6 +35,10 @@ typedef enum {
     INVALID_OPTION
 } Options;
 
+#define PATH_ASSETS_FOLDER "assets/" 
+
+
+
 #define CMD_UPLOAD_SHORT "-u"
 #define CMD_UPLOAD_FULL "--upload"
 //
@@ -48,7 +53,6 @@ typedef enum {
 //
 #define CMD_EXIT_FULL "--exit"
 
-#define PATH_ASSETS_FOLDER "assets/" 
 
 /**
  * @brief Outputs the files of the asset's folder
@@ -104,26 +108,12 @@ int ask_client_basic_details(ClientInfo_t *p_client_t);
  */
 void *prepare_client_structs_for_data(ClientInfo_t *p_client_t);
 
-int serve_client_with_FTP(ClientInfo_t *p_client_t);
-
-
 /**
- * @brief Starting point to the service, 
- * being the function that is started from the main.c file
+ * @brief Starting point of the service, 
+ * being the function that is executed from the main.c file
  * @param p_client_t
  * @return
  */
-int serve_client_with_FTP(ClientInfo_t *p_client_t)
-
-
-
-//TODO
-/**
- * @brief 
- * @param
- * @return
- */
-// UniSocket_t *get_transference_socket();
-
+int serve_client_with_FTP(ClientInfo_t *p_client_t);
 
 #endif

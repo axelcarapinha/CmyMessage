@@ -1,13 +1,210 @@
 #include "ftp_client.h"
 
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
+int download_file(ClientInfo_t *p_client_t) 
+{
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    send(p_client_t->sock_FD, CMD_DOWNLOAD_FULL, strlen(CMD_DOWNLOAD_FULL), 0);
 
- * @param
- *
- * @return
- */
+    printf("Filename: ");
+    fgets(p_client_t->buffer, BUFFER_SIZE, stdin);
+    const char *filename = strdup(p_client_t->buffer);
+    send(p_client_t->sock_FD, filename, strlen(filename), 0);
+
+    // Create the file at the same time (a bit more efficient, avoids one waiting for the other)
+    FILE *p_file = fopen(filename, "wb");
+    if (p_file == NULL)
+    {
+        ERROR_VERBOSE_LOG("Error creating the file from the server side");
+        printf("File '%s' may already exist.\n", filename);
+        return 0;
+    }
+
+    // Receive the FILESIZE
+    fill_buffer_with_response(p_client_t);
+    const int filesize = atoi(p_client_t->buffer);
+
+    printf("Downloading the file...\n"); //TODO reuse this part of code!
+    int remaining_to_recv = filesize;
+    while (remaining_to_recv > 0) {
+        size_t amount_to_recv = remaining_to_recv > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_recv;
+        ssize_t bytes_received = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0);
+        if (bytes_received < 0) {
+            ERROR_VERBOSE_LOG("Error receiving content from the server\n");
+            fclose(p_file);
+            free((void *)filename);
+            return -1;
+        }
+        fwrite(p_client_t->buffer, 1, bytes_received, p_file);
+        remaining_to_recv -= bytes_received;
+    }
+    printf("File downloaded!\n");    
+    fflush(stdout); // allow the server to display the full content of its message
+
+    // Ensure the changes to the file get written
+    fclose(p_file);
+
+    free((void *)filename);
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    return 0;
+}
+
+int upload_file(ClientInfo_t *p_client_t)
+{
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    send(p_client_t->sock_FD, CMD_UPLOAD_FULL, strlen(CMD_UPLOAD_FULL), 0);
+
+    list_available_files(); // on this host
+
+    printf("File to upload: ");
+    if (fgets(p_client_t->buffer, BUFFER_SIZE, stdin) == NULL)
+    {
+        ERROR_VERBOSE_LOG("Error getting the intended filename to upload\n");
+        return -1;
+    }
+
+    char *filename = strdup(p_client_t->buffer);
+    if (filename == NULL) {
+        ERROR_VERBOSE_LOG("Memory allocation error\n");
+        return -1;
+    }
+
+    // Remove newline character
+    size_t len = strlen(filename);
+    if (len > 0 && filename[len - 1] == '\n') {
+        filename[len - 1] = '\0';
+    }
+
+    char file_complete_path[MAX_LEN_FILE_PATH];
+    snprintf(file_complete_path, sizeof(file_complete_path), "%s%s", PATH_ASSETS_FOLDER, filename);
+
+    long filesize = get_file_size(file_complete_path);
+    if (filesize < 0) {
+        printf("Error calculating the file's size.\n");
+        printf("Please, try again.\n");
+        free(filename);
+        return 0;
+    }
+    else if (filesize > MAX_FILE_SIZE)
+    {
+        printf("That file is enormous! This server cannot handle it (for now).\n");
+        printf("Sorry. Please, try another one\n");
+        free(filename);
+        return 0;
+    }
+
+    // Allow the server to prepare to receive the file
+    send(p_client_t->sock_FD, filename, strlen(filename), 0);
+
+    char filesize_str[MAX_NUM_ALGS_FILESIZE]; 
+    snprintf(filesize_str, sizeof(filesize_str), "%ld", filesize);
+    send(p_client_t->sock_FD, filesize_str, strlen(filesize_str), 0);
+    
+    printf("Uploading...\n");
+    FILE *p_file = fopen(file_complete_path, "rb"); 
+    if (p_file == NULL) {
+        ERROR_VERBOSE_LOG("Invalid file pointer\n");
+        free(filename);
+        return -1;
+    }
+
+    // Connect to the data transference port (emulated by 8020)
+    // UniSocket_t *p_data_socket_t = create_socket_struct(false, DATA_PORT, is_ipv4(FTP_ADDR_IPV6), FTP_ADDR_IPV6);
+    // if (p_data_socket_t == NULL) {
+    //     ERROR_VERBOSE_LOG("Error creating socket for the client for the desired service");
+    //     return -1;
+    // }
+    // INFO_VERBOSE_LOG("Client socket created successfully\n");
+
+    off_t remaining_to_send = filesize; //TODO use the other port
+    while (remaining_to_send > 0)
+    {
+        size_t amount_to_send = remaining_to_send > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_send;
+        size_t bytes_read = fread(p_client_t->buffer, 1, amount_to_send, p_file);
+        if (bytes_read <= 0) {
+            ERROR_VERBOSE_LOG("Error reading content from the file to upload\n");
+            fclose(p_file);
+            free(filename);
+            return -1;
+        }
+        send(p_client_t->sock_FD, p_client_t->buffer, bytes_read, 0);
+        remaining_to_send -= bytes_read;
+    }
+    fclose(p_file);
+
+    // Receive the server confirmation of the file transference success
+    memset(p_client_t->buffer, 0, BUFFER_SIZE);
+    fill_buffer_with_response(p_client_t);
+    printf("%s", p_client_t->buffer);
+    fflush(stdout); // allow the server to display the full content of its message
+
+    free(filename);
+    return 0;
+}
+
+//TODO compact the file before the transference ("Those units have compression applied to them")
+int compact_file() { 
+
+}
+
+int list_available_files() 
+{ 
+    printf("Assets' folder structure:\n");
+
+    DIR *directory;
+    struct dirent *entry;
+    directory = opendir(PATH_ASSETS_FOLDER);
+    if (directory)
+    {
+        int file_idx = 0;
+        while ((entry = readdir(directory)) != NULL)
+        {
+            printf("(%d) %s\n", file_idx, entry->d_name);
+            file_idx++;
+        }
+        printf("\n");
+        closedir(directory);
+        return 0;
+    }
+    else
+    {
+        ERROR_VERBOSE_LOG("Error opening the files directory");
+        return 1;
+    }
+
+    return 0;
+}
+
+off_t get_file_size(const char *file_complete_path) // Support all systems (NOT only POSIX respecting ones)
+{
+    struct stat file_stat; // file's status
+    off_t size;
+
+    if (access(file_complete_path, F_OK) != 0) {
+        printf("File %s does NOT exist.\n", file_complete_path);
+        return -1;
+    }
+    else if (strlen(file_complete_path) > (MAX_LEN_FILE_PATH - strlen(PATH_ASSETS_FOLDER) - 1)) {
+        printf("File path is too long\n");
+        return -2;
+    }
+    else if (stat(file_complete_path, &file_stat) == -1)
+    {
+        printf("Invalid path for the file\n");
+        return -3; 
+    }
+
+    FILE *p_file = fopen(file_complete_path, "rb"); //TODO name the file pointers this way everywhere
+    if (p_file == NULL) {
+        ERROR_VERBOSE_LOG("Error opening the file");
+        return -1;
+    }
+    fseek(p_file, 0, SEEK_END); 
+    size = ftell(p_file); 
+    fclose(p_file); 
+    
+    return size;
+}
+
 int keep_connection_with_server_cli(ClientInfo_t *p_client_t)
 { 
     //  Prepare the structure to maintain the client-server interaction
@@ -71,247 +268,13 @@ int keep_connection_with_server_cli(ClientInfo_t *p_client_t)
             }
             p_client_t->buffer[num_bytes] = '\0';
             printf("%s", p_client_t->buffer);
-            fflush(stdout);
+            fflush(stdout); // allows the multi-line server output to be entirely displayed
         }
     }
 
     return 0;
 }
 
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
-
-int download_file(ClientInfo_t *p_client_t) 
-{
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    send(p_client_t->sock_FD, CMD_DOWNLOAD_FULL, strlen(CMD_DOWNLOAD_FULL), 0);
-
-    printf("Filename: ");
-    fgets(p_client_t->buffer, BUFFER_SIZE, stdin);
-    const char *filename = strdup(p_client_t->buffer);
-    send(p_client_t->sock_FD, filename, strlen(filename), 0);
-
-    // Create the file at the same time (a bit more efficient, avoids one waiting for the other)
-    FILE *p_file = fopen(filename, "wb");
-    if (p_file == NULL)
-    {
-        ERROR_VERBOSE_LOG("Error creating the file from the server side");
-        printf("File '%s' may already exist.\n", filename);
-        return 0;
-    }
-
-    // Receive the FILESIZE
-    fill_buffer_with_response(p_client_t);
-    const int filesize = atoi(p_client_t->buffer);
-
-    printf("Downloading the file...\n"); //TODO reuse this part of code!
-    int remaining_to_recv = filesize;
-    while (remaining_to_recv > 0) {
-        size_t amount_to_recv = remaining_to_recv > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_recv;
-        ssize_t bytes_received = recv(p_client_t->sock_FD, p_client_t->buffer, amount_to_recv, 0);
-        if (bytes_received < 0) {
-            ERROR_VERBOSE_LOG("Error receiving content from the server\n");
-            fclose(p_file);
-            free(filename);
-            return -1;
-        }
-        fwrite(p_client_t->buffer, 1, bytes_received, p_file);
-        remaining_to_recv -= bytes_received;
-    }
-    printf("File downloaded!\n");    
-
-    // Ensure the changes to the file get written
-    fclose(p_file);
-
-    free((void *)filename);
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    return 0;
-}
-
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
-int upload_file(ClientInfo_t *p_client_t)
-{
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    send(p_client_t->sock_FD, CMD_UPLOAD_FULL, strlen(CMD_UPLOAD_FULL), 0);
-
-    list_available_files(); // on this host
-
-    printf("File to upload: ");
-    if (fgets(p_client_t->buffer, BUFFER_SIZE, stdin) == NULL)
-    {
-        ERROR_VERBOSE_LOG("Error getting the intended filename to upload\n");
-        return -1;
-    }
-
-    char *filename = strdup(p_client_t->buffer);
-    if (filename == NULL) {
-        ERROR_VERBOSE_LOG("Memory allocation error\n");
-        return -1;
-    }
-
-    // Remove newline character
-    size_t len = strlen(filename);
-    if (len > 0 && filename[len - 1] == '\n') {
-        filename[len - 1] = '\0';
-    }
-
-    char file_complete_path[MAX_LEN_FILE_PATH];
-    snprintf(file_complete_path, sizeof(file_complete_path), "%s%s", PATH_ASSETS_FOLDER, filename);
-
-    long filesize = get_file_size(file_complete_path);
-    if (filesize < 0) {
-        printf("Error calculating the file's size.\n");
-        printf("Please, try again.\n");
-        free(filename);
-        return 0;
-    }
-    else if (filesize > MAX_FILE_SIZE)
-    {
-        printf("That file is enormous! This server cannot handle it (for now).\n");
-        printf("Sorry. Please, try another one\n");
-        free(filename);
-        return 0;
-    }
-
-    // Allow the server to prepare to receive the file
-    send(p_client_t->sock_FD, filename, strlen(filename), 0);
-
-    char filesize_str[MAX_NUM_ALGS_FILESIZE]; 
-    snprintf(filesize_str, sizeof(filesize_str), "%ld", filesize);
-    send(p_client_t->sock_FD, filesize_str, strlen(filesize_str), 0);
-    
-    printf("Uploading...\n");
-    FILE *p_file = fopen(file_complete_path, "rb"); 
-    if (p_file == NULL) {
-        ERROR_VERBOSE_LOG("Invalid file pointer\n");
-        free(filename);
-        return -1;
-    }
-
-    off_t remaining_to_send = filesize;
-    while (remaining_to_send > 0)
-    {
-        size_t amount_to_send = remaining_to_send > BUFFER_SIZE ? BUFFER_SIZE : remaining_to_send;
-        size_t bytes_read = fread(p_client_t->buffer, 1, amount_to_send, p_file);
-        if (bytes_read <= 0) {
-            ERROR_VERBOSE_LOG("Error reading content from the file to upload\n");
-            fclose(p_file);
-            free(filename);
-            return -1;
-        }
-        send(p_client_t->sock_FD, p_client_t->buffer, bytes_read, 0);
-        remaining_to_send -= bytes_read;
-    }
-
-    fclose(p_file);
-
-    // Receive the server confirmation of the file transference success
-    memset(p_client_t->buffer, 0, BUFFER_SIZE);
-    fill_buffer_with_response(p_client_t);
-    printf("%s", p_client_t->buffer);
-
-    free(filename);
-    return 0;
-}
-
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
-int list_available_files() 
-{ 
-    printf("Assets' folder structure:\n");
-
-    DIR *directory;
-    struct dirent *entry;
-    directory = opendir(PATH_ASSETS_FOLDER); 
-    if (directory)
-    {
-        int file_idx = 0;
-        while ((entry = readdir(directory)) != NULL)
-        {
-            printf("(%d) %s\n", file_idx, entry->d_name);
-            file_idx++;
-        }
-        printf("\n");
-        closedir(directory);
-        return 0;
-    }
-    else
-    {
-        ERROR_VERBOSE_LOG("Error opening the files directory");
-        return 1;
-    }
-
-    return 0;
-}
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
- *
- * @return int
- */
-off_t get_file_size(const char *file_complete_path) // Support all systems (NOT only POSIX respecting ones)
-{
-    struct stat file_stat; // file's status
-    off_t size;
-
-    if (access(file_complete_path, F_OK) != 0) {
-        printf("File %s does NOT exist.\n", file_complete_path);
-        return -1;
-    }
-    else if (strlen(file_complete_path) > (MAX_LEN_FILE_PATH - strlen(PATH_ASSETS_FOLDER) - 1)) {
-        printf("File path is too long\n");
-        return -2;
-    }
-    else if (stat(file_complete_path, &file_stat) == -1)
-    {
-        printf("Invalid path for the file\n");
-        return -3; 
-    }
-
-    FILE *p_file = fopen(file_complete_path, "rb"); //TODO name the file pointers this way everywhere
-    if (p_file == NULL) {
-        ERROR_VERBOSE_LOG("Error opening the file");
-        return -1;
-    }
-    fseek(p_file, 0, SEEK_END); 
-    size = ftell(p_file); 
-    fclose(p_file); //TODO valgrind testing
-    
-    return size;
-}
-
-
-//----------------------------------------------------------------------------------------------------------
-/**
- * @brief
-
- * @param
- *
- * @return
- */
 int start_using_FTP(ClientInfo_t *p_client_t)
 {
     if (p_client_t == NULL)
