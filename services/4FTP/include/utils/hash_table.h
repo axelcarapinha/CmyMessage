@@ -1,3 +1,8 @@
+/*
+ * Purpose: Proportionates an efficient way of handling
+ * usernames, with murmur3_32 as the hash function
+ */
+
 #ifndef HASH_TABLE_H // implemented with chaining to handle collisions
 #define HASH_TABLE_H
 
@@ -118,6 +123,15 @@ void *hash_table_print(hash_table *p_ht);
  * faster than the 64 version; 
  * greater likelihood of collision is considered
  * (for now, before further testings) as less relevant
+ * 
+ * Chosed because of its compatibility with this networking project:
+ *  - high performance
+ *  - good uniformity (less colisions)
+ *  - well-tested 
+ *  - low memory usage
+ * 
+ * Please, do NOT use for cryptographic uses,
+ * this is a non-cryptographic hashing function
  * 
  * @param p_key 
  * @return uint32_t 

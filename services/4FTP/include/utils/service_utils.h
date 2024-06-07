@@ -1,3 +1,12 @@
+/*
+ * Purpose: Common foundation for concurrent servers,
+ * allowing an easy customization 
+ * with a built-in error handling logic
+ * 
+ * `make debug` is recommended while debugging (if needed), 
+ * because of the threads
+ */
+
 #ifndef SERVICE_UTILS_H
 #define SERVICE_UTILS_H
 

@@ -1,3 +1,9 @@
+/*
+ * Purpose: Functions directly related to the SERVER side of FTP,
+ * providing a planned way of interacting with the CLIENT side
+ * to enable the access to the files
+ */
+
 #ifndef FTP_SERVICE_H // passive mode (the client connects to the server for the file transference)
 #define FTP_SERVICE_H
 

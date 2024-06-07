@@ -1,3 +1,9 @@
+/*
+ * Purpose: Abstract the creation and handling of 
+ * code regarding sockets, unifying it all in a common 
+ * structure 
+ */
+
 #ifndef NET_UTILS_TCP_H
 #define NET_UTILS_TCP_H
 

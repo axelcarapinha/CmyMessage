@@ -1,3 +1,7 @@
+/*
+ * Purpose: Data Structure for implementations
+ */
+
 #ifndef QUEUE_H
 #define QUEUE_H
 
