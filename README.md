@@ -68,9 +68,9 @@ Had fun knowing more about:
 * Software architecture 
 
 ## Plan / Roadmap 
-✅ = implemented
-🛠️ = in process...
-🔁 = being applied to _Lexigraph_ (another project)
+✅ = implemented <br />
+🛠️ = in process... <br />
+🔁 = being applied to _Lexigraph_ (another project) <br />
 
 - Plan the architecture / structure of the code ✅
 - Simple connection ✅
