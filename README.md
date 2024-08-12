@@ -70,7 +70,7 @@ Had fun knowing more about:
 ## Plan / Roadmap 
 ✅ = implemented
 🛠️ = in process...
-🔁 = NOT implemented yet
+🔁 = being applied to _Lexigraph_ (another project)
 
 - Plan the architecture / structure of the code ✅
 - Simple connection ✅
@@ -79,26 +79,22 @@ Had fun knowing more about:
   - Generic hash table for the user's struct ✅
   - Broadcast chat ✅
   - Direct chat 🛠️
-<br />
- <br />
-The following goals were passed to another project in its majority (Lexigraph):
-<br />
-- Containers (probably with Docker compose) 
+- Containers (probably with Docker compose) 🔁
   - Docker Swarm (ease the scalability)
-- Database 
-    - Designing the schema 
-    - Making the queries 
-    - Connecting it 
-- Authentication (probalby with JWT tokens) 
+- Database 🔁
+    - Designing the schema 🔁
+    - Making the queries 🔁
+    - Connecting it 🔁
+- Authentication (probalby with JWT tokens) 🔁
   - Hashing + Salting
-- Security check, like avoiding: 
-  - Open ports dangers 
-  - SQL injection 
-  - Command and code injection 
-  - Buffer overflows 
-  - ... 
-- Pentests to check for vulnerabilities 
-- Deployment 
+- Security check, like avoiding: 🔁
+  - Open ports dangers 🔁
+  - SQL injection 🔁
+  - Command and code injection 🔁
+  - Buffer overflows 🔁
+  - ... 🔁
+- Pentests to check for vulnerabilities 🔁
+- Deployment 🔁
     - Consider using shared object files for shared code
-    - Server setup and configuration (probably in an Azure VM) 
-    - Documentation of the code 
+    - Server setup and configuration (probably in an Azure VM) 🔁
+    - Documentation of the code 🔁
