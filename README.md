@@ -79,9 +79,10 @@ Had fun knowing more about:
   - Generic hash table for the user's struct ✅
   - Broadcast chat ✅
   - Direct chat 🛠️
-
+<br />
  <br />
 The following goals were passed to another project in its majority (Lexigraph):
+<br />
 - Containers (probably with Docker compose) 
   - Docker Swarm (ease the scalability)
 - Database 
