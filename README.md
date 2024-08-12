@@ -79,22 +79,25 @@ Had fun knowing more about:
   - Generic hash table for the user's struct ✅
   - Broadcast chat ✅
   - Direct chat 🛠️
-- Containers (probably with Docker compose) 🔁
+
+ <br />
+The following goals were passed to another project in its majority (Lexigraph):
+- Containers (probably with Docker compose) 
   - Docker Swarm (ease the scalability)
-- Database 🔁
-    - Designing the schema 🔁
-    - Making the queries 🔁
-    - Connecting it 🔁
-- Authentication (probalby with JWT tokens) 🔁
+- Database 
+    - Designing the schema 
+    - Making the queries 
+    - Connecting it 
+- Authentication (probalby with JWT tokens) 
   - Hashing + Salting
-- Security check, like avoiding: 🔁
-  - Open ports dangers 🔁
-  - SQL injection 🔁
-  - Command and code injection 🔁
-  - Buffer overflows 🔁
-  - ... 🔁
-- Pentests to check for vulnerabilities 🔁
-- Deployment 🔁
+- Security check, like avoiding: 
+  - Open ports dangers 
+  - SQL injection 
+  - Command and code injection 
+  - Buffer overflows 
+  - ... 
+- Pentests to check for vulnerabilities 
+- Deployment 
     - Consider using shared object files for shared code
-    - Server setup and configuration (probably in an Azure VM) 🔁
-    - Documentation of the code 🔁
+    - Server setup and configuration (probably in an Azure VM) 
+    - Documentation of the code 
