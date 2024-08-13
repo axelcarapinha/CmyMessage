@@ -1,6 +1,7 @@
 # CmyMessage
 A server made in _C_ with multiple services.
 ⚠️ In progress!
+The main purpose of this was passed to another project: _Lexigraph_.
 
 
 <!-- TABLE OF CONTENTS -->
