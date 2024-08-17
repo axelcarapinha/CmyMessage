@@ -25,7 +25,7 @@
 ## About the project
 Concurrent servers made in _C_: a simplified <a href="https://www.rfc-editor.org/rfc/rfc959">FTP</a>
 server and a broadcast chat,<br/>
-both made upon a layer of abstration of mine,<br/>
+both made upon a common layer of abstraction that eases service deployments in C<br/>
 and aiming to foster and apply the knowledge of Computer Networks and Operating Systems courses.<br/>
 
 ▶️ Curious? Click <a href="#results">here</a> for video demonstrations!
