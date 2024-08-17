@@ -24,7 +24,7 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About the project
-Concurrent servers made in _C_: a simplified <a href="https://www.rfc-editor.org/rfc/rfc959">FTP<a/>
+Concurrent servers made in _C_: a simplified <a href="https://www.rfc-editor.org/rfc/rfc959">FTP</a>
 server and a broadcast chat,<br/>
 both made upon a layer of abstration of mine,<br/>
 and aiming to foster and apply the knowledge of Computer Networks and Operating Systems courses.<br/>
