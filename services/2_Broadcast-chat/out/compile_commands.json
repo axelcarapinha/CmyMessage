@@ -1,0 +1,44 @@
+[
+{
+  "directory": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/out",
+  "command": "/usr/bin/cc  -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include/utils -g -g -o CMakeFiles/broadcastChat.dir/src/broadcast_chat_service.c.o -c /home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/broadcast_chat_service.c",
+  "file": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/broadcast_chat_service.c",
+  "output": "CMakeFiles/broadcastChat.dir/src/broadcast_chat_service.c.o"
+},
+{
+  "directory": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/out",
+  "command": "/usr/bin/cc  -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include/utils -g -g -o CMakeFiles/broadcastChat.dir/src/main.c.o -c /home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/main.c",
+  "file": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/main.c",
+  "output": "CMakeFiles/broadcastChat.dir/src/main.c.o"
+},
+{
+  "directory": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/out",
+  "command": "/usr/bin/cc  -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include/utils -g -g -o CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o -c /home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/utils/hash_table.c",
+  "file": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/utils/hash_table.c",
+  "output": "CMakeFiles/broadcastChat.dir/src/utils/hash_table.c.o"
+},
+{
+  "directory": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/out",
+  "command": "/usr/bin/cc  -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include/utils -g -g -o CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o -c /home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/utils/linkedlist.c",
+  "file": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/utils/linkedlist.c",
+  "output": "CMakeFiles/broadcastChat.dir/src/utils/linkedlist.c.o"
+},
+{
+  "directory": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/out",
+  "command": "/usr/bin/cc  -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include/utils -g -g -o CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o -c /home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/utils/net_utils_tcp.c",
+  "file": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/utils/net_utils_tcp.c",
+  "output": "CMakeFiles/broadcastChat.dir/src/utils/net_utils_tcp.c.o"
+},
+{
+  "directory": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/out",
+  "command": "/usr/bin/cc  -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include/utils -g -g -o CMakeFiles/broadcastChat.dir/src/utils/queue.c.o -c /home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/utils/queue.c",
+  "file": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/utils/queue.c",
+  "output": "CMakeFiles/broadcastChat.dir/src/utils/queue.c.o"
+},
+{
+  "directory": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/out",
+  "command": "/usr/bin/cc  -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include -I/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/include/utils -g -g -o CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o -c /home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/utils/service_utils.c",
+  "file": "/home/heyuser/Desktop/CmyMessage/services/2_Broadcast-chat/src/utils/service_utils.c",
+  "output": "CMakeFiles/broadcastChat.dir/src/utils/service_utils.c.o"
+}
+]

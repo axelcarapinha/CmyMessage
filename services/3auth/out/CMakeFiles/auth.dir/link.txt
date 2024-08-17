@@ -1,1 +1,0 @@
-/usr/bin/cc  -pthread CMakeFiles/auth.dir/src/main.c.o CMakeFiles/auth.dir/src/utils/auth_utils.c.o -o auth/auth 

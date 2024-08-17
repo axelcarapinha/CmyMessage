@@ -1,8 +1,4 @@
 # CmyMessage
-A server made in _C_ with multiple services.
-⚠️ In progress!
-The main purpose of this was passed to another project: _Lexigraph_.
-
 
 <!-- TABLE OF CONTENTS -->
 <details>
@@ -27,25 +23,29 @@ The main purpose of this was passed to another project: _Lexigraph_.
 
 <!-- ABOUT THE PROJECT -->
 ## About the project
-A server made in _C_, with multiple services, such as a BroadcastChat, FTP, and more to come! It's a way of applying the knowledge of the Computer Networks' class to a considerably broader coding architecture and extension of topics.
+Concurrent servers made in _C_: a simplified FTP[^1] server and a broadcast chat,<br/>
+both made upon a layer of abstration of mine,<br/>
+and aiming to foster and apply the knowledge of Computer Networks and Operating Systems courses.<br/>
 
-▶️ Curious? Click <a href="#results">HERE</a> for video demonstrations!
+▶️ Curious? Click <a href="https://youtu.be/v7n3sTKgzqM">here</a> for video demonstration!
 
 <!-- HOW TO START IT -->
 ## Getting started
 ### Prerequisites
-⚠️ In progress!
-
-### Installation 
-⚠️ In progress!
+- C programming language
+- C compiler (gcc, for example)
+- Make
 
 ## Usage
-⚠️ In progress!
+```bash
+cd 1_FTP # for example
+make
+```
 
 ## Results
 <a href="https://youtu.be/v7n3sTKgzqM">FTP concurrent service (simple implementation)</a>
 
-## What I learned until now!
+## What I learned more about!
 Had fun knowing more about:
 * C programming language
   * careful memory management
@@ -59,7 +59,6 @@ Had fun knowing more about:
 * Networking
   * IPv4 mapped-addresses, dual stack network
   * Bloom filters and routing tables
-  * 
 * Information security practices
   * Input sanitization
   * Forms of AUTH (and its fragilities)
@@ -71,7 +70,7 @@ Had fun knowing more about:
 ## Plan / Roadmap 
 ✅ = implemented <br />
 🛠️ = in process... <br />
-🔁 = being applied to _Lexigraph_ (another project) <br />
+🔁 = being applied to <a href="https://github.com/axelcarapinha/Lexigraph">_Lexigraph_</a> (another project) <br />
 
 - Plan the architecture / structure of the code ✅
 - Simple connection ✅
@@ -99,3 +98,6 @@ Had fun knowing more about:
     - Consider using shared object files for shared code
     - Server setup and configuration (probably in an Azure VM) 🔁
     - Documentation of the code 🔁
+
+## Footnotes
+[^1:] File transfer Protocol
