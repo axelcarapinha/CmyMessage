@@ -23,7 +23,8 @@
 
 <!-- ABOUT THE PROJECT -->
 ## About the project
-Concurrent servers made in _C_: a simplified FTP[^1] server and a broadcast chat,<br/>
+Concurrent servers made in _C_: a simplified <a href="https://www.rfc-editor.org/rfc/rfc959">File transfer Protocol<a/>
+server and a broadcast chat,<br/>
 both made upon a layer of abstration of mine,<br/>
 and aiming to foster and apply the knowledge of Computer Networks and Operating Systems courses.<br/>
 
@@ -43,7 +44,11 @@ make
 ```
 
 ## Results
-<a href="https://youtu.be/v7n3sTKgzqM">FTP concurrent service (simple implementation)</a>
+- Simplified FTP service (<a href="https://youtu.be/v7n3sTKgzqM">here</a>)
+- Broadcast Chat (<a href="https://www.youtube.com/watch?v=_FiXoDS4TtU">here</a>)
+- Common layer of abstraction (<a href="">here</a>)
+
+https://www.youtube.com/watch?v=_FiXoDS4TtU&list=PLg2QGjEYh2JA3MHilWrZN3onc1rdP3udf&index=1
 
 ## What I learned more about!
 Had fun knowing more about:
@@ -71,6 +76,7 @@ Had fun knowing more about:
 ✅ = implemented <br />
 🛠️ = in process... <br />
 🔁 = being applied to <a href="https://github.com/axelcarapinha/Lexigraph">_Lexigraph_</a> (another project) <br />
+🔁 = being applied with <a href="https://github.com/axelcarapinha/CTFs">CTFs</a><br />
 
 - Plan the architecture / structure of the code ✅
 - Simple connection ✅
@@ -98,6 +104,3 @@ Had fun knowing more about:
     - Consider using shared object files for shared code
     - Server setup and configuration (probably in an Azure VM) 🔁
     - Documentation of the code 🔁
-
-## Footnotes
-[^1:] File transfer Protocol
