@@ -11,14 +11,13 @@
       <a href="#getting-started">Getting Started</a>
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
+        <li><a href="#usage">Installation</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
     <li><a href="#results">Results</a></li>
     <li><a href="#folder-structure">Folder structure</a></li>
     <li><a href="#what-i-learned">What I learned until now!</a></li>
-    <li><a href="#plan-/-roadmap">Plan / Roadmap</a></li>
+    <li><a href="#roadmap">Plan / Roadmap</a></li>
   </ol>
 </details>
 
@@ -29,7 +28,7 @@ server and a broadcast chat,<br/>
 both made upon a layer of abstration of mine,<br/>
 and aiming to foster and apply the knowledge of Computer Networks and Operating Systems courses.<br/>
 
-▶️ Curious? Click <a href="https://youtu.be/v7n3sTKgzqM">here</a> for video demonstration!
+▶️ Curious? Click <a href="#results">here</a> for video demonstrations!
 
 <!-- HOW TO START IT -->
 ## Getting started
@@ -40,6 +39,7 @@ and aiming to foster and apply the knowledge of Computer Networks and Operating 
 
 ## Usage
 ```bash
+git clone https://github.com/axelcarapinha/CmyMessage.git
 cd 1_FTP # for example
 make
 ```
@@ -162,7 +162,7 @@ Had fun knowing more about:
 * Cmake (build system generator)
 * Software architecture 
 
-## Plan / Roadmap 
+## Roadmap 
 ✅ = implemented <br />
 ❌ = not prioritized<br />
 🔵 = being applied to <a href="https://github.com/axelcarapinha/Lexigraph">_Lexigraph_</a> (another project) <br />
